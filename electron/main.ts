@@ -504,8 +504,15 @@ async function command(name: string, payload: any): Promise<Reply> {
     case "settings": {
       const next = settingsSchema.parse(payload);
       if (next.baseURL !== state.settings.baseURL) await saveSecret("");
+      if (next.launchAtLogin !== state.settings.launchAtLogin) {
+        if (!app.isPackaged && next.launchAtLogin)
+          throw Error(
+            "Tampil saat login tersedia pada Bito.app yang sudah dipaketkan.",
+          );
+        if (app.isPackaged)
+          app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
+      }
       state.settings = next;
-      app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
       pet?.setAlwaysOnTop(next.alwaysOnTop);
       chat?.setAlwaysOnTop(next.alwaysOnTop);
       if (pet) {
