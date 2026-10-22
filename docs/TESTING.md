@@ -41,3 +41,16 @@ Gunakan aplikasi Electron, bukan browser preview. Simpan pekerjaan lain sebelum 
 ## Bukti tes otomatis
 
 `npm test` menjalankan tes logika desktop dan mock HTTP server lokal untuk Responses API. Ini tidak membuktikan kualitas model AI sungguhan atau kelancaran di semua OS. Build GitHub Actions membuktikan packaging masing-masing runner, bukan pemeriksaan visual Windows.
+
+
+## Onboarding 0.2
+
+Gunakan `BITO_DATA_DIR` ke folder sementara baru agar data pengguna tetap utuh. Variabel ini juga memisahkan profil Electron dan single-instance lock.
+
+1. Buka onboarding, isi nama; pastikan bubble dan karakter muncul, kata terungkap, mulut bergerak lalu berhenti. Klik bubble untuk skip dan periksa mulut berhenti.
+2. Pilih ketiga kepribadian cepat bergantian; hanya kalimat terbaru yang terungkap. Navigasi kembali mempertahankan input.
+3. Di langkah 3, baca petunjuk. Drag pendek lalu lepas di dalam: Bito kembali ke slot; chat tidak terbuka. Drag keluar sampai pusat karakter melewati tepi jendela lalu lepas: slot kosong dan onboarding fade lalu tertutup; hanya satu Bito tersisa.
+4. Klik Bito setelah selesai: chat normal terbuka. Klik kanan → Settings → Tentang kamu → Ulangi perkenalan. Tutup perkenalan sebelum selesai: posisi/ukuran sebelumnya dipulihkan.
+5. Coba “Pindahkan tanpa menyeret”, reduced motion, resize/move/minimize onboarding, dan monitor dengan skala berbeda. Windows perlu diuji langsung; CI build tidak menguji kelancaran gesture native.
+
+Verifikasi lokal 0.2: layout dua panel dan bicara saat reveal teramati di macOS; drop di dalam serta perpindahan keluar diuji dengan profil sementara. Pengguna juga mengonfirmasi alur sudah aman. Frame rate belum diukur secara kuantitatif.

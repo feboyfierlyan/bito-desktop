@@ -8,10 +8,12 @@ let preview: Snapshot = {
   busy: false,
   chatOpen: true,
   dragging: false,
+  presentation: undefined,
 };
 const listeners = new Set<(s: Snapshot) => void>();
 function emit() {
-  localStorage.setItem("bito-preview", JSON.stringify(preview));
+  const { presentation: _temporary, ...saved } = preview;
+  localStorage.setItem("bito-preview", JSON.stringify(saved));
   listeners.forEach((fn) => fn({ ...preview }));
 }
 const fallback: BitoAPI = {
@@ -28,12 +30,23 @@ const fallback: BitoAPI = {
   contextMenu() {},
   toggleChat() {},
   async command(name, p: any) {
+    if (name === "onboarding-speech") {
+      preview.presentation = {
+        phase: "anchored",
+        step: preview.onboardingStep,
+        characterReady: true,
+        ...preview.presentation,
+        talking: p,
+      };
+    }
+    if (name === "onboarding-arm" && preview.presentation)
+      preview.presentation.phase = "ready";
     if (name === "onboarding") {
       preview = {
         ...preview,
         profile: p.profile,
         onboardingStep: p.step,
-        onboarded: p.complete,
+        onboarded: preview.onboarded,
       };
       if (p.complete) location.search = "?surface=chat";
     }

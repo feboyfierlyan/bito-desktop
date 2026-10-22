@@ -39,6 +39,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { api, isDesktop } from "./bridge";
 import { Character } from "./Character";
+import { Onboarding } from "./Onboarding";
 import { isDrag, remaining } from "../electron/core";
 import type { Snapshot, Profile, Settings, Message } from "./shared";
 import "./style.css";
@@ -113,7 +114,11 @@ export default function App() {
         ? "reduced"
         : "full";
     }
-  }, [route, state?.settings.reducedTransparency]);
+  }, [
+    route,
+    state?.settings.reducedTransparency,
+    state?.settings.reducedMotion,
+  ]);
   useEffect(() => {
     if (!error) return;
     const timer = setTimeout(() => setError(""), 6500);
@@ -129,8 +134,7 @@ export default function App() {
         <Pet state={state} />
       ) : route === "chat" ? (
         <Chat state={state} act={act} />
-      ) : (route === "onboarding" && !state.onboarded) ||
-        route === "welcome" ? (
+      ) : route === "onboarding" || route === "welcome" ? (
         <Onboarding
           key={route}
           state={state}
@@ -166,6 +170,8 @@ type Act = (
   payload?: unknown,
 ) => Promise<{ ok: boolean; error?: string; value?: unknown }>;
 function Pet({ state }: { state: Snapshot }) {
+  const latest = useRef(state);
+  latest.current = state;
   const pointer = useRef<{
     x: number;
     y: number;
@@ -173,7 +179,7 @@ function Pet({ state }: { state: Snapshot }) {
     pointerId: number;
   } | null>(null);
   useEffect(() => {
-    const move = (e: PointerEvent) => {
+    const move = (e: MouseEvent) => {
       if (pointer.current) return;
       const w = innerWidth,
         h = innerHeight;
@@ -185,29 +191,39 @@ function Pet({ state }: { state: Snapshot }) {
         (y > 0.8 && y < 0.94 && x > 0.25 && x < 0.75);
       api.setHit(hit);
     };
-    window.addEventListener("pointermove", move);
+    window.addEventListener("mousemove", move);
     window.addEventListener("blur", cancel);
     function cancel() {
+      if (latest.current.presentation && pointer.current?.drag) return;
       if (pointer.current?.drag) api.dragEnd();
       pointer.current = null;
     }
     return () => {
-      window.removeEventListener("pointermove", move);
+      window.removeEventListener("mousemove", move);
       window.removeEventListener("blur", cancel);
     };
   }, []);
   return (
     <div
-      className={`pet ${state.dragging ? "dragging" : ""}`}
+      className={`pet ${state.dragging ? "dragging" : ""} ${state.presentation ? "presenting" : ""} ${state.presentation?.phase === "ready" ? "ready" : ""}`}
       role="button"
-      aria-label="Bito: klik untuk chat, seret untuk memindahkan"
+      aria-label={
+        state.presentation
+          ? "Bito: tahan dan seret keluar jendela untuk mulai"
+          : "Bito: klik untuk chat, seret untuk memindahkan"
+      }
       tabIndex={0}
       onKeyDown={(e) => {
+        if (state.presentation) return;
         if (e.key === "Enter" || e.key === " ") api.toggleChat();
         if (e.key === "ContextMenu") api.contextMenu();
       }}
       onPointerDown={(e) => {
-        if (e.button !== 0) return;
+        if (
+          e.button !== 0 ||
+          (state.presentation && state.presentation.phase !== "ready")
+        )
+          return;
         pointer.current = {
           x: e.screenX,
           y: e.screenY,
@@ -233,12 +249,12 @@ function Pet({ state }: { state: Snapshot }) {
         pointer.current = null;
         if (!p) return;
         if (p.drag) api.dragEnd();
-        else api.toggleChat();
+        else if (!state.presentation) api.toggleChat();
         if (e.currentTarget.hasPointerCapture(e.pointerId))
           e.currentTarget.releasePointerCapture(e.pointerId);
       }}
       onPointerCancel={() => {
-        if (pointer.current?.drag) api.dragEnd();
+        if (pointer.current?.drag) void api.command("drag-cancel");
         pointer.current = null;
       }}
       onContextMenu={(e) => {
@@ -246,204 +262,13 @@ function Pet({ state }: { state: Snapshot }) {
         api.contextMenu();
       }}
     >
-      <Character state={state} />
+      <Character
+        state={state}
+        onReady={() => {
+          void api.command("character-ready");
+        }}
+      />
     </div>
-  );
-}
-function Onboarding({
-  state,
-  act,
-  restart = false,
-}: {
-  state: Snapshot;
-  act: Act;
-  restart?: boolean;
-}) {
-  const [step, setStep] = useState(restart ? 0 : state.onboardingStep),
-    [profile, setProfile] = useState<Profile>(state.profile),
-    [goal, setGoal] = useState(state.profile.goal || "Tugas akhir");
-  const update = (p: Partial<Profile>) => setProfile({ ...profile, ...p });
-  const next = async () => {
-    const result = await act("onboarding", {
-      step: Math.min(2, step + 1),
-      profile: { ...profile, goal },
-      complete: step === 2,
-    });
-    if (result.ok) setStep(Math.min(2, step + 1));
-  };
-  return (
-    <main className="onboarding">
-      <div className="onboard-top">
-        <span className="wordmark">
-          bito<span>●</span>
-        </span>
-        <span>Teman untuk langkah kecilmu.</span>
-      </div>
-      <div className="onboard-content">
-        <div className="onboard-character">
-          <Character state={state} large />
-        </div>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.section
-            key={step}
-            className="onboard-step"
-            initial={{ opacity: 0, y: 12, filter: "blur(3px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -8, filter: "blur(3px)" }}
-            transition={{ duration: 0.22 }}
-          >
-            <p className="eyebrow">
-              {
-                ["SENANG BISA KENAL", "SEDIKIT TENTANG KAMU", "RUMAH BARUKU"][
-                  step
-                ]
-              }
-            </p>
-            <h1>
-              {step === 0
-                ? "Hai, aku Bito."
-                : step === 1
-                  ? `Lagi mengerjakan apa, ${profile.name}?`
-                  : "Aku akan menemanimu di sini."}
-            </h1>
-            <p className="lead">
-              {step === 0
-                ? "Teman kecil di desktopmu. Untuk ide yang belum ketemu, tugas yang terasa berat, dan langkah kecil berikutnya."
-                : step === 1
-                  ? "Biar bantuanku terasa lebih pas. Semuanya bisa kamu ubah nanti."
-                  : "Pindahkan aku ke tempat yang nyaman. Aku ada saat kamu butuh."}
-            </p>
-            {step === 0 && (
-              <label className="name-field">
-                Aku boleh panggil kamu siapa?
-                <input
-                  autoFocus
-                  placeholder="Nama panggilanmu"
-                  value={profile.name}
-                  maxLength={40}
-                  onChange={(e) => update({ name: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && profile.name.trim()) void next();
-                  }}
-                />
-              </label>
-            )}
-            {step === 1 && (
-              <div className="personalize">
-                <div className="chips">
-                  {[
-                    "Tugas akhir",
-                    "Menjaga fokus",
-                    "Mengatur hari",
-                    "Teman bekerja",
-                  ].map((g) => (
-                    <button
-                      key={g}
-                      className={goal === g ? "selected" : ""}
-                      onClick={() => {
-                        setGoal(g);
-                        update({ goal: g });
-                      }}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-                <input
-                  aria-label="Proyek yang sedang dikerjakan"
-                  placeholder={`Ceritakan sedikit tentang ${goal.toLowerCase()}mu (opsional)`}
-                  value={profile.project}
-                  onChange={(e) => update({ project: e.target.value })}
-                />
-                <div className="style-options">
-                  {(["warm", "calm", "direct"] as const).map((v, i) => (
-                    <button
-                      key={v}
-                      onClick={() => update({ style: v })}
-                      className={profile.style === v ? "selected" : ""}
-                    >
-                      <strong>{["Hangat", "Tenang", "Langsung"][i]}</strong>
-                      <small>
-                        {
-                          [
-                            "“Pelan-pelan, kita mulai bareng.”",
-                            "“Satu hal dulu. Aku temani.”",
-                            "“Kita pecah jadi tiga langkah.”",
-                          ][i]
-                        }
-                      </small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {step === 2 && (
-              <div className="how-to">
-                <div>
-                  <MousePointer2 />
-                  <span>
-                    <strong>Klik sekali</strong>
-                    <small>Ngobrol di sebelah kananku</small>
-                  </span>
-                </div>
-                <div>
-                  <Move />
-                  <span>
-                    <strong>Seret</strong>
-                    <small>Pindahkan aku, tanpa membuka chat</small>
-                  </span>
-                </div>
-                <div>
-                  <MoreHorizontal />
-                  <span>
-                    <strong>Klik kanan</strong>
-                    <small>Fokus, pengingat, dan pengaturan</small>
-                  </span>
-                </div>
-                <label className="proactive">
-                  Boleh menyapa duluan?
-                  <select
-                    value={profile.proactive}
-                    onChange={(e) =>
-                      update({
-                        proactive: e.target.value as Profile["proactive"],
-                      })
-                    }
-                  >
-                    <option value="on-demand">Hanya saat dipanggil</option>
-                    <option value="sometimes">Sesekali, dengan lembut</option>
-                    <option value="quiet">Mode tenang</option>
-                  </select>
-                </label>
-              </div>
-            )}
-          </motion.section>
-        </AnimatePresence>
-      </div>
-      <footer className="onboard-bottom">
-        <div className="progress" aria-label={`Langkah ${step + 1} dari 3`}>
-          {[0, 1, 2].map((i) => (
-            <span key={i} className={i === step ? "active" : ""} />
-          ))}
-        </div>
-        <div>
-          {step > 0 && (
-            <button className="text-button" onClick={() => setStep(step - 1)}>
-              <ArrowLeft size={16} /> Kembali
-            </button>
-          )}
-          <button
-            className="primary"
-            disabled={!profile.name.trim()}
-            onClick={() => void next()}
-          >
-            {["Kenalan, yuk", "Lanjutkan", "Mulai bersama Bito"][step]}
-            <ArrowRight size={17} />
-          </button>
-        </div>
-        <p>Pribadi, tenang, dan selalu bisa kamu atur.</p>
-      </footer>
-    </main>
   );
 }
 function Chat({ state, act }: { state: Snapshot; act: Act }) {
@@ -1022,7 +847,7 @@ function Studio({
         <button className="sidebar-chat" onClick={() => void act("show-chat")}>
           <MessageCircle size={17} /> Kembali ngobrol <ArrowRight size={15} />
         </button>
-        <small className="version">Bito 0.1 · Dibuat untuk menemani</small>
+        <small className="version">Bito 0.2 · Dibuat untuk menemani</small>
       </aside>
       <section className="settings-content">
         <div className="settings-heading">

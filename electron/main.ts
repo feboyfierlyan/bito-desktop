@@ -14,6 +14,13 @@ import {
 } from "electron";
 import { join, resolve } from "node:path";
 import { readFile, writeFile, unlink, mkdir } from "node:fs/promises";
+import { mkdirSync } from "node:fs";
+import {
+  anchorBounds,
+  droppedOutside,
+  easePosition,
+  type Rect,
+} from "../src/handoff";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import OpenAI from "openai";
@@ -32,6 +39,10 @@ import {
 import type { AppState, Snapshot, Reply, Message } from "../src/shared";
 
 app.setName("Bito");
+if (process.env.BITO_DATA_DIR) {
+  mkdirSync(process.env.BITO_DATA_DIR, { recursive: true });
+  app.setPath("userData", process.env.BITO_DATA_DIR);
+}
 const dev = process.env.BITO_DEV_URL;
 let store: Store,
   state: AppState,
@@ -47,6 +58,16 @@ let secret = "",
   dragOrigin: { x: number; y: number } | null = null,
   dragChatOrigin: { x: number; y: number } | null = null,
   abort: AbortController | null = null;
+type Presentation = NonNullable<Snapshot["presentation"]>;
+let characterReady = false;
+let onboarding: {
+  view: Presentation;
+  slot?: Rect;
+  originalBounds?: Rect;
+  originalVisible: boolean;
+} | null = null;
+let movement: ReturnType<typeof setInterval> | undefined;
+let dragWatch: ReturnType<typeof setTimeout> | undefined;
 let chatHide: ReturnType<typeof setTimeout> | undefined;
 const dataPath = () => process.env.BITO_DATA_DIR || app.getPath("userData");
 const credentialPath = () => join(dataPath(), "credentials.bin");
@@ -57,6 +78,7 @@ const snapshot = (): Snapshot => ({
   busy,
   dragging,
   chatOpen,
+  presentation: onboarding?.view,
 });
 function publish() {
   const next = snapshot();
@@ -105,6 +127,7 @@ const preferences = () => ({
   sandbox: true,
 });
 function createPet() {
+  characterReady = false;
   const area = screen.getPrimaryDisplay().workArea;
   const size = petSize();
   const p = state.position
@@ -133,7 +156,19 @@ function createPet() {
   });
   pet.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
   pet.setIgnoreMouseEvents(true, { forward: true });
-  pet.once("ready-to-show", () => pet?.showInactive());
+  pet.webContents.on("before-mouse-event", (_event, mouse) => {
+    if (
+      mouse.type === "mouseUp" &&
+      mouse.button === "left" &&
+      onboarding &&
+      dragging
+    )
+      endDrag();
+  });
+  pet.once("ready-to-show", () => {
+    if (!onboarding) pet?.showInactive();
+    else positionAnchor();
+  });
   load(pet, "pet");
   pet.on("closed", () => (pet = null));
 }
@@ -147,6 +182,10 @@ function alignChat() {
   state.position = layout.pet;
 }
 function showChat() {
+  if (onboarding) {
+    studio?.show();
+    return;
+  }
   if (!state.onboarded) {
     showStudio("onboarding");
     return;
@@ -201,28 +240,232 @@ function hideChat() {
     state.settings.reducedMotion ? 0 : 180,
   );
 }
+function beginPresentation() {
+  if (onboarding) return;
+  hideChat();
+  onboarding = {
+    view: {
+      phase: "anchored",
+      talking: false,
+      characterReady,
+      step: state.onboardingStep,
+    },
+    originalBounds: pet?.getBounds(),
+    originalVisible: !!pet?.isVisible(),
+  };
+  pet?.hide();
+  if (!pet) createPet();
+  pet!.setFocusable(false);
+  pet!.setAlwaysOnTop(true);
+  pet!.setIgnoreMouseEvents(true, { forward: true });
+  publish();
+}
+function positionAnchor() {
+  if (
+    !onboarding?.slot ||
+    !studio ||
+    !pet ||
+    !["anchored", "ready"].includes(onboarding.view.phase)
+  )
+    return;
+  const bounds = anchorBounds(
+    onboarding.slot,
+    studio.getContentBounds(),
+    studio.webContents.getZoomFactor(),
+  );
+  pet.setBounds(bounds);
+  if (pet.getParentWindow() !== studio) pet.setParentWindow(studio);
+  if (characterReady && studio.isVisible()) pet.showInactive();
+}
+function tweenPet(target: Rect, done: () => void) {
+  clearInterval(movement);
+  if (!pet) {
+    done();
+    return;
+  }
+  const from = pet.getBounds(),
+    start = Date.now();
+  const duration = state.settings.reducedMotion ? 0 : 280;
+  const frame = () => {
+    const progress = duration
+      ? Math.min(1, (Date.now() - start) / duration)
+      : 1;
+    if (pet && !pet.isDestroyed()) {
+      const p = easePosition(from, target, progress);
+      if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
+        try {
+          pet.setBounds({ x: p.x || 0, y: p.y || 0 });
+        } catch (error) {
+          clearInterval(movement);
+          console.error("Unable to position Bito", error);
+          return;
+        }
+      }
+    }
+    if (progress === 1) {
+      clearInterval(movement);
+      movement = undefined;
+      done();
+    }
+  };
+  if (!duration) frame();
+  else movement = setInterval(frame, 1000 / 60);
+}
+function cancelPresentation() {
+  if (!onboarding) return;
+  const session = onboarding;
+  onboarding = null;
+  clearInterval(movement);
+  clearTimeout(dragWatch);
+  dragging = false;
+  dragOrigin = null;
+  dragChatOrigin = null;
+  if (pet) {
+    pet.setParentWindow(null);
+    pet.setFocusable(true);
+    pet.setAlwaysOnTop(state.settings.alwaysOnTop);
+    if (session.originalBounds) pet.setBounds(session.originalBounds);
+    if (state.onboarded && session.originalVisible) pet.showInactive();
+    else pet.hide();
+    pet.setIgnoreMouseEvents(true, { forward: true });
+  }
+  publish();
+}
+function returnToAnchor() {
+  if (!onboarding || !studio || !pet || !onboarding.slot) return;
+  onboarding.view.phase = "returning";
+  onboarding.view.talking = false;
+  pet.setIgnoreMouseEvents(true, { forward: true });
+  publish();
+  tweenPet(
+    anchorBounds(
+      onboarding.slot,
+      studio.getContentBounds(),
+      studio.webContents.getZoomFactor(),
+    ),
+    () => {
+      if (!onboarding || !pet || !studio) return;
+      onboarding.view.phase = "ready";
+      pet.setFocusable(true);
+      pet.setIgnoreMouseEvents(false);
+      pet.setParentWindow(studio);
+      positionAnchor();
+      publish();
+    },
+  );
+}
+function finishPresentation() {
+  if (!onboarding || !studio || !pet) return;
+  onboarding.view.phase = "departing";
+  onboarding.view.talking = false;
+  pet.setParentWindow(null);
+  // Keep the exact viewport size at handoff: no canvas resize or Rive restart.
+  state.settings.size = pet.getBounds().width - 32;
+  state.onboarded = true;
+  state.onboardingStep = 2;
+  state.sleeping = false;
+  pet.setFocusable(true);
+  pet.setAlwaysOnTop(true);
+  pet.setIgnoreMouseEvents(true, { forward: true });
+  const b = pet.getBounds();
+  const point = clampPosition(
+    b.x,
+    b.y,
+    b.width,
+    screen.getDisplayMatching(b).workArea,
+  );
+  state.position = point;
+  persist();
+  tweenPet({ ...b, ...point }, () => {});
+  const closing = studio,
+    start = Date.now();
+  const duration = state.settings.reducedMotion ? 0 : 280;
+  const fade = setInterval(() => {
+    const progress = duration
+      ? Math.min(1, (Date.now() - start) / duration)
+      : 1;
+    if (!closing.isDestroyed()) closing.setOpacity(1 - progress);
+    if (progress === 1) {
+      clearInterval(fade);
+      if (onboarding?.view.phase !== "departing") return;
+      onboarding = null;
+      if (pet && !pet.isDestroyed())
+        pet.setAlwaysOnTop(state.settings.alwaysOnTop);
+      if (!closing.isDestroyed()) closing.close();
+      publish();
+    }
+  }, 1000 / 60);
+}
+function endDrag(cancel = false) {
+  clearTimeout(dragWatch);
+  dragging = false;
+  dragOrigin = null;
+  dragChatOrigin = null;
+  if (onboarding) {
+    if (onboarding.view.phase !== "dragging") return;
+    if (
+      !cancel &&
+      pet &&
+      studio &&
+      droppedOutside(pet.getBounds(), studio.getBounds())
+    )
+      finishPresentation();
+    else returnToAnchor();
+  } else {
+    recoverPosition();
+    publish();
+  }
+}
 function showStudio(route: string) {
+  const welcome = route === "onboarding" || route === "welcome";
+  if (onboarding?.view.phase === "departing") return;
+  if (!welcome) cancelPresentation();
+  if (welcome) beginPresentation();
   if (studio) {
+    if (welcome) studio.setSize(1040, 740);
     studio.show();
     studio.focus();
     studio.webContents.send("bito:route", route);
     void studio.webContents.executeJavaScript(
       `window.dispatchEvent(new CustomEvent('bito-route',{detail:${JSON.stringify(route)}}))`,
     );
+    positionAnchor();
     return;
   }
   studio = new BrowserWindow({
-    width: 880,
-    height: 760,
-    minWidth: 700,
-    minHeight: 660,
+    width: welcome ? 1040 : 880,
+    height: 740,
+    minWidth: welcome ? 820 : 700,
+    minHeight: 620,
     backgroundColor: "#ffffff",
     title: "Bito",
     show: false,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     webPreferences: preferences(),
   });
-  studio.once("ready-to-show", () => studio?.show());
+  studio.once("ready-to-show", () => {
+    studio?.show();
+    positionAnchor();
+  });
+  studio.webContents.on("before-mouse-event", (_event, mouse) => {
+    if (
+      mouse.type === "mouseUp" &&
+      mouse.button === "left" &&
+      onboarding &&
+      dragging
+    )
+      endDrag();
+  });
+  studio.on("move", positionAnchor);
+  studio.on("resize", positionAnchor);
+  studio.on("hide", () => {
+    if (onboarding && ["anchored", "ready"].includes(onboarding.view.phase))
+      pet?.hide();
+  });
+  studio.on("show", positionAnchor);
+  studio.on("close", () => {
+    if (onboarding?.view.phase !== "departing") cancelPresentation();
+  });
   load(studio, route);
   studio.on("closed", () => (studio = null));
 }
@@ -243,6 +486,7 @@ function addReminder(title: string, due: number) {
   persist();
 }
 function contextMenu() {
+  if (onboarding) return;
   Menu.buildFromTemplate([
     { label: "Buka percakapan", click: showChat },
     {
@@ -489,14 +733,77 @@ async function command(name: string, payload: any): Promise<Reply> {
         .parse(payload);
       state.profile = p.profile;
       state.onboardingStep = p.step;
-      if (p.complete) {
-        state.onboarded = true;
-        persist();
-        studio?.close();
-        if (!pet) createPet();
-      } else persist();
+      if (p.complete)
+        throw Error(
+          "Seret Bito keluar jendela untuk menyelesaikan perkenalan.",
+        );
+      if (onboarding && onboarding.view.step !== p.step) {
+        onboarding.view.step = p.step;
+        onboarding.view.phase = "anchored";
+        onboarding.view.talking = false;
+      }
+      persist();
       break;
     }
+    case "onboarding-anchor": {
+      const rect = z
+        .object({
+          x: z.number().finite().min(0).max(5000),
+          y: z.number().finite().min(0).max(5000),
+          width: z.number().min(162).max(292),
+          height: z.number().min(162).max(292),
+        })
+        .parse(payload);
+      if (Math.abs(rect.width - rect.height) > 1)
+        throw Error("Invalid character viewport");
+      if (onboarding) {
+        onboarding.slot = rect;
+        positionAnchor();
+      }
+      break;
+    }
+    case "onboarding-speech":
+      if (onboarding) {
+        onboarding.view.talking = z.boolean().parse(payload) && !dragging;
+        publish();
+      }
+      break;
+    case "onboarding-arm":
+      if (
+        onboarding?.view.step === 2 &&
+        characterReady &&
+        onboarding.view.phase === "anchored"
+      ) {
+        onboarding.view.phase = "ready";
+        pet?.setFocusable(true);
+        pet?.setIgnoreMouseEvents(false);
+        publish();
+      }
+      break;
+    case "onboarding-keyboard": {
+      if (onboarding?.view.phase !== "ready" || !pet || !studio) break;
+      const area = screen.getDisplayMatching(studio.getBounds()).workArea;
+      const b = pet.getBounds(),
+        host = studio.getBounds();
+      const left = host.x - b.width / 2 - 24;
+      const right = host.x + host.width - b.width / 2 + 24;
+      const target = left >= area.x ? left : right;
+      // Same native window and completion path as pointer handoff.
+      onboarding.view.phase = "dragging";
+      pet.setParentWindow(null);
+      publish();
+      tweenPet({ ...b, x: Math.round(target) }, () => finishPresentation());
+      break;
+    }
+    case "character-ready":
+      characterReady = true;
+      if (onboarding) onboarding.view.characterReady = true;
+      positionAnchor();
+      publish();
+      break;
+    case "drag-cancel":
+      endDrag(true);
+      break;
     case "profile":
       state.profile = profileSchema.parse(payload);
       persist();
@@ -727,6 +1034,10 @@ async function command(name: string, payload: any): Promise<Reply> {
 }
 function recoverPosition() {
   if (!pet) return;
+  if (onboarding) {
+    positionAnchor();
+    return;
+  }
   const b = pet.getBounds();
   const area = screen.getDisplayMatching(b).workArea;
   const p = clampPosition(b.x, b.y, b.width, area);
@@ -743,7 +1054,18 @@ function registerIPC() {
   ipcMain.handle("bito:command", async (event, name, payload) => {
     if (!owned(event)) return { ok: false, error: "Unauthorized" };
     try {
-      return await command(z.string().max(60).parse(name), payload);
+      const parsed = z.string().max(60).parse(name);
+      if (
+        (parsed === "onboarding" || parsed.startsWith("onboarding-")) &&
+        event.sender.id !== studio?.webContents.id
+      )
+        throw Error("Unauthorized");
+      if (
+        ["character-ready", "drag-cancel"].includes(parsed) &&
+        event.sender.id !== pet?.webContents.id
+      )
+        throw Error("Unauthorized");
+      return await command(parsed, payload);
     } catch (e) {
       return {
         ok: false,
@@ -758,10 +1080,14 @@ function registerIPC() {
   });
   ipcMain.on("bito:hit", (event, hit) => {
     if (event.sender.id === pet?.webContents.id && !dragging)
-      pet.setIgnoreMouseEvents(!hit, { forward: true });
+      pet.setIgnoreMouseEvents(
+        onboarding ? onboarding.view.phase !== "ready" : !hit,
+        { forward: true },
+      );
   });
   ipcMain.on("bito:toggle", (event) => {
-    if (event.sender.id !== pet?.webContents.id || dragging) return;
+    if (event.sender.id !== pet?.webContents.id || dragging || onboarding)
+      return;
     chatOpen ? hideChat() : showChat();
   });
   ipcMain.on("bito:menu", (event) => {
@@ -769,6 +1095,14 @@ function registerIPC() {
   });
   ipcMain.on("bito:drag-start", (event) => {
     if (event.sender.id !== pet?.webContents.id || !pet) return;
+    const beforeDetach = pet.getBounds();
+    if (onboarding) {
+      if (onboarding.view.phase !== "ready") return;
+      onboarding.view.phase = "dragging";
+      onboarding.view.talking = false;
+      pet.setParentWindow(null);
+      pet.setBounds(beforeDetach);
+    }
     const b = pet.getBounds();
     dragOrigin = { x: b.x, y: b.y };
     dragChatOrigin =
@@ -776,6 +1110,8 @@ function registerIPC() {
         ? { x: chat.getBounds().x, y: chat.getBounds().y }
         : null;
     dragging = true;
+    clearTimeout(dragWatch);
+    dragWatch = setTimeout(() => endDrag(true), 45000);
     pet.setIgnoreMouseEvents(false);
     publish();
   });
@@ -790,8 +1126,8 @@ function registerIPC() {
     )
       return;
     pet.setPosition(
-      Math.round(dragOrigin.x + dx),
-      Math.round(dragOrigin.y + dy),
+      Math.round(dragOrigin.x + dx) || 0,
+      Math.round(dragOrigin.y + dy) || 0,
     );
     if (chatOpen && chat && dragChatOrigin) {
       chat.setPosition(
@@ -801,12 +1137,8 @@ function registerIPC() {
     }
   });
   ipcMain.on("bito:drag-end", (event) => {
-    if (event.sender.id !== pet?.webContents.id) return;
-    dragging = false;
-    dragOrigin = null;
-    dragChatOrigin = null;
-    recoverPosition();
-    publish();
+    if (event.sender.id !== pet?.webContents.id || !dragging) return;
+    endDrag();
   });
 }
 function tick() {
@@ -916,7 +1248,8 @@ if (!app.requestSingleInstanceLock()) {
     quitting = true;
     abort?.abort();
     if (state && store) {
-      if (pet) state.position = { x: pet.getBounds().x, y: pet.getBounds().y };
+      if (pet && !onboarding)
+        state.position = { x: pet.getBounds().x, y: pet.getBounds().y };
       store.save(state);
       store.close();
     }

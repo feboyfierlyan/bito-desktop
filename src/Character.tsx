@@ -5,22 +5,29 @@ RuntimeLoader.setWasmUrl(new URL("rive.wasm", window.location.href).href);
 export function Character({
   state,
   large = false,
+  onReady,
 }: {
   state: Snapshot;
   large?: boolean;
+  onReady?: () => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null),
     instance = useRef<Rive | null>(null);
   const latest = useRef(state);
   latest.current = state;
+  const readyCallback = useRef(onReady);
+  readyCallback.current = onReady;
   const [ready, setReady] = useState(false),
     [error, setError] = useState(false);
   const apply = () => {
     const vm = (instance.current as any)?.viewModelInstance;
     if (!vm) return;
     const s = latest.current;
+    const presenting = !!s.presentation;
     const talking =
-      s.busy && !!s.messages.at(-1)?.text && !s.settings.reducedMotion;
+      (presenting
+        ? s.presentation!.talking
+        : s.busy && !!s.messages.at(-1)?.text) && !s.settings.reducedMotion;
     const set = (name: string, value: boolean) => {
       try {
         const p = vm.boolean(name);
@@ -28,10 +35,16 @@ export function Character({
       } catch {}
     };
     set("isDragging", s.dragging);
-    set("isSleeping", s.sleeping && !s.dragging);
-    set("isThinking", s.busy && !talking && !s.sleeping && !s.dragging);
-    set("isFocusing", s.focus.running && !s.sleeping && !s.dragging);
-    set("isTalking", talking && !s.sleeping && !s.dragging);
+    set("isSleeping", !presenting && s.sleeping && !s.dragging);
+    set(
+      "isThinking",
+      !presenting && s.busy && !talking && !s.sleeping && !s.dragging,
+    );
+    set(
+      "isFocusing",
+      !presenting && s.focus.running && !s.sleeping && !s.dragging,
+    );
+    set("isTalking", talking && (presenting || !s.sleeping) && !s.dragging);
   };
   useEffect(() => {
     let alive = true;
@@ -50,6 +63,7 @@ export function Character({
         timer = setTimeout(() => {
           if (alive) {
             setReady(true);
+            readyCallback.current?.();
             try {
               (r as any).viewModelInstance?.trigger("wave")?.trigger();
             } catch {}
@@ -74,6 +88,9 @@ export function Character({
     state.dragging,
     state.sleeping,
     state.focus.running,
+    state.presentation?.talking,
+    !!state.presentation,
+    state.settings.reducedMotion,
     !!state.messages.at(-1)?.text,
   ]);
   useEffect(() => {

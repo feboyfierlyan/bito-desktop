@@ -56,6 +56,12 @@ export type Snapshot = AppState & {
   busy: boolean;
   chatOpen: boolean;
   dragging: boolean;
+  presentation?: {
+    phase: "anchored" | "ready" | "dragging" | "returning" | "departing";
+    talking: boolean;
+    characterReady: boolean;
+    step: number;
+  };
   surface?: string;
 };
 export type Reply = { ok: boolean; error?: string; value?: unknown };

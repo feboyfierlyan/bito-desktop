@@ -7,7 +7,7 @@ Aplikasi companion desktop untuk Windows dan macOS. Karakter Rive yang bisa dise
 Folder proyek: `bito-desktop`.
 
 1. Klik dua kali **Jalankan Bito.command**, atau buka **release/mac-arm64/Bito.app** setelah build lokal tersedia.
-2. Pada pemakaian pertama, isi nama → konteks dan gaya bicara → cara berinteraksi. Jika onboarding sudah pernah selesai saat pengujian, buka Settings → Tentang kamu → Ulangi perkenalan.
+2. Pada pemakaian pertama, isi nama → pilih gaya bicara → tahan dan seret Bito keluar jendela onboarding ke desktop. Jika onboarding sudah pernah selesai saat pengujian, buka Settings → Tentang kamu → Ulangi perkenalan.
 3. Seret karakter untuk memindahkannya. Melepas drag tidak membuka chat.
 4. Klik sekali untuk membuka/menutup chat di kanan Bito.
 5. Klik kanan untuk fokus, pengingat, istirahat, Settings, sembunyikan, atau keluar.
@@ -47,7 +47,8 @@ Hasil ada di `release/`: Mac `.dmg` dan `.zip`, Windows installer `.exe`. `npm r
 
 ## Yang sudah diimplementasikan
 
-- Onboarding tiga langkah dengan nama, konteks proyek, tujuan, gaya komunikasi dan frekuensi sapaan; progres tersimpan.
+- Onboarding dua panel dalam tiga langkah: nama, kartu kepribadian, dan perkenalan desktop. Bubble abu-abu dengan ekor seperti iMessage, reveal per kata, dan animasi bicara Rive yang mengikuti reveal.
+- Bito memakai satu jendela transparan dan satu instance Rive selama onboarding sampai desktop. Lepas di luar jendela untuk selesai; lepas di dalam untuk kembali lembut. Tersedia alternatif tanpa menyeret. Progres tersimpan; konteks proyek dapat diisi di Settings.
 - Bito Rive asli: drag, thinking, fokus, tidur; prioritas aktivitas ditentukan aplikasi.
 - Jendela karakter transparan dan chat terpisah, penempatan di kanan, pemulihan posisi setelah perubahan monitor.
 - Chat biru–putih: Markdown, kode, tabel, tautan, salin, simpan catatan, lampiran teks, respons streaming, hentikan, coba lagi.
@@ -64,7 +65,7 @@ Hasil ada di `release/`: Mac `.dmg` dan `.zip`, Windows installer `.exe`. `npm r
 
 - **Bukan agent kontrol desktop bebas.** Tidak mengklik aplikasi lain, menjalankan shell, mengirim email, atau mengakses semua file secara otomatis. Bantuan dokumen menggunakan file yang dipilih sendiri; hasil bisa disimpan melalui dialog native.
 - Lampiran saat ini berupa teks `.txt`, `.md`, `.csv`, `.json`, `.log`, maksimal 192 KB; konteks yang dikirim dibatasi 48.000 karakter. PDF/DOCX dan OCR belum diimplementasikan.
-- Belum ada voice/TTS dan lip-sync suara. Animasi `isTalking` dipakai saat teks jawaban mengalir; ini gerakan karakter untuk teks, bukan sinkronisasi suara.
+- Belum ada voice/TTS dan lip-sync suara. Animasi `isTalking` dipakai saat bubble onboarding terungkap dan teks jawaban mengalir; ini gerakan karakter untuk teks, bukan sinkronisasi suara.
 - Chat memakai permukaan putih transparan dengan fallback solid. Blur terhadap wallpaper/aplikasi lain lewat material native OS belum diimplementasikan; `backdrop-filter` hanya bekerja pada konten jendela.
 - Pengingat berbunyi saat Bito berjalan. Setelah dibuka lagi, pengingat terlewat diperiksa. Tidak ada layanan penjadwal sistem yang berjalan setelah aplikasi keluar.
 - Sapaan opsional maksimal satu per jam ketika tidak sibuk/fokus/tidur/chat. Penjadwalan jam tenang khusus belum ada; tersedia Jangan Ganggu dan mode hanya saat dipanggil.

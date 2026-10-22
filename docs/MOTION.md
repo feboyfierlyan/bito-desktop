@@ -18,8 +18,13 @@ Implementasi ini terinspirasi prinsip tersebut, bukan komponen Apple atau replik
 - **Lepas drag:** tidak meneruskan gesture sebagai klik. Posisi dijepit ke area kerja monitor dan disimpan.
 - **Chat:** opacity, pergeseran horizontal 12 px, skala 0.965 → 1; origin di sisi karakter. Spring awal stiffness 420, damping 36, mass 0.85. Parameter ini pilihan desain Bito, bukan angka resmi Apple.
 - **Tutup/buka cepat:** pending hide dibatalkan saat dibuka kembali; kontrol tetap dapat dipakai selama animasi. Jendela disembunyikan setelah transisi tutup singkat.
-- **Onboarding:** 220 ms fade dengan pergeseran 12 px dan blur tipis. Karakter tetap pada satu lokasi agar mata tidak mencari ulang.
-- **Progres:** titik aktif memanjang; perubahan memperlihatkan posisi langkah.
+- **Onboarding:** dua panel putih. Konten kanan berganti lewat fade dan pergeseran 14 px selama 180 ms; karakter tidak berpindah antar langkah.
+- **Bubble:** kapsul abu-abu dengan ekor melengkung kiri bawah mengikuti referensi pengguna. Muncul opacity + skala 0.94 → 1 selama 280 ms dari arah ekor. Kata ditampilkan dengan fade 160 ms, tempo 105–195 ms ditambah jeda tanda baca. Seluruh kalimat sudah menempati layout sejak awal agar bubble tidak melompat saat reveal. Klik bubble menampilkan sisa kalimat seketika.
+- **Bicara:** `isTalking=true` selama reveal, false pada akhir, skip, pergantian kalimat, unmount, atau drag. Reduced motion menampilkan teks langsung tanpa bicara buatan.
+- **Progres:** tiga segmen biru di atas panel kanan, dengan navigasi kembali/maju.
+- **Keluar ke desktop:** native pet window sudah berada di atas slot kiri sejak awal. Setelah siap, jendela menangkap gesture; dilepas dari parent saat drag dimulai tanpa mengubah bounds. Drop dihitung dari pusat viewport karakter di luar bounds onboarding. Ukuran canvas 282 DIP tetap sama saat selesai dan disimpan sebagai ukuran desktop. Onboarding fade 280 ms lalu ditutup; tidak membuat ulang pet atau Rive.
+- **Batal/tepi layar:** drop di dalam atau pointer cancel mengembalikan karakter ke anchor dengan cubic ease-out 280 ms. Drop di tepi layar dirapikan dengan gerakan yang sama. Mouse-up ditangani di main process dan renderer untuk mencegah gesture tertinggal saat menyeberang jendela. Koordinat negative zero dinormalisasi sebelum melewati batas native.
+- **Alternatif:** “Pindahkan tanpa menyeret” memakai jendela dan jalur penyelesaian yang sama. Reduced motion melewati tween dan fade.
 - **Tab:** garis penanda mengikuti tab terpilih memakai layout animation; isi memakai fade singkat.
 - **Pesan baru:** 180 ms, 8 px ke atas dan skala 0.98 → 1. Teks streaming tidak dianimasikan huruf demi huruf secara buatan.
 - **Scroll:** mengikuti jawaban hanya saat pembaca berada dalam 90 px dari bawah. Membaca pesan lama tidak direbut auto-scroll.

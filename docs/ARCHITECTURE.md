@@ -29,3 +29,10 @@ Rive memegang animasi karakter. UI memetakan aktivitas ke ViewModel1. Drag menga
 Vite membangun renderer. esbuild membundel main/preload menjadi CJS. electron-builder membuat paket. GitHub Actions membangun macOS dan Windows secara terpisah dan menyimpan artefak privat.
 
 Belum ada sertifikat distribusi/notarization, server Bito, sinkronisasi cloud, crash reporting atau auto-update. Jangan menyebut prototype ini telah teruji produksi. Pengujian manusia di kedua OS dan evaluasi mahasiswa tetap diperlukan.
+
+
+## Onboarding handoff (0.2)
+
+`src/Onboarding.tsx` mengukur slot canvas, mengelola form tiga langkah, dan mengirim batas slot dalam koordinat content CSS. `src/handoff.ts` memetakan ke DIP native serta menghitung drop dan interpolasi posisi. Main process hanya menerima perintah onboarding dari studio; readiness dan pembatalan gesture hanya dari pet.
+
+Sesi presentation bersifat sementara, tidak masuk SQLite. Satu pet window/Rive dipanaskan sebelum tampil lalu di-anchor sebagai child studio. Pada langkah ketiga window menjadi interaktif. Saat drag parent dilepas dengan bounds yang sama; saat drop berhasil profil, ukuran, dan posisi disimpan sebelum studio fade/close. Pembatalan perkenalan mengembalikan bounds/visibility sebelumnya. Render teks tidak mengirim IPC per kata: hanya start/stop bicara. Aset Rive dan canvas tetap hidup pada perpindahan.
