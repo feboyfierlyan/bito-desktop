@@ -1,0 +1,84 @@
+{
+  "name": "bito-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bito — a thoughtful desktop companion",
+  "author": "Bito Project",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "preview": "vite --host 127.0.0.1",
+    "postinstall": "node scripts/assets.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/build-main.mjs",
+    "start": "electron .",
+    "test": "tsx --test tests/*.test.ts",
+    "check": "tsc --noEmit",
+    "package": "npm run build && electron-builder --publish never",
+    "package:dir": "npm run build && electron-builder --dir --publish never"
+  },
+  "dependencies": {
+    "@rive-app/canvas": "2.45.0",
+    "lucide-react": "^0.468.0",
+    "motion": "^12.23.0",
+    "openai": "^6.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "45.0.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "8.3.5"
+  },
+  "build": {
+    "appId": "id.bito.companion",
+    "productName": "Bito",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": false,
+      "identity": null,
+      "icon": "public/icon.png"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "icon": "public/icon.png"
+    }
+  },
+  "type": "module"
+}

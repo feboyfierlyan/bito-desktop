@@ -1,0 +1,13 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.env*
+!.env.example
+*.log
+.DS_Store
+test-results/
+*.sqlite*
+credentials.bin
+public/rive.wasm
+playwright-report/
