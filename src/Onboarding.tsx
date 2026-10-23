@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { ArrowLeft, ArrowRight, ArrowUp, Move } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { api, isDesktop } from "./bridge";
 import { Character } from "./Character";
 import { Bubble } from "./Bubble";
 import { bubbleReveal } from "./bubble-motion";
 import { wordDelay } from "./handoff";
+import { conversationTiming, ConversationCadence } from "./onboarding-cadence";
 import type { Profile, Snapshot, Reply } from "./shared";
 import "./Onboarding.css";
 
@@ -14,40 +15,53 @@ const personalities = [
   {
     value: "warm",
     title: "Hangat",
-    example: "Pelan-pelan juga nggak apa-apa. Kita mulai bareng, ya?",
+    example:
+      "Oke, aku akan jadi teman yang hangat. Kita jalan pelan-pelan bareng, ya.",
   },
   {
     value: "calm",
     title: "Tenang",
-    example: "Satu hal dulu. Tarik napas, aku di sini menemanimu.",
+    example:
+      "Oke, aku akan menemanimu dengan tenang. Satu hal dulu, tanpa buru-buru.",
   },
   {
     value: "direct",
     title: "Langsung",
-    example: "Pilih satu tugas. Kita pecah jadi langkah kecil, lalu mulai.",
+    example:
+      "Siap. Aku akan bicara singkat, jelas, dan langsung bantu kamu menentukan langkah berikutnya.",
   },
 ] as const;
 
 function SpeechBubble({
   text,
   ready,
+  active,
   reduced,
   onTalking,
   onDone,
+  delay = 0,
 }: {
   text: string;
   ready: boolean;
+  active: boolean;
   reduced: boolean;
   onTalking: (talking: boolean) => void;
   onDone: () => void;
+  delay?: number;
 }) {
   const words = text.split(/\s+/),
-    [count, setCount] = useState(0);
+    [count, setCount] = useState(active ? 0 : words.length);
+  const [entered, setEntered] = useState(!active);
   const callbacks = useRef({ onTalking, onDone });
   callbacks.current = { onTalking, onDone };
-  const skip = useRef<() => void>(() => {});
   useEffect(() => {
+    if (!active) {
+      setCount(words.length);
+      setEntered(true);
+      return;
+    }
     setCount(0);
+    setEntered(false);
     if (!ready) return;
     let timer: ReturnType<typeof setTimeout>,
       finished = false,
@@ -58,15 +72,14 @@ function SpeechBubble({
       finished = true;
       clearTimeout(timer);
       setCount(tokens.length);
+      setEntered(true);
       callbacks.current.onTalking(false);
       callbacks.current.onDone();
     };
-    skip.current = finish;
     if (reduced) {
       finish();
       return;
     }
-    callbacks.current.onTalking(true);
     const reveal = () => {
       if (finished) return;
       setCount(++index);
@@ -75,25 +88,35 @@ function SpeechBubble({
         wordDelay(tokens[index - 1]),
       );
     };
-    timer = setTimeout(reveal, 170);
+    timer = setTimeout(() => {
+      setEntered(true);
+      callbacks.current.onTalking(true);
+      timer = setTimeout(reveal, 110);
+    }, delay);
     return () => {
       finished = true;
       clearTimeout(timer);
       callbacks.current.onTalking(false);
-      skip.current = () => {};
     };
-  }, [text, ready, reduced]);
+  }, [text, ready, active, reduced, delay]);
   const variants = bubbleReveal("bito", reduced);
+  variants.surface.exit = {
+    scaleX: reduced ? 1 : 0.32,
+    scaleY: reduced ? 1 : 0.82,
+    transition: { duration: reduced ? 0 : 0.2 },
+  };
+  variants.content.exit = {
+    opacity: 0,
+    transition: { duration: reduced ? 0 : 0.08 },
+  };
   return (
-    <motion.button
-      type="button"
+    <motion.div
+      role="article"
       aria-label={text}
-      title="Klik untuk menampilkan seluruh kalimat"
-      onClick={() => skip.current()}
       className="setup-speech bubble-shell bubble-shell-bito"
       variants={variants.shell}
       initial="hidden"
-      animate={ready ? "visible" : "hidden"}
+      animate={entered && (ready || !active) ? "visible" : "hidden"}
       exit="exit"
     >
       <motion.span
@@ -117,7 +140,7 @@ function SpeechBubble({
           </span>
         ))}
       </motion.span>
-    </motion.button>
+    </motion.div>
   );
 }
 
@@ -132,24 +155,78 @@ export function Onboarding({
 }) {
   const [step, setStep] = useState(restart ? 0 : state.onboardingStep);
   const [profile, setProfile] = useState<Profile>(state.profile);
-  const [styleTouched, setStyleTouched] = useState(false);
-  const [submittedReply, setSubmittedReply] = useState<string | null>(null);
-  const submitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
+  type Turn = {
+    id: string;
+    side: "bito" | "user";
+    text: string;
+    step: number;
+    kind?: "ack" | "instruction";
+  };
+  const name = profile.name.trim();
+  const style = personalities.find((p) => p.value === profile.style)!;
+  const helloId = `hello:${name}`;
+  const ackId = `ack:${style.value}`;
+  const instructionId = `instruction:${style.value}`;
+  const [instructionStyle, setInstructionStyle] = useState<string | null>(null);
+  const [activeTurn, setActiveTurn] = useState<string | null>(() =>
+    step === 0 ? "intro" : step === 1 ? helloId : ackId,
   );
+  const [replay, setReplay] = useState({ id: activeTurn, revision: 0 });
+  const [turnRevisions, setTurnRevisions] = useState<Record<string, number>>(
+    {},
+  );
+  const [direction, setDirection] = useState(1);
+  const [responseStep, setResponseStep] = useState(step);
+  const cadence = useRef(new ConversationCadence());
+  const speechOwner = useRef<string | null>(null);
+  const replayRevision = useRef(0);
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  const turns: Turn[] = [
+    {
+      id: "intro",
+      side: "bito",
+      text: "Aku boleh panggil kamu siapa?",
+      step: 0,
+    },
+    { id: `name:${name}`, side: "user", text: name, step: 1 },
+    {
+      id: helloId,
+      side: "bito",
+      text: `Senang kenal kamu, ${name}. Mau aku jadi teman ngobrol yang seperti apa?`,
+      step: 1,
+    },
+    { id: `choice:${style.value}`, side: "user", text: style.title, step: 2 },
+    { id: ackId, side: "bito", text: style.example, step: 2, kind: "ack" },
+    {
+      id: instructionId,
+      side: "bito",
+      text: "Tahan aku, lalu seret keluar jendela ini. Kita mulai di desktop!",
+      step: 2,
+      kind: "instruction",
+    },
+  ];
+  const visibleTurns = turns.filter(
+    (turn) =>
+      turn.step <= step &&
+      (turn.side !== "bito" || turn.step < step || responseStep === step) &&
+      (turn.kind !== "instruction" || instructionStyle === style.value),
+  );
+  const pointer = useRef<{ x: number; y: number; drag: boolean } | null>(null);
   const submitting = useRef(false),
     alive = useRef(true);
   useEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
-      clearTimeout(submitTimer.current);
+      cadence.current.cancel();
     };
   }, []);
   const [saving, setSaving] = useState(false),
     [localReady, setLocalReady] = useState(false);
   const slot = useRef<HTMLButtonElement>(null);
   const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const restartInitialized = useRef(false);
   const latestAct = useRef(act);
   latestAct.current = act;
   const osReduced = useReducedMotion();
@@ -158,14 +235,6 @@ export function Onboarding({
   const phase = state.presentation?.phase || "anchored";
   const leaving = ["dragging", "returning", "departing"].includes(phase);
   const armed = phase === "ready";
-  const line =
-    step === 0
-      ? "Aku boleh panggil kamu siapa?"
-      : step === 1
-        ? styleTouched
-          ? personalities.find((p) => p.value === profile.style)!.example
-          : `Senang kenal kamu, ${profile.name.trim()}. Mau aku jadi teman ngobrol yang seperti apa?`
-        : "Tahan aku, lalu seret keluar jendela ini. Kita mulai di desktop!";
   const heading = [
     {
       title: "Hai, aku Bito.",
@@ -183,7 +252,8 @@ export function Onboarding({
   ][step];
 
   useEffect(() => {
-    if (restart)
+    if (restart && !restartInitialized.current) {
+      restartInitialized.current = true;
       void latestAct.current("onboarding", {
         step: 0,
         profile: {
@@ -192,6 +262,7 @@ export function Onboarding({
         },
         complete: false,
       });
+    }
   }, []);
   useEffect(() => {
     let frame = 0;
@@ -218,66 +289,94 @@ export function Onboarding({
       observer.disconnect();
       window.removeEventListener("resize", measure);
       clearTimeout(armTimer.current);
+      cadence.current.cancel();
       void api.command("onboarding-speech", false);
     };
   }, []);
   useEffect(() => {
     clearTimeout(armTimer.current);
-  }, [step, line]);
-  const moveStep = async (next: number, asReply = false) => {
+  }, [step, activeTurn]);
+  useEffect(() => {
+    if (leaving) cadence.current.cancel();
+  }, [leaving]);
+  const queueInstruction = () => {
+    cadence.current.schedule(
+      reduced ? 0 : conversationTiming.nextMessage,
+      () => {
+        if (!alive.current || stepRef.current !== 2) return;
+        setInstructionStyle(style.value);
+        setActiveTurn(instructionId);
+      },
+    );
+  };
+  const moveStep = async (next: number) => {
     if (
       submitting.current ||
-      saving ||
       leaving ||
-      !profile.name.trim() ||
       next < 0 ||
-      next > 2
+      next > 2 ||
+      (next > step && !profile.name.trim())
     )
       return;
     submitting.current = true;
     setSaving(true);
-    if (asReply)
-      setSubmittedReply(
-        step === 0
-          ? profile.name.trim()
-          : personalities.find((p) => p.value === profile.style)!.title,
-      );
+    clearTimeout(armTimer.current);
+    cadence.current.cancel();
     try {
       const result = await act("onboarding", {
         step: next,
-        profile: { ...profile, name: profile.name.trim() },
+        profile: {
+          ...profile,
+          name: profile.name.trim() || state.profile.name || "Teman",
+        },
         complete: false,
       });
-      if (result.ok) {
-        if (asReply && !reduced)
-          await new Promise<void>((resolve) => {
-            submitTimer.current = setTimeout(resolve, 380);
-          });
-        if (alive.current) {
-          setStyleTouched(false);
-          setStep(next);
+      if (result.ok && alive.current) {
+        const forward = next > step;
+        setDirection(forward ? 1 : -1);
+        speechOwner.current = null;
+        void api.command("onboarding-speech", false);
+        stepRef.current = next;
+        setStep(next);
+        const target = next === 0 ? "intro" : next === 1 ? helloId : ackId;
+        // Only the destination replays. Retained history keeps its identity.
+        if (next === 2) setInstructionStyle(null);
+        replayRevision.current += 1;
+        setReplay({ id: target, revision: replayRevision.current });
+        setTurnRevisions((previous) => ({
+          ...previous,
+          [target]: replayRevision.current,
+        }));
+        if (forward) {
+          // The user's message lands first; no invisible assistant row reserves
+          // space or pushes the conversation before Bito actually responds.
+          setResponseStep(-1);
+          setActiveTurn(null);
+          cadence.current.schedule(
+            reduced ? 0 : conversationTiming.reply,
+            () => {
+              if (!alive.current || stepRef.current !== next) return;
+              setResponseStep(next);
+              setActiveTurn(target);
+            },
+          );
+        } else {
+          setResponseStep(next);
+          setActiveTurn(target);
         }
       }
     } finally {
       submitting.current = false;
-      if (alive.current) {
-        setSaving(false);
-        setSubmittedReply(null);
-      }
+      if (alive.current) setSaving(false);
     }
   };
-  const speechDone = () => {
-    if (step !== 2 || !ready) return;
-    clearTimeout(armTimer.current);
-    armTimer.current = setTimeout(
-      () => {
-        void api.command("onboarding-arm");
-      },
-      reduced ? 0 : 350,
-    );
+  const speechDone = (turn: Turn, revision: number) => {
+    if (revision !== replayRevision.current || turn.id !== activeTurn) return;
+    setActiveTurn(null);
+    if (turn.kind === "ack" && stepRef.current === 2) queueInstruction();
   };
   const transition = {
-    duration: reduced ? 0 : 0.18,
+    duration: reduced ? 0 : 0.22,
     ease: [0.22, 1, 0.36, 1] as const,
   };
   return (
@@ -315,12 +414,18 @@ export function Onboarding({
       </nav>
       <div className="setup-layout">
         <header className="setup-heading">
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="sync" initial={false} custom={direction}>
             <motion.div
               key={step}
-              initial={{ opacity: 0, y: reduced ? 0 : 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: reduced ? 0 : -4 }}
+              custom={direction}
+              variants={{
+                enter: (d: number) => ({ opacity: 0, y: reduced ? 0 : d * 7 }),
+                show: { opacity: 1, y: 0 },
+                leave: (d: number) => ({ opacity: 0, y: reduced ? 0 : d * -7 }),
+              }}
+              initial="enter"
+              animate="show"
+              exit="leave"
               transition={transition}
             >
               <h1>{heading.title}</h1>
@@ -335,11 +440,43 @@ export function Onboarding({
           <button
             type="button"
             ref={slot}
-            aria-label={step < 2 ? "Sapa Bito" : "Bito siap diseret ke desktop"}
+            aria-label={
+              step < 2
+                ? "Sapa Bito"
+                : armed
+                  ? "Seret Bito ke desktop"
+                  : "Bito sedang bersiap"
+            }
             title={step < 2 ? "Sapa Bito" : undefined}
-            disabled={step === 2 || !ready}
+            disabled={!ready || phase === "returning" || phase === "departing"}
             onClick={() => {
               if (step < 2) void act("onboarding-wave");
+            }}
+            onPointerDown={(e) => {
+              if (step !== 2 || !armed || e.button !== 0) return;
+              e.preventDefault();
+              pointer.current = { x: e.screenX, y: e.screenY, drag: true };
+              e.currentTarget.setPointerCapture(e.pointerId);
+              api.dragStart();
+            }}
+            onPointerMove={(e) => {
+              const p = pointer.current;
+              if (!p) return;
+              const dx = e.screenX - p.x,
+                dy = e.screenY - p.y;
+              if (p.drag) api.dragMove(dx, dy);
+            }}
+            onPointerUp={(e) => {
+              if (e.button !== 0) return;
+              const p = pointer.current;
+              pointer.current = null;
+              if (p?.drag) api.dragEnd();
+              if (e.currentTarget.hasPointerCapture(e.pointerId))
+                e.currentTarget.releasePointerCapture(e.pointerId);
+            }}
+            onPointerCancel={() => {
+              if (pointer.current?.drag) void api.command("drag-cancel");
+              pointer.current = null;
             }}
             className={`setup-character ${armed ? "setup-character-ready" : ""}`}
           >
@@ -365,45 +502,113 @@ export function Onboarding({
             transition={{ duration: reduced ? 0 : 0.14 }}
             inert={leaving}
           >
-            <div className="setup-bubble-slot">
-              <AnimatePresence mode="wait" initial={false}>
-                <SpeechBubble
-                  key={`${step}:${line}`}
-                  text={line}
-                  ready={ready}
-                  reduced={reduced}
-                  onTalking={(value) => {
-                    void api.command("onboarding-speech", value);
-                  }}
-                  onDone={speechDone}
-                />
-              </AnimatePresence>
+            <div
+              className="setup-transcript"
+              role="log"
+              aria-label="Percakapan perkenalan"
+            >
+              <div className="setup-transcript-stack">
+                <AnimatePresence mode="sync" initial={false}>
+                  {visibleTurns.map((turn) => (
+                    <motion.div
+                      key={turn.id}
+                      className={`setup-turn setup-turn-${turn.side}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{
+                        height: {
+                          duration: reduced
+                            ? 0
+                            : conversationTiming.flow / 1000,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
+                        opacity: { duration: reduced ? 0 : 0.16 },
+                      }}
+                    >
+                      <div className="setup-turn-content">
+                        {turn.side === "bito" ? (
+                          <div className="setup-speech-replay">
+                            <AnimatePresence mode="sync">
+                              <SpeechBubble
+                                key={`${turn.id}:${turnRevisions[turn.id] || 0}`}
+                                text={turn.text}
+                                ready={ready}
+                                active={turn.id === activeTurn}
+                                reduced={reduced}
+                                delay={
+                                  direction < 0 && turn.id === replay.id
+                                    ? conversationTiming.reverseReveal
+                                    : 0
+                                }
+                                onTalking={(value) => {
+                                  const owner = `${turn.id}:${replay.revision}`;
+                                  if (
+                                    value &&
+                                    turn.id === activeTurn &&
+                                    replay.revision === replayRevision.current
+                                  ) {
+                                    speechOwner.current = owner;
+                                    void api.command("onboarding-speech", true);
+                                  } else if (
+                                    !value &&
+                                    speechOwner.current === owner
+                                  ) {
+                                    speechOwner.current = null;
+                                    void api.command(
+                                      "onboarding-speech",
+                                      false,
+                                    );
+                                  }
+                                }}
+                                onDone={() => speechDone(turn, replay.revision)}
+                              />
+                            </AnimatePresence>
+                          </div>
+                        ) : (
+                          <Bubble
+                            side="user"
+                            className="setup-user-reply"
+                            reduced={reduced}
+                          >
+                            {turn.text}
+                          </Bubble>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             </div>
             <div className="setup-reply-slot">
-              <AnimatePresence mode="wait" initial={false}>
+              <AnimatePresence mode="sync" initial={false} custom={direction}>
                 <motion.div
                   key={step}
                   className="setup-reply"
-                  initial={{ opacity: 0, y: reduced ? 0 : 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: reduced ? 0 : -4 }}
+                  custom={direction}
+                  variants={{
+                    enter: (d: number) => ({
+                      opacity: 0,
+                      y: reduced ? 0 : d * 7,
+                    }),
+                    show: { opacity: 1, y: 0, pointerEvents: "auto" },
+                    leave: (d: number) => ({
+                      opacity: 0,
+                      y: reduced ? 0 : d * -7,
+                      pointerEvents: "none",
+                    }),
+                  }}
+                  initial="enter"
+                  animate="show"
+                  exit="leave"
                   transition={transition}
                 >
-                  {submittedReply && (
-                    <Bubble
-                      side="user"
-                      className="setup-user-reply"
-                      reduced={reduced}
-                    >
-                      {submittedReply}
-                    </Bubble>
-                  )}
-                  {step === 0 && !submittedReply && (
+                  {step === 0 && (
                     <form
                       className="setup-composer"
                       onSubmit={(e) => {
                         e.preventDefault();
-                        void moveStep(1, true);
+                        void moveStep(1);
                       }}
                     >
                       <input
@@ -429,7 +634,7 @@ export function Onboarding({
                       </motion.button>
                     </form>
                   )}
-                  {step === 1 && !submittedReply && (
+                  {step === 1 && (
                     <div className="setup-choice-reply">
                       <div
                         className="setup-choices"
@@ -449,7 +654,6 @@ export function Onboarding({
                                 ...previous,
                                 style: p.value,
                               }));
-                              setStyleTouched(true);
                             }}
                             whileTap={reduced ? undefined : { scale: 0.95 }}
                           >
@@ -473,27 +677,11 @@ export function Onboarding({
                         aria-label="Lanjut dengan gaya ini"
                         title="Lanjut"
                         disabled={saving}
-                        onClick={() => void moveStep(2, true)}
+                        onClick={() => void moveStep(2)}
                         whileTap={reduced ? undefined : { scale: 0.89 }}
                       >
                         <ArrowUp size={19} strokeWidth={2.6} />
                       </motion.button>
-                    </div>
-                  )}
-                  {step === 2 && (
-                    <div className="setup-desktop-reply">
-                      {isDesktop && (
-                        <motion.button
-                          className="setup-desktop-action"
-                          aria-label="Pindahkan Bito ke desktop tanpa menyeret"
-                          title="Pindahkan tanpa menyeret"
-                          disabled={!armed}
-                          onClick={() => void act("onboarding-keyboard")}
-                          whileTap={reduced ? undefined : { scale: 0.92 }}
-                        >
-                          <Move size={18} />
-                        </motion.button>
-                      )}
                     </div>
                   )}
                 </motion.div>

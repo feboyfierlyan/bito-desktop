@@ -857,7 +857,7 @@ function Studio({
         <button className="sidebar-chat" onClick={() => void act("show-chat")}>
           <MessageCircle size={17} /> Kembali ngobrol <ArrowRight size={15} />
         </button>
-        <small className="version">Bito 0.3 · Dibuat untuk menemani</small>
+        <small className="version">Bito 0.4 · Dibuat untuk menemani</small>
       </aside>
       <section className="settings-content">
         <div className="settings-heading">

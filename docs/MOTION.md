@@ -11,22 +11,22 @@
 
 Implementasi ini terinspirasi prinsip tersebut, bukan komponen Apple atau replika native Liquid Glass.
 
-## Gerakan yang diterapkan
+## Gerakan yang diterapkan (checkpoint 0.4)
 
 - **Press:** kontrol langsung memberi feedback skala 0.97; tidak ada delay klik buatan.
 - **Drag:** gerakan ≥6 px mengubah gesture menjadi drag; posisi native mengikuti pointer. Tidak ada tween posisi saat drag karena akan tertinggal dari tangan. Pointer capture mempertahankan gesture. Pointer cancel/blur mengakhiri drag.
 - **Lepas drag:** tidak meneruskan gesture sebagai klik. Posisi dijepit ke area kerja monitor dan disimpan.
 - **Chat:** opacity, pergeseran horizontal 12 px, skala 0.965 → 1; origin di sisi karakter. Spring awal stiffness 420, damping 36, mass 0.85. Parameter ini pilihan desain Bito, bukan angka resmi Apple.
 - **Tutup/buka cepat:** pending hide dibatalkan saat dibuka kembali; kontrol tetap dapat dipakai selama animasi. Jendela disembunyikan setelah transisi tutup singkat.
-- **Onboarding 0.3:** satu komposisi terpusat: progres di atas, satu title/description, Bito di kiri bubble, input atau pill tepat di bawah bubble. Tidak ada panel terpisah, footer, eyebrow, kartu, atau label tambahan. Konten berganti lewat fade/pergeseran 5 px selama 180 ms; slot karakter tetap.
-- **Bubble:** kapsul abu-abu dengan ekor melengkung kiri bawah mengikuti referensi pengguna. Permukaannya memanjang dari ekor (scaleX 0.32 → 1; scaleY 0.82 → 1), sementara shell berotasi ringan ±3.5° → 0° memakai spring stiffness 430/damping 30/mass 0.8. Surface memakai stiffness 470/damping 31/mass 0.7. Teks adalah lapisan terpisah agar tidak meregang. Ini interpretasi Bito atas gerakan iMessage, bukan implementasi native Apple. Kata ditampilkan dengan fade 160 ms, tempo 105–195 ms ditambah jeda tanda baca. Seluruh kalimat sudah menempati layout sejak awal agar bubble tidak melompat saat reveal. Klik bubble menampilkan sisa kalimat seketika.
-- **Bicara:** `isTalking=true` selama reveal, false pada akhir, skip, pergantian kalimat, unmount, atau drag. Reduced motion menampilkan teks langsung tanpa bicara buatan.
+- **Onboarding 0.3:** satu komposisi terpusat: progres di atas, satu title/description, Bito di kiri bubble, input atau pill tepat di bawah bubble. Tidak ada panel terpisah, footer, eyebrow, kartu, atau label tambahan. Judul dan input memakai crossfade/pergeseran terarah 7 px selama 220 ms; slot karakter tetap. Riwayat berjangkar di bawah dengan perubahan tinggi 380 ms, bukan dua animasi posisi yang terpisah.
+- **Bubble:** kapsul abu-abu dengan ekor melengkung kiri bawah mengikuti referensi pengguna. Permukaannya memanjang dari ekor (scaleX 0.32 → 1; scaleY 0.82 → 1), tanpa rotasi, memakai spring stiffness 430/damping 30/mass 0.8. Surface memakai stiffness 470/damping 31/mass 0.7. Teks adalah lapisan terpisah agar tidak meregang. Ini interpretasi Bito atas gerakan iMessage, bukan implementasi native Apple. Kata ditampilkan dengan fade 160 ms, tempo 105–195 ms ditambah jeda tanda baca. Seluruh kalimat sudah menempati layout sejak awal agar bubble tidak melompat saat reveal. Bubble hanya untuk dibaca: tanpa skip, tooltip, atau cursor klik.
+- **Bicara:** `isTalking=true` selama reveal, false pada akhir, pergantian kalimat, unmount, atau drag. Reduced motion menampilkan teks langsung tanpa bicara buatan.
 - **Progres:** tiga segmen abu-abu di tengah atas dengan navigasi kembali/maju. Aksi kirim input memakai lingkaran biru.
-- **Keluar ke desktop:** native pet window sudah berada di atas slot kiri sejak awal. Setelah siap, jendela menangkap gesture; dilepas dari parent saat drag dimulai tanpa mengubah bounds. Drop dihitung dari pusat viewport karakter di luar bounds onboarding. Ukuran canvas 282 DIP tetap sama saat selesai dan disimpan sebagai ukuran desktop. Onboarding fade 280 ms lalu ditutup; tidak membuat ulang pet atau Rive.
+- **Keluar ke desktop:** native pet window sudah berada di atas slot kiri sejak awal. Permukaan onboarding menangkap gesture; jendela karakter tetap mouse-pass-through. parent dilepas dari parent saat drag dimulai tanpa mengubah bounds. Drop dihitung dari pusat viewport karakter di luar bounds onboarding. Ukuran canvas 282 DIP tetap sama saat selesai dan disimpan sebagai ukuran desktop. Onboarding fade 280 ms lalu ditutup; tidak membuat ulang pet atau Rive.
 - **Batal/tepi layar:** drop di dalam atau pointer cancel mengembalikan karakter ke anchor dengan cubic ease-out 280 ms. Drop di tepi layar dirapikan dengan gerakan yang sama. Mouse-up ditangani di main process dan renderer untuk mencegah gesture tertinggal saat menyeberang jendela. Koordinat negative zero dinormalisasi sebelum melewati batas native.
-- **Alternatif:** tombol ikon pindah di bawah bubble langkah 3 (label aksesibel “Pindahkan Bito ke desktop tanpa menyeret”) memakai jendela dan jalur penyelesaian yang sama. Reduced motion melewati tween dan fade.
+- **Langkah 3:** selesai lewat drag karakter langsung, tanpa tombol pindah manual atau outline karakter. Reduced motion melewati tween dan fade.
 - **Tab:** garis penanda mengikuti tab terpilih memakai layout animation; isi memakai fade singkat.
-- **Pesan baru:** memakai reveal permukaan, rotasi, dan spring yang sama untuk Bito/pengguna, dengan origin berlawanan sesuai ekor bubble. Isi tampil melalui fade singkat, terpisah dari scale permukaan. Dimensi bubble mengikuti streaming dengan layout transition 200 ms; teks streaming tidak diberi penundaan per huruf. Pesan yang sudah terlihat tidak mengulang entrance ketika membuka chat/tab.
+- **Pesan baru:** memakai reveal permukaan tanpa rotasi dan spring yang sama untuk Bito/pengguna, dengan origin berlawanan sesuai ekor bubble. Isi tampil melalui fade singkat, terpisah dari scale permukaan. Dimensi bubble mengikuti streaming dengan layout transition 200 ms; teks streaming tidak diberi penundaan per huruf. Pesan yang sudah terlihat tidak mengulang entrance ketika membuka chat/tab.
 - **Scroll:** mengikuti jawaban hanya saat pembaca berada dalam 90 px dari bawah. Membaca pesan lama tidak direbut auto-scroll.
 - **Composer:** fokus menambah ring biru lembut; textarea tumbuh hingga batas sebelum scroll internal.
 - **Thinking:** tiga titik berurutan; status teks menyertai animasi sehingga makna tidak hanya bergantung pada gerak.
@@ -44,4 +44,6 @@ Implementasi ini terinspirasi prinsip tersebut, bukan komponen Apple atau replik
 
 
 - **Wave:** klik/Enter pada Bito di langkah 1–2 mengirim trigger Rive `wave`, dengan guard karakter siap dan cooldown 650 ms. Langkah 3 khusus drag; klik tidak mengirim wave.
-- **Balasan onboarding:** kirim nama/pilihan memberi bubble biru selama satu entrance singkat (380 ms), lalu melanjutkan langkah. Reduced motion melewati entrance dan jeda ini. Teks yang terlihat hanya title, description, percakapan, dan kontrol balasan.
+- **Balasan onboarding:** kirim nama/pilihan memberi bubble biru, kemudian Bito membalas setelah 340 ms. Respons gaya bicara selesai sebelum jeda 360 ms menuju petunjuk drag. Mundur menyusutkan pesan berikutnya dan menampilkan ulang reveal pesan tujuan setelah 180 ms. Pesan lama yang dipertahankan tidak ikut di-remount. Reduced motion melewati entrance dan jeda ini. Teks yang terlihat hanya title, description, percakapan, dan kontrol balasan.
+
+- **Mata:** pupil native mengikuti cursor pada langkah 1–2 via kanal gaze 30 Hz; smoothing delta-time pada frame Rive. Batas ellipse 11×7 unit. Langkah 3/blur mengembalikan posisi semula; reduced motion melepaskan kontrol pupil. Tidak ada window input tambahan.

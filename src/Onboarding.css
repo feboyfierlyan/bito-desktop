@@ -69,6 +69,11 @@
   top: calc(54% - 275px);
   left: 0;
   width: 100%;
+  min-height: 104px;
+}
+.setup-heading > div {
+  position: absolute;
+  inset: 0;
 }
 .setup h1 {
   font-size: 29px;
@@ -146,10 +151,13 @@
   opacity: 1;
 }
 .setup-reply-slot {
+  position: relative;
   margin-top: 17px;
   height: 44px;
 }
 .setup-reply {
+  position: absolute;
+  inset: 0;
   width: 100%;
 }
 .setup-composer {
@@ -249,30 +257,6 @@
   background: #edf5ff;
   z-index: -1;
 }
-.setup-desktop-reply {
-  height: 44px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-.setup-desktop-action {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid #e4e8ed;
-  border-radius: 50%;
-  color: #007aff;
-  background: #fff;
-}
-.setup-desktop-action:hover:not(:disabled) {
-  background: #f3f8ff;
-  border-color: #c5dfff;
-}
-.setup-desktop-action:disabled {
-  opacity: 0.25;
-}
 .setup-leaving .setup-navigation {
   pointer-events: none;
 }
@@ -353,4 +337,82 @@ body[data-motion="reduced"] .setup-word {
   line-height: 1.5;
   overflow-wrap: anywhere;
   --bubble-fill: #007aff;
+}
+
+/* The transcript keeps its DOM/history; only its viewport scrolls upward. */
+.setup-dialogue {
+  height: 282px;
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.setup-transcript {
+  position: relative;
+  height: 220px;
+  flex-shrink: 0;
+  overflow: hidden;
+  margin-inline: -13px;
+  mask-image: linear-gradient(to bottom, transparent 0, #000 64px, #000 100%);
+}
+.setup-transcript-stack {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 2px;
+}
+.setup-turn {
+  flex-shrink: 0;
+  overflow: hidden;
+  padding-inline: 13px;
+}
+.setup-turn-content {
+  padding-top: 12px;
+}
+.setup-speech-replay {
+  display: grid;
+}
+.setup-speech-replay > .setup-speech {
+  grid-area: 1 / 1;
+}
+.setup-turn-user {
+  width: 100%;
+}
+.setup-turn-user .setup-user-reply {
+  max-width: 92%;
+}
+.setup-reply-slot {
+  flex-shrink: 0;
+}
+.setup-character {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.setup-character-ready {
+  cursor: grab;
+}
+.setup-character-ready:active {
+  cursor: grabbing;
+}
+.setup-character:focus,
+.setup-character:focus-visible,
+.pet.presenting:focus,
+.pet.presenting:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.setup-navigation {
+  z-index: 10;
+  -webkit-app-region: no-drag;
+}
+.setup-navigation button {
+  pointer-events: auto;
+}
+
+.setup-speech {
+  cursor: default;
 }

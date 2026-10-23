@@ -1,7 +1,13 @@
 #!/bin/zsh
 set -e
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 cd "$(dirname "$0")"
-if [[ -d "release/mac-arm64/Bito.app" ]]; then
+checkpoint_version=$(/usr/bin/plutil -extract version raw package.json)
+if [[ -d "release/${checkpoint_version}/mac-arm64/Bito.app" ]]; then
+  open "release/${checkpoint_version}/mac-arm64/Bito.app"
+elif [[ -d "release/${checkpoint_version}/mac/Bito.app" ]]; then
+  open "release/${checkpoint_version}/mac/Bito.app"
+elif [[ -d "release/mac-arm64/Bito.app" ]]; then
   open "release/mac-arm64/Bito.app"
 elif [[ -d "release/mac/Bito.app" ]]; then
   open "release/mac/Bito.app"

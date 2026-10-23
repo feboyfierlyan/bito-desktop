@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Rive, RuntimeLoader, Layout, Fit, Alignment } from "@rive-app/canvas";
 import type { Snapshot } from "./shared";
+import { api, isDesktop } from "./bridge";
+import { canTrackGaze, neutralGaze } from "./gaze";
+import { createEyeRig } from "./eye-rig";
 RuntimeLoader.setWasmUrl(new URL("rive.wasm", window.location.href).href);
 export function Character({
   state,
@@ -14,6 +17,8 @@ export function Character({
   const canvas = useRef<HTMLCanvasElement>(null),
     instance = useRef<Rive | null>(null);
   const latest = useRef(state);
+  const gaze = useRef(neutralGaze);
+  const eyeRig = useRef<ReturnType<typeof createEyeRig>>(null);
   latest.current = state;
   const readyCallback = useRef(onReady);
   readyCallback.current = onReady;
@@ -59,6 +64,11 @@ export function Character({
       onLoad: () => {
         if (!alive) return;
         r.resizeDrawingSurfaceToCanvas();
+        eyeRig.current = createEyeRig(r);
+        if (!eyeRig.current)
+          console.error(
+            "Bito eye rig: named pupils missing from the Rive asset",
+          );
         apply();
         timer = setTimeout(() => {
           if (alive) {
@@ -71,6 +81,13 @@ export function Character({
         }, 1600);
       },
       onLoadError: () => setError(true),
+      onAdvance: (event: { data: number }) => {
+        eyeRig.current?.advance(
+          gaze.current,
+          event.data,
+          canTrackGaze(latest.current),
+        );
+      },
     } as any);
     instance.current = r;
     const resize = new ResizeObserver(() => r.resizeDrawingSurfaceToCanvas());
@@ -79,8 +96,36 @@ export function Character({
       alive = false;
       clearTimeout(timer);
       resize.disconnect();
+      eyeRig.current?.restore();
+      eyeRig.current = null;
       r.cleanup();
       instance.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    if (isDesktop)
+      return api.onGaze((target) => {
+        gaze.current = target;
+      });
+    const move = (event: PointerEvent) => {
+      const rect = canvas.current?.getBoundingClientRect();
+      if (rect)
+        gaze.current = {
+          active: true,
+          x: (event.clientX - rect.left) / rect.width,
+          y: (event.clientY - rect.top) / rect.height,
+        };
+    };
+    const reset = () => {
+      gaze.current = { ...gaze.current, active: false };
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("blur", reset);
+    document.documentElement.addEventListener("pointerleave", reset);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("blur", reset);
+      document.documentElement.removeEventListener("pointerleave", reset);
     };
   }, []);
   useEffect(apply, [
@@ -102,9 +147,10 @@ export function Character({
       !state.busy &&
       !state.focus.running &&
       !state.sleeping
-    )
+    ) {
+      eyeRig.current?.restore();
       r.pause();
-    else r.play();
+    } else r.play();
   }, [
     ready,
     state.settings.reducedMotion,

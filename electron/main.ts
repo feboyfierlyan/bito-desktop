@@ -38,6 +38,8 @@ import {
   systemPrompt,
 } from "./core";
 import type { AppState, Snapshot, Reply, Message } from "../src/shared";
+import { canTrackGaze, gazeInViewport, neutralGaze } from "../src/gaze";
+import type { GazeTarget } from "../src/shared";
 
 app.setName("Bito");
 if (process.env.BITO_DATA_DIR) {
@@ -70,6 +72,8 @@ let onboarding: {
 let movement: ReturnType<typeof setInterval> | undefined;
 let dragWatch: ReturnType<typeof setTimeout> | undefined;
 let chatHide: ReturnType<typeof setTimeout> | undefined;
+let gazeTimer: ReturnType<typeof setInterval> | undefined;
+let lastGaze: GazeTarget = neutralGaze;
 const dataPath = () => process.env.BITO_DATA_DIR || app.getPath("userData");
 const credentialPath = () => join(dataPath(), "credentials.bin");
 const petSize = () => state.settings.size + 32;
@@ -85,6 +89,7 @@ function publish() {
   const next = snapshot();
   for (const win of [pet, chat, studio])
     if (win && !win.isDestroyed()) win.webContents.send("bito:state", next);
+  if (onboarding) sendGaze();
 }
 function persist() {
   store.save(state);
@@ -147,6 +152,7 @@ function createPet() {
     width: size,
     height: size,
     transparent: true,
+    acceptFirstMouse: true,
     frame: false,
     resizable: false,
     hasShadow: false,
@@ -257,9 +263,38 @@ function beginPresentation() {
   pet?.hide();
   if (!pet) createPet();
   pet!.setFocusable(false);
-  pet!.setAlwaysOnTop(true);
+  pet!.setAlwaysOnTop(false);
   pet!.setIgnoreMouseEvents(true, { forward: true });
   publish();
+  clearInterval(gazeTimer);
+  // Read native screen coordinates without another overlay or input surface.
+  gazeTimer = setInterval(sendGaze, 1000 / 30);
+  gazeTimer.unref();
+}
+function sendGaze() {
+  if (!pet || pet.isDestroyed()) return;
+  const active =
+    !!onboarding &&
+    !!studio?.isFocused() &&
+    studio.isVisible() &&
+    canTrackGaze(snapshot());
+  const target = active
+    ? gazeInViewport(screen.getCursorScreenPoint(), pet.getContentBounds())
+    : { ...lastGaze, active: false };
+  if (
+    target.active !== lastGaze.active ||
+    Math.abs(target.x - lastGaze.x) > 0.001 ||
+    Math.abs(target.y - lastGaze.y) > 0.001
+  ) {
+    pet.webContents.send("bito:gaze", target);
+    lastGaze = target;
+  }
+}
+function stopGaze() {
+  clearInterval(gazeTimer);
+  gazeTimer = undefined;
+  lastGaze = { ...lastGaze, active: false };
+  if (pet && !pet.isDestroyed()) pet.webContents.send("bito:gaze", lastGaze);
 }
 function positionAnchor() {
   if (
@@ -276,7 +311,8 @@ function positionAnchor() {
   );
   pet.setBounds(bounds);
   if (pet.getParentWindow() !== studio) pet.setParentWindow(studio);
-  if (characterReady && studio.isVisible()) pet.showInactive();
+  if (characterReady && studio.isVisible() && studio.isFocused())
+    pet.showInactive();
 }
 function tweenPet(target: Rect, done: () => void) {
   clearInterval(movement);
@@ -314,6 +350,7 @@ function tweenPet(target: Rect, done: () => void) {
 }
 function cancelPresentation() {
   if (!onboarding) return;
+  stopGaze();
   const session = onboarding;
   onboarding = null;
   clearInterval(movement);
@@ -347,8 +384,8 @@ function returnToAnchor() {
     () => {
       if (!onboarding || !pet || !studio) return;
       onboarding.view.phase = "ready";
-      pet.setFocusable(true);
-      pet.setIgnoreMouseEvents(false);
+      pet.setFocusable(false);
+      pet.setIgnoreMouseEvents(true, { forward: true });
       pet.setParentWindow(studio);
       positionAnchor();
       publish();
@@ -357,6 +394,7 @@ function returnToAnchor() {
 }
 function finishPresentation() {
   if (!onboarding || !studio || !pet) return;
+  stopGaze();
   onboarding.view.phase = "departing";
   onboarding.view.talking = false;
   pet.setParentWindow(null);
@@ -438,6 +476,7 @@ function showStudio(route: string) {
     height: 740,
     minWidth: welcome ? 820 : 700,
     minHeight: 620,
+    acceptFirstMouse: true,
     backgroundColor: "#ffffff",
     title: "Bito",
     show: false,
@@ -464,6 +503,15 @@ function showStudio(route: string) {
       pet?.hide();
   });
   studio.on("show", positionAnchor);
+  studio.on("focus", positionAnchor);
+  studio.on("blur", () => {
+    if (
+      onboarding &&
+      !dragging &&
+      ["anchored", "ready"].includes(onboarding.view.phase)
+    )
+      pet?.hide();
+  });
   studio.on("close", () => {
     if (onboarding?.view.phase !== "departing") cancelPresentation();
   });
@@ -740,7 +788,8 @@ async function command(name: string, payload: any): Promise<Reply> {
         );
       if (onboarding && onboarding.view.step !== p.step) {
         onboarding.view.step = p.step;
-        onboarding.view.phase = "anchored";
+        onboarding.view.phase =
+          p.step === 2 && characterReady ? "ready" : "anchored";
         onboarding.view.talking = false;
       }
       persist();
@@ -786,26 +835,11 @@ async function command(name: string, payload: any): Promise<Reply> {
         onboarding.view.phase === "anchored"
       ) {
         onboarding.view.phase = "ready";
-        pet?.setFocusable(true);
-        pet?.setIgnoreMouseEvents(false);
+        pet?.setFocusable(false);
+        pet?.setIgnoreMouseEvents(true, { forward: true });
         publish();
       }
       break;
-    case "onboarding-keyboard": {
-      if (onboarding?.view.phase !== "ready" || !pet || !studio) break;
-      const area = screen.getDisplayMatching(studio.getBounds()).workArea;
-      const b = pet.getBounds(),
-        host = studio.getBounds();
-      const left = host.x - b.width / 2 - 24;
-      const right = host.x + host.width - b.width / 2 + 24;
-      const target = left >= area.x ? left : right;
-      // Same native window and completion path as pointer handoff.
-      onboarding.view.phase = "dragging";
-      pet.setParentWindow(null);
-      publish();
-      tweenPet({ ...b, x: Math.round(target) }, () => finishPresentation());
-      break;
-    }
     case "character-ready":
       characterReady = true;
       if (onboarding) onboarding.view.characterReady = true;
@@ -1091,10 +1125,7 @@ function registerIPC() {
   });
   ipcMain.on("bito:hit", (event, hit) => {
     if (event.sender.id === pet?.webContents.id && !dragging)
-      pet.setIgnoreMouseEvents(
-        onboarding ? onboarding.view.phase !== "ready" : !hit,
-        { forward: true },
-      );
+      pet.setIgnoreMouseEvents(onboarding ? true : !hit, { forward: true });
   });
   ipcMain.on("bito:toggle", (event) => {
     if (event.sender.id !== pet?.webContents.id || dragging || onboarding)
@@ -1105,7 +1136,12 @@ function registerIPC() {
     if (event.sender.id === pet?.webContents.id) contextMenu();
   });
   ipcMain.on("bito:drag-start", (event) => {
-    if (event.sender.id !== pet?.webContents.id || !pet) return;
+    if (
+      !pet ||
+      event.sender.id !==
+        (onboarding ? studio?.webContents.id : pet.webContents.id)
+    )
+      return;
     const beforeDetach = pet.getBounds();
     if (onboarding) {
       if (onboarding.view.phase !== "ready") return;
@@ -1123,12 +1159,13 @@ function registerIPC() {
     dragging = true;
     clearTimeout(dragWatch);
     dragWatch = setTimeout(() => endDrag(true), 45000);
-    pet.setIgnoreMouseEvents(false);
+    pet.setIgnoreMouseEvents(!!onboarding, { forward: true });
     publish();
   });
   ipcMain.on("bito:drag-move", (event, dx, dy) => {
     if (
-      event.sender.id !== pet?.webContents.id ||
+      event.sender.id !==
+        (onboarding ? studio?.webContents.id : pet?.webContents.id) ||
       !pet ||
       !dragOrigin ||
       !dragging ||
@@ -1148,7 +1185,12 @@ function registerIPC() {
     }
   });
   ipcMain.on("bito:drag-end", (event) => {
-    if (event.sender.id !== pet?.webContents.id || !dragging) return;
+    if (
+      event.sender.id !==
+        (onboarding ? studio?.webContents.id : pet?.webContents.id) ||
+      !dragging
+    )
+      return;
     endDrag();
   });
 }
@@ -1221,7 +1263,8 @@ if (!app.requestSingleInstanceLock()) {
         { label: "Keluar", click: () => app.quit() },
       ]),
     );
-    if (state.onboarded) createPet();
+    if (dev && process.env.BITO_DEV_ONBOARDING === "1") showStudio("welcome");
+    else if (state.onboarded) createPet();
     else showStudio("onboarding");
     setInterval(tick, 1000);
     powerMonitor.on("resume", () => {

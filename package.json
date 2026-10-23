@@ -1,20 +1,23 @@
 {
   "name": "bito-desktop",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "Bito — a thoughtful desktop companion",
+  "description": "Bito \u2014 a thoughtful desktop companion",
   "author": "Bito Project",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "preview": "vite --host 127.0.0.1",
     "postinstall": "node scripts/assets.mjs",
-    "build": "tsc --noEmit && vite build && node scripts/build-main.mjs",
+    "build": "node scripts/assets.mjs && tsc --noEmit && vite build && node scripts/build-main.mjs",
     "start": "electron .",
     "test": "tsx --test tests/*.test.ts",
     "check": "tsc --noEmit",
     "package": "npm run build && electron-builder --publish never",
-    "package:dir": "npm run build && electron-builder --dir --publish never"
+    "package:dir": "npm run build && electron-builder --dir --publish never",
+    "package:mac": "npm run build && electron-builder --mac --arm64 --x64 --publish never",
+    "package:win": "npm run build && electron-builder --win --x64 --publish never",
+    "release:manifest": "node scripts/release-manifest.mjs"
   },
   "dependencies": {
     "@rive-app/canvas": "2.45.0",
@@ -44,7 +47,7 @@
     "appId": "id.bito.companion",
     "productName": "Bito",
     "directories": {
-      "output": "release"
+      "output": "release/${version}"
     },
     "files": [
       "dist/**/*",
@@ -60,7 +63,8 @@
       "category": "public.app-category.productivity",
       "hardenedRuntime": false,
       "identity": null,
-      "icon": "public/icon.png"
+      "icon": "public/icon.png",
+      "artifactName": "Bito-${version}-macOS-${arch}.${ext}"
     },
     "win": {
       "target": [
@@ -70,7 +74,8 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "Bito-${version}-Windows-${arch}-Setup.${ext}"
     },
     "linux": {
       "target": [

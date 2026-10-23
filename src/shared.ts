@@ -66,11 +66,13 @@ export type Snapshot = AppState & {
   surface?: string;
 };
 export type Reply = { ok: boolean; error?: string; value?: unknown };
+export type GazeTarget = { active: boolean; x: number; y: number };
 export interface BitoAPI {
   getState(): Promise<Snapshot>;
   command(name: string, payload?: unknown): Promise<Reply>;
   onState(fn: (state: Snapshot) => void): () => void;
   onDelta(fn: (event: { id: string; delta: string }) => void): () => void;
+  onGaze(fn: (target: GazeTarget) => void): () => void;
   dragStart(): void;
   dragMove(dx: number, dy: number): void;
   dragEnd(): void;

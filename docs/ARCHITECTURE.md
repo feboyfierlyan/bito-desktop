@@ -1,4 +1,4 @@
-# Arsitektur Bito 0.1
+# Arsitektur Bito 0.4
 
 ## Proses dan jendela
 
@@ -35,4 +35,13 @@ Belum ada sertifikat distribusi/notarization, server Bito, sinkronisasi cloud, c
 
 `src/Onboarding.tsx` mengukur slot canvas, mengelola form tiga langkah, dan mengirim batas slot dalam koordinat content CSS. `src/handoff.ts` memetakan ke DIP native serta menghitung drop dan interpolasi posisi. Main process hanya menerima perintah onboarding dari studio; readiness dan pembatalan gesture hanya dari pet.
 
-Sesi presentation bersifat sementara, tidak masuk SQLite. Satu pet window/Rive dipanaskan sebelum tampil lalu di-anchor sebagai child studio. Pada langkah ketiga window menjadi interaktif. Saat drag parent dilepas dengan bounds yang sama; saat drop berhasil profil, ukuran, dan posisi disimpan sebelum studio fade/close. Pembatalan perkenalan mengembalikan bounds/visibility sebelumnya. Render teks tidak mengirim IPC per kata: hanya start/stop bicara. Aset Rive dan canvas tetap hidup pada perpindahan.
+Sesi presentation bersifat sementara, tidak masuk SQLite. Satu pet window/Rive dipanaskan sebelum tampil lalu di-anchor sebagai child studio. Selama onboarding, pet tetap mouse-pass-through dan nonfocusable; slot di studio menerima gesture langkah ketiga serta mengirim drag IPC. Saat drag parent dilepas dengan bounds yang sama; saat drop berhasil profil, ukuran, dan posisi disimpan sebelum studio fade/close. Pembatalan perkenalan mengembalikan bounds/visibility sebelumnya. Render teks tidak mengirim IPC per kata: hanya start/stop bicara. Aset Rive dan canvas tetap hidup pada perpindahan.
+
+
+## Percakapan dan tracking (0.4)
+
+Transcript tetap berjangkar di bawah. Setiap turn memakai animasi tinggi untuk entrance/exit sehingga riwayat bergerak sebagai satu aliran. `ConversationCadence` menggantikan pekerjaan tertunda saat navigasi berubah; pesan tujuan mempunyai revision key sendiri untuk replay tanpa mereset pesan yang dipertahankan. Identitas pemilik speech mencegah cleanup pesan lama mematikan animasi pesan baru.
+
+Main membaca cursor native dalam DIP, mengirim gaze terpisah 30 Hz ke renderer pet hanya selama langkah 1–2/fokus aktif. `eye-rig.ts` mengakses dua pupil bernama pada artboard Rive 2.45 yang dipin, menghaluskan target tiap frame, dan melepaskan kontrol sesudah kembali netral. File ekspor asli dicadangkan; tahap persiapan aset hanya memulihkan nama kedua pupil dan memverifikasi fingerprint sumber.
+
+Tag versi menjalankan tes/build kedua OS. Job release baru memublikasikan checkpoint setelah lima installer dan manifest checksum lengkap. Build lokal terpisah di `release/<versi>`; mode revisi memakai `.bito-dev-data` yang diabaikan Git.

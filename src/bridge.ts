@@ -24,6 +24,7 @@ const fallback: BitoAPI = {
     return () => listeners.delete(fn);
   },
   onDelta: () => () => {},
+  onGaze: () => () => {},
   dragStart() {},
   dragMove() {},
   dragEnd() {},

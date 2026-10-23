@@ -11,3 +11,8 @@ test-results/
 credentials.bin
 public/rive.wasm
 playwright-report/
+
+.bito-dev-data/
+
+# Local UI verification captures
+outputs/

@@ -1,18 +1,15 @@
 import type { Variants } from "motion/react";
 
 // The surface stretches separately so letters keep their natural proportions.
-export function bubbleReveal(side: "bito" | "user", reduced: boolean) {
-  const direction = side === "user" ? -1 : 1;
+export function bubbleReveal(_side: "bito" | "user", reduced: boolean) {
   const shell: Variants = {
     hidden: {
       opacity: 0,
       y: reduced ? 0 : 7,
-      rotate: reduced ? 0 : direction * -3.5,
     },
     visible: {
       opacity: 1,
       y: 0,
-      rotate: 0,
       transition: reduced
         ? { duration: 0 }
         : { type: "spring", stiffness: 430, damping: 30, mass: 0.8 },

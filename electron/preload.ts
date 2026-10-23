@@ -13,6 +13,12 @@ const api: BitoAPI = {
     ipcRenderer.on("bito:delta", handler);
     return () => ipcRenderer.removeListener("bito:delta", handler);
   },
+  onGaze: (fn) => {
+    const handler = (_: unknown, target: Parameters<typeof fn>[0]) =>
+      fn(target);
+    ipcRenderer.on("bito:gaze", handler);
+    return () => ipcRenderer.removeListener("bito:gaze", handler);
+  },
   dragStart: () => ipcRenderer.send("bito:drag-start"),
   dragMove: (dx, dy) => ipcRenderer.send("bito:drag-move", dx, dy),
   dragEnd: () => ipcRenderer.send("bito:drag-end"),
