@@ -40,6 +40,7 @@ import remarkGfm from "remark-gfm";
 import { api, isDesktop } from "./bridge";
 import { Character } from "./Character";
 import { Onboarding } from "./Onboarding";
+import { Bubble } from "./Bubble";
 import { isDrag, remaining } from "../electron/core";
 import type { Snapshot, Profile, Settings, Message } from "./shared";
 import "./style.css";
@@ -272,6 +273,10 @@ function Pet({ state }: { state: Snapshot }) {
   );
 }
 function Chat({ state, act }: { state: Snapshot; act: Act }) {
+  const seenMessages = useRef(new Set(state.messages.map((m) => m.id)));
+  useEffect(() => {
+    state.messages.forEach((m) => seenMessages.current.add(m.id));
+  }, [state.messages]);
   const [text, setText] = useState(""),
     [attachment, setAttachment] = useState<
       { name: string; content: string } | undefined
@@ -428,9 +433,9 @@ function Chat({ state, act }: { state: Snapshot; act: Act }) {
                   layout="position"
                   key={m.id}
                   className={`message ${m.role} ${m.status === "error" ? "failed" : ""}`}
-                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.18 }}
+                  transition={{
+                    layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+                  }}
                 >
                   {(i === 0 ||
                     new Date(m.createdAt).toDateString() !==
@@ -444,7 +449,12 @@ function Chat({ state, act }: { state: Snapshot; act: Act }) {
                       })}
                     </time>
                   )}
-                  <div className="bubble">
+                  <Bubble
+                    className="bubble"
+                    side={m.role === "user" ? "user" : "bito"}
+                    appear={!seenMessages.current.has(m.id)}
+                    reduced={state.settings.reducedMotion}
+                  >
                     {m.text ? (
                       <Markdown
                         remarkPlugins={[remarkGfm]}
@@ -474,7 +484,7 @@ function Chat({ state, act }: { state: Snapshot; act: Act }) {
                         <i />
                       </span>
                     )}
-                  </div>
+                  </Bubble>
                   {m.role === "assistant" && m.text && (
                     <div className="message-actions">
                       <button
@@ -847,7 +857,7 @@ function Studio({
         <button className="sidebar-chat" onClick={() => void act("show-chat")}>
           <MessageCircle size={17} /> Kembali ngobrol <ArrowRight size={15} />
         </button>
-        <small className="version">Bito 0.2 · Dibuat untuk menemani</small>
+        <small className="version">Bito 0.3 · Dibuat untuk menemani</small>
       </aside>
       <section className="settings-content">
         <div className="settings-heading">

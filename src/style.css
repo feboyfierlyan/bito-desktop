@@ -1311,3 +1311,49 @@ body[data-motion="reduced"] *:after {
   animation: none !important;
   transition-duration: 0.01ms !important;
 }
+
+/* A bubble's surface grows independently of its readable content. */
+.bubble-shell {
+  position: relative;
+  isolation: isolate;
+  transform-origin: 0% 100%;
+}
+.bubble-shell-user {
+  transform-origin: 100% 100%;
+}
+.bubble-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--bubble-fill, #e9e9eb);
+  transform-origin: inherit;
+  pointer-events: none;
+  z-index: -1;
+}
+.bubble-content {
+  position: relative;
+  display: block;
+}
+.bubble-tail {
+  position: absolute;
+  left: -7px;
+  bottom: 0;
+  width: 23px;
+  height: 19px;
+  fill: var(--bubble-fill, #e9e9eb);
+}
+.bubble-shell-user .bubble-tail {
+  left: auto;
+  right: -7px;
+  transform: scaleX(-1);
+}
+.message .bubble {
+  background: transparent;
+  border-radius: 18px;
+  --bubble-fill: #e9e9eb;
+}
+.message.user .bubble {
+  background: transparent;
+  border-radius: 18px;
+  --bubble-fill: var(--blue);
+}

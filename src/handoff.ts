@@ -35,3 +35,11 @@ export function wordDelay(word: string): number {
     (/[.!?…]$/.test(word) ? 190 : /[,;:]$/.test(word) ? 85 : 0)
   );
 }
+
+export function canWave(
+  view: { step: number; phase: string; characterReady: boolean } | undefined,
+) {
+  return (
+    !!view && view.step < 2 && view.characterReady && view.phase === "anchored"
+  );
+}

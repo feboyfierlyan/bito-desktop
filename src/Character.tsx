@@ -113,6 +113,26 @@ export function Character({
     state.focus.running,
     state.sleeping,
   ]);
+  useEffect(() => {
+    const r = instance.current;
+    if (!ready || !r || !state.presentation?.wave) return;
+    r.play();
+    try {
+      (r as any).viewModelInstance?.trigger("wave")?.trigger();
+    } catch {}
+    const timer = setTimeout(() => {
+      const s = latest.current;
+      if (
+        s.settings.reducedMotion &&
+        !s.dragging &&
+        !s.busy &&
+        !s.focus.running &&
+        !s.sleeping
+      )
+        r.pause();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [ready, state.presentation?.wave]);
   const values = Array.from({ length: 256 }, (_, i) =>
     i >= 245 && i <= 250 ? 0 : 1,
   ).join(" ");

@@ -1,4 +1,5 @@
 import type { BitoAPI, Snapshot } from "./shared";
+import { canWave } from "./handoff";
 import { defaultState } from "../electron/core";
 // Browser preview is deliberately separate from the real Electron bridge.
 let preview: Snapshot = {
@@ -30,6 +31,13 @@ const fallback: BitoAPI = {
   contextMenu() {},
   toggleChat() {},
   async command(name, p: any) {
+    if (
+      name === "onboarding-wave" &&
+      canWave(preview.presentation) &&
+      Date.now() - (preview.presentation!.wave || 0) > 650
+    ) {
+      preview.presentation!.wave = Date.now();
+    }
     if (name === "onboarding-speech") {
       preview.presentation = {
         phase: "anchored",
@@ -46,6 +54,9 @@ const fallback: BitoAPI = {
         ...preview,
         profile: p.profile,
         onboardingStep: p.step,
+        presentation: preview.presentation
+          ? { ...preview.presentation, step: p.step, phase: "anchored" }
+          : undefined,
         onboarded: preview.onboarded,
       };
       if (p.complete) location.search = "?surface=chat";

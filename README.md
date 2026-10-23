@@ -47,10 +47,11 @@ Hasil ada di `release/`: Mac `.dmg` dan `.zip`, Windows installer `.exe`. `npm r
 
 ## Yang sudah diimplementasikan
 
-- Onboarding dua panel dalam tiga langkah: nama, kartu kepribadian, dan perkenalan desktop. Bubble abu-abu dengan ekor seperti iMessage, reveal per kata, dan animasi bicara Rive yang mengikuti reveal.
+- Onboarding percakapan dalam tiga langkah: nama lewat input chat, pilihan kepribadian berbentuk pill, dan pindah ke desktop. Title dan description singkat di atas komposisi terpusat. Bubble abu-abu untuk Bito, balasan biru untuk pengguna, reveal per kata, dan animasi bicara Rive yang mengikuti reveal. Klik Bito pada langkah 1–2 untuk wave.
 - Bito memakai satu jendela transparan dan satu instance Rive selama onboarding sampai desktop. Lepas di luar jendela untuk selesai; lepas di dalam untuk kembali lembut. Tersedia alternatif tanpa menyeret. Progres tersimpan; konteks proyek dapat diisi di Settings.
 - Bito Rive asli: drag, thinking, fokus, tidur; prioritas aktivitas ditentukan aplikasi.
 - Jendela karakter transparan dan chat terpisah, penempatan di kanan, pemulihan posisi setelah perubahan monitor.
+- Bubble chat masuk dengan permukaan yang memanjang dari ekor, rotasi ringan, dan spring; teks tidak ikut meregang. Efek dipakai pada onboarding dan pesan baru kedua pihak di chat utama. Riwayat tidak diputar ulang saat membuka chat.
 - Chat biru–putih: Markdown, kode, tabel, tautan, salin, simpan catatan, lampiran teks, respons streaming, hentikan, coba lagi.
 - SQLite lokal untuk profil, riwayat, memori, tugas, pengingat, posisi dan timer.
 - API key memakai enkripsi OS melalui Electron safeStorage, tidak dikirim kembali dalam snapshot UI atau ekspor.

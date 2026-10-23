@@ -1,19 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Heart,
-  Leaf,
-  Zap,
-  MousePointer2,
-  Move,
-  MoreHorizontal,
-  Keyboard,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUp, Move } from "lucide-react";
 import { api, isDesktop } from "./bridge";
 import { Character } from "./Character";
+import { Bubble } from "./Bubble";
+import { bubbleReveal } from "./bubble-motion";
 import { wordDelay } from "./handoff";
 import type { Profile, Snapshot, Reply } from "./shared";
 import "./Onboarding.css";
@@ -23,26 +14,17 @@ const personalities = [
   {
     value: "warm",
     title: "Hangat",
-    hint: "Ramah & menyemangati",
-    Icon: Heart,
-    example:
-      "Pelan-pelan juga nggak apa-apa. Kita mulai dari satu langkah kecil, ya?",
+    example: "Pelan-pelan juga nggak apa-apa. Kita mulai bareng, ya?",
   },
   {
     value: "calm",
     title: "Tenang",
-    hint: "Lembut & menenangkan",
-    Icon: Leaf,
-    example:
-      "Tarik napas dulu. Satu hal dalam satu waktu. Aku di sini menemanimu.",
+    example: "Satu hal dulu. Tarik napas, aku di sini menemanimu.",
   },
   {
     value: "direct",
     title: "Langsung",
-    hint: "Ringkas & membantu",
-    Icon: Zap,
-    example:
-      "Kita buat lebih ringan. Pilih satu tugas, pecah jadi langkah kecil, lalu mulai.",
+    example: "Pilih satu tugas. Kita pecah jadi langkah kecil, lalu mulai.",
   },
 ] as const;
 
@@ -101,28 +83,40 @@ function SpeechBubble({
       skip.current = () => {};
     };
   }, [text, ready, reduced]);
+  const variants = bubbleReveal("bito", reduced);
   return (
     <motion.button
       type="button"
-      className="setup-speech"
       aria-label={text}
       title="Klik untuk menampilkan seluruh kalimat"
       onClick={() => skip.current()}
-      initial={{ opacity: 0, scale: reduced ? 1 : 0.94, y: reduced ? 0 : 5 }}
-      animate={{ opacity: ready ? 1 : 0, scale: 1, y: 0 }}
-      transition={{ duration: reduced ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+      className="setup-speech bubble-shell bubble-shell-bito"
+      variants={variants.shell}
+      initial="hidden"
+      animate={ready ? "visible" : "hidden"}
+      exit="exit"
     >
-      <span aria-hidden="true">
+      <motion.span
+        aria-hidden="true"
+        className="bubble-surface"
+        variants={variants.surface}
+      >
+        <svg className="setup-tail" viewBox="0 0 36 30">
+          <path d="M36 0H11C14 15 9 24 0 29C15 29 27 25 36 17Z" />
+        </svg>
+      </motion.span>
+      <motion.span
+        className="bubble-content"
+        variants={variants.content}
+        aria-hidden="true"
+      >
         {words.map((word, i) => (
           <span className={`setup-word ${i < count ? "revealed" : ""}`} key={i}>
             {word}
             {i < words.length - 1 ? " " : ""}
           </span>
         ))}
-      </span>
-      <svg className="setup-tail" viewBox="0 0 36 30" aria-hidden="true">
-        <path d="M36 0H11C14 15 9 24 0 29C15 29 27 25 36 17Z" />
-      </svg>
+      </motion.span>
     </motion.button>
   );
 }
@@ -138,33 +132,57 @@ export function Onboarding({
 }) {
   const [step, setStep] = useState(restart ? 0 : state.onboardingStep);
   const [profile, setProfile] = useState<Profile>(state.profile);
-  const [line, setLine] = useState(
-    "Hai, aku Bito. Teman kecil yang akan menemani harimu. Aku boleh panggil kamu siapa?",
+  const [styleTouched, setStyleTouched] = useState(false);
+  const [submittedReply, setSubmittedReply] = useState<string | null>(null);
+  const submitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
   );
+  const submitting = useRef(false),
+    alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      clearTimeout(submitTimer.current);
+    };
+  }, []);
   const [saving, setSaving] = useState(false),
     [localReady, setLocalReady] = useState(false);
-  const slot = useRef<HTMLDivElement>(null),
-    armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const slot = useRef<HTMLButtonElement>(null);
+  const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const latestAct = useRef(act);
   latestAct.current = act;
   const osReduced = useReducedMotion();
   const reduced = state.settings.reducedMotion || !!osReduced;
   const ready = isDesktop ? !!state.presentation?.characterReady : localReady;
   const phase = state.presentation?.phase || "anchored";
-  const leaving =
-    phase === "dragging" || phase === "returning" || phase === "departing";
+  const leaving = ["dragging", "returning", "departing"].includes(phase);
   const armed = phase === "ready";
-  const update = (p: Partial<Profile>) =>
-    setProfile((previous) => ({ ...previous, ...p }));
-  const save = (nextStep: number, nextProfile = profile) =>
-    latestAct.current("onboarding", {
-      step: nextStep,
-      profile: { ...nextProfile, name: nextProfile.name.trim() },
-      complete: false,
-    });
+  const line =
+    step === 0
+      ? "Aku boleh panggil kamu siapa?"
+      : step === 1
+        ? styleTouched
+          ? personalities.find((p) => p.value === profile.style)!.example
+          : `Senang kenal kamu, ${profile.name.trim()}. Mau aku jadi teman ngobrol yang seperti apa?`
+        : "Tahan aku, lalu seret keluar jendela ini. Kita mulai di desktop!";
+  const heading = [
+    {
+      title: "Hai, aku Bito.",
+      description: "Teman kecil untuk menemani harimu.",
+    },
+    {
+      title: "Biar terasa cocok.",
+      description: "Pilih cara ngobrol yang paling nyaman buatmu.",
+    },
+    {
+      title: "Bawa aku ke desktopmu.",
+      description:
+        "Klik untuk ngobrol. Seret untuk pindah. Klik kanan untuk pilihan.",
+    },
+  ][step];
 
   useEffect(() => {
-    // Re-entering onboarding starts at the first screen; draft resume keeps its step.
     if (restart)
       void latestAct.current("onboarding", {
         step: 0,
@@ -176,14 +194,18 @@ export function Onboarding({
       });
   }, []);
   useEffect(() => {
+    let frame = 0;
     const measure = () => {
-      if (!isDesktop || !slot.current) return;
-      const b = slot.current.getBoundingClientRect();
-      void api.command("onboarding-anchor", {
-        x: b.x,
-        y: b.y,
-        width: b.width,
-        height: b.height,
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!isDesktop || !slot.current) return;
+        const b = slot.current.getBoundingClientRect();
+        void api.command("onboarding-anchor", {
+          x: b.x,
+          y: b.y,
+          width: b.width,
+          height: b.height,
+        });
       });
     };
     const observer = new ResizeObserver(measure);
@@ -192,6 +214,7 @@ export function Onboarding({
     measure();
     window.addEventListener("resize", measure);
     return () => {
+      cancelAnimationFrame(frame);
       observer.disconnect();
       window.removeEventListener("resize", measure);
       clearTimeout(armTimer.current);
@@ -200,34 +223,47 @@ export function Onboarding({
   }, []);
   useEffect(() => {
     clearTimeout(armTimer.current);
-    if (step === 0) {
-      const name = profile.name.trim();
-      const timer = setTimeout(
-        () =>
-          setLine(
-            name
-              ? `Senang kenal kamu, ${name}. Kita bisa ngobrol, cari ide, atau mulai satu langkah kecil bareng.`
-              : "Hai, aku Bito. Teman kecil yang akan menemani harimu. Aku boleh panggil kamu siapa?",
-          ),
-        name ? 650 : 0,
-      );
-      return () => clearTimeout(timer);
-    }
-    if (step === 1)
-      setLine(personalities.find((p) => p.value === profile.style)!.example);
-    if (step === 2)
-      setLine(
-        `Siap, ${profile.name.trim() || "teman"}? Tahan aku, lalu seret keluar jendela ini. Kita ketemu di desktop!`,
-      );
-  }, [step, profile.style, profile.name]);
-  const moveStep = async (nextStep: number) => {
-    if (saving || leaving || !profile.name.trim()) return;
+  }, [step, line]);
+  const moveStep = async (next: number, asReply = false) => {
+    if (
+      submitting.current ||
+      saving ||
+      leaving ||
+      !profile.name.trim() ||
+      next < 0 ||
+      next > 2
+    )
+      return;
+    submitting.current = true;
     setSaving(true);
+    if (asReply)
+      setSubmittedReply(
+        step === 0
+          ? profile.name.trim()
+          : personalities.find((p) => p.value === profile.style)!.title,
+      );
     try {
-      const result = await save(nextStep);
-      if (result.ok) setStep(nextStep);
+      const result = await act("onboarding", {
+        step: next,
+        profile: { ...profile, name: profile.name.trim() },
+        complete: false,
+      });
+      if (result.ok) {
+        if (asReply && !reduced)
+          await new Promise<void>((resolve) => {
+            submitTimer.current = setTimeout(resolve, 380);
+          });
+        if (alive.current) {
+          setStyleTouched(false);
+          setStep(next);
+        }
+      }
     } finally {
-      setSaving(false);
+      submitting.current = false;
+      if (alive.current) {
+        setSaving(false);
+        setSubmittedReply(null);
+      }
     }
   };
   const speechDone = () => {
@@ -237,279 +273,235 @@ export function Onboarding({
       () => {
         void api.command("onboarding-arm");
       },
-      reduced ? 0 : 650,
+      reduced ? 0 : 350,
     );
   };
+  const transition = {
+    duration: reduced ? 0 : 0.18,
+    ease: [0.22, 1, 0.36, 1] as const,
+  };
   return (
-    <main className={`setup ${leaving ? "setup-leaving" : ""}`}>
+    <main
+      className={`setup setup-conversation ${leaving ? "setup-leaving" : ""}`}
+    >
       <div className="setup-titlebar" aria-hidden="true" />
-      <section className="setup-scene" aria-label="Bito berkenalan denganmu">
-        <span className="setup-brand">
-          bito<span>●</span>
-        </span>
-        <div
-          ref={slot}
-          className={`setup-character ${armed ? "setup-character-ready" : ""}`}
+      <nav className="setup-navigation" aria-label="Progres perkenalan">
+        <button
+          aria-label="Langkah sebelumnya"
+          disabled={step === 0 || saving || leaving}
+          onClick={() => void moveStep(step - 1)}
         >
-          {!isDesktop && (
-            <Character
-              state={{
-                ...state,
-                presentation: {
-                  phase: "anchored",
-                  talking: state.presentation?.talking || false,
-                  characterReady: localReady,
-                  step,
-                },
-              }}
-              onReady={() => setLocalReady(true)}
-            />
-          )}
+          <ArrowLeft size={19} />
+        </button>
+        <div
+          className="setup-progress"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={3}
+          aria-valuenow={step + 1}
+          aria-label={`Langkah ${step + 1} dari 3`}
+        >
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={i <= step ? "complete" : ""} />
+          ))}
         </div>
-        <AnimatePresence>
-          {!leaving && (
-            <motion.div
-              className="setup-speech-position"
-              exit={{ opacity: 0, transition: { duration: 0.12 } }}
-            >
-              <SpeechBubble
-                key={`${step}:${line}`}
-                text={line}
-                ready={ready}
-                reduced={reduced}
-                onTalking={(value) => {
-                  void api.command("onboarding-speech", value);
-                }}
-                onDone={speechDone}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div className="setup-scene-caption" aria-live="polite">
-          {phase === "departing"
-            ? "Sampai ketemu di desktop."
-            : phase === "returning"
-              ? "Coba lagi. Seret aku melewati tepi jendela."
-              : phase === "dragging"
-                ? "Lepaskan di desktop untuk mulai."
-                : step === 2 && armed
-                  ? "Tahan dan seret aku keluar jendela"
-                  : "Teman untuk langkah kecilmu."}
-        </div>
-      </section>
-      <section className="setup-panel">
-        <nav className="setup-navigation" aria-label="Progres perkenalan">
-          <button
-            aria-label="Langkah sebelumnya"
-            disabled={step === 0 || saving || leaving}
-            onClick={() => void moveStep(step - 1)}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div
-            className="setup-progress"
-            role="progressbar"
-            aria-valuemin={1}
-            aria-valuemax={3}
-            aria-valuenow={step + 1}
-            aria-label={`Langkah ${step + 1} dari 3`}
-          >
-            {[0, 1, 2].map((i) => (
-              <span key={i} className={i <= step ? "complete" : ""} />
-            ))}
-          </div>
-          <button
-            aria-label="Langkah berikutnya"
-            disabled={step === 2 || !profile.name.trim() || saving || leaving}
-            onClick={() => void moveStep(step + 1)}
-          >
-            <ArrowRight size={20} />
-          </button>
-        </nav>
-        <div className="setup-content">
+        <button
+          aria-label="Langkah berikutnya"
+          disabled={step === 2 || !profile.name.trim() || saving || leaving}
+          onClick={() => void moveStep(step + 1)}
+        >
+          <ArrowRight size={19} />
+        </button>
+      </nav>
+      <div className="setup-layout">
+        <header className="setup-heading">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: reduced ? 0 : 14 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: reduced ? 0 : -10 }}
-              transition={{ duration: reduced ? 0 : 0.18 }}
+              initial={{ opacity: 0, y: reduced ? 0 : 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reduced ? 0 : -4 }}
+              transition={transition}
             >
-              <p className="setup-step-label">
-                {
-                  ["SENANG BISA KENAL", "BIAR TERASA COCOK", "BAWA AKU PULANG"][
-                    step
-                  ]
-                }
-              </p>
-              <h1>
-                {
-                  [
-                    "Hai, kita kenalan dulu.",
-                    "Teman seperti apa?",
-                    "Desktopmu, rumah baruku.",
-                  ][step]
-                }
-              </h1>
-              <p className="setup-description">
-                {
-                  [
-                    "Aku Bito. Untuk hari yang sibuk, ide yang belum ketemu, dan hal kecil yang ingin kamu mulai.",
-                    "Pilih cara ngobrol yang paling nyaman buatmu. Kamu bisa mengubahnya kapan saja.",
-                    "Tiga hal kecil sebelum kita mulai. Setelah itu, seret aku keluar dari jendela ini.",
-                  ][step]
-                }
-              </p>
-              {step === 0 && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void moveStep(1);
-                  }}
-                >
-                  <label className="setup-name">
-                    Aku boleh panggil kamu siapa?
-                    <input
-                      autoFocus
-                      autoComplete="given-name"
-                      placeholder="Nama panggilanmu"
-                      maxLength={40}
-                      value={profile.name}
-                      onChange={(e) => update({ name: e.target.value })}
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    className="primary setup-next"
-                    disabled={!profile.name.trim() || saving}
-                  >
-                    Kenalan, yuk <ArrowRight size={16} />
-                  </button>
-                  <p className="setup-footnote">
-                    Nggak perlu akun. Kita mulai dari namamu saja.
-                  </p>
-                </form>
-              )}
-              {step === 1 && (
-                <>
-                  <div
-                    className="setup-personalities"
-                    role="radiogroup"
-                    aria-label="Gaya bicara Bito"
-                  >
-                    {personalities.map(({ value, title, hint, Icon }) => (
-                      <button
-                        key={value}
-                        role="radio"
-                        aria-checked={profile.style === value}
-                        className={profile.style === value ? "selected" : ""}
-                        onClick={() => update({ style: value })}
-                      >
-                        <Icon size={22} strokeWidth={1.6} />
-                        <strong>{title}</strong>
-                        <small>{hint}</small>
-                        <span className="setup-card-check">
-                          {profile.style === value && (
-                            <Check size={12} strokeWidth={3} />
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    className="primary setup-next setup-next-wide"
-                    disabled={saving}
-                    onClick={() => void moveStep(2)}
-                  >
-                    Rasanya cocok <ArrowRight size={16} />
-                  </button>
-                  <p className="setup-footnote">
-                    Coba pilih kartu. Dengarkan caraku lewat kata-kata.
-                  </p>
-                </>
-              )}
-              {step === 2 && (
-                <>
-                  <div className="setup-tips">
-                    {[
-                      {
-                        Icon: MousePointer2,
-                        title: "Klik sekali",
-                        detail: "Chat muncul di sebelah kananku.",
-                      },
-                      {
-                        Icon: Move,
-                        title: "Tahan & seret",
-                        detail: "Pindahkan aku tanpa membuka chat.",
-                      },
-                      {
-                        Icon: MoreHorizontal,
-                        title: "Klik kanan",
-                        detail: "Fokus, pengingat, dan pengaturan.",
-                      },
-                    ].map(({ Icon, title, detail }) => (
-                      <div key={title}>
-                        <span>
-                          <Icon size={18} strokeWidth={1.7} />
-                        </span>
-                        <p>
-                          <strong>{title}</strong>
-                          <small>{detail}</small>
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <label className="setup-proactive">
-                    Boleh menyapa duluan?
-                    <select
-                      disabled={leaving}
-                      value={profile.proactive}
-                      onChange={(e) => {
-                        const next = {
-                          ...profile,
-                          proactive: e.target.value as Profile["proactive"],
-                        };
-                        update(next);
-                        void save(2, next);
-                      }}
-                    >
-                      <option value="sometimes">Sesekali, dengan lembut</option>
-                      <option value="on-demand">Hanya saat aku panggil</option>
-                      <option value="quiet">Mode tenang</option>
-                    </select>
-                  </label>
-                  <div className={`setup-drag-cue ${armed ? "armed" : ""}`}>
-                    <Move size={17} />
-                    <span>
-                      {leaving
-                        ? "Bito sedang pindah…"
-                        : armed
-                          ? "Sekarang, bawa aku ke desktopmu."
-                          : "Sebentar, Bito sedang menyapa…"}
-                    </span>
-                  </div>
-                  {isDesktop ? (
-                    <button
-                      className="setup-keyboard"
-                      disabled={!armed}
-                      onClick={() => void act("onboarding-keyboard")}
-                    >
-                      <Keyboard size={14} /> Pindahkan tanpa menyeret
-                    </button>
-                  ) : (
-                    <p className="setup-footnote">
-                      Buka aplikasi desktop untuk mencoba perpindahan Bito.
-                    </p>
-                  )}
-                </>
-              )}
+              <h1>{heading.title}</h1>
+              <p className="setup-description">{heading.description}</p>
             </motion.div>
           </AnimatePresence>
-        </div>
-        <p className="setup-bottom">
-          Pribadi. Bisa diatur. Hadir saat kamu butuh.
-        </p>
-      </section>
+        </header>
+        <section
+          className="setup-scene"
+          aria-label="Percakapan perkenalan dengan Bito"
+        >
+          <button
+            type="button"
+            ref={slot}
+            aria-label={step < 2 ? "Sapa Bito" : "Bito siap diseret ke desktop"}
+            title={step < 2 ? "Sapa Bito" : undefined}
+            disabled={step === 2 || !ready}
+            onClick={() => {
+              if (step < 2) void act("onboarding-wave");
+            }}
+            className={`setup-character ${armed ? "setup-character-ready" : ""}`}
+          >
+            {!isDesktop && (
+              <Character
+                state={{
+                  ...state,
+                  presentation: {
+                    phase: "anchored",
+                    talking: state.presentation?.talking || false,
+                    characterReady: localReady,
+                    step,
+                    wave: state.presentation?.wave,
+                  },
+                }}
+                onReady={() => setLocalReady(true)}
+              />
+            )}
+          </button>
+          <motion.div
+            className="setup-dialogue"
+            animate={{ opacity: leaving ? 0 : 1 }}
+            transition={{ duration: reduced ? 0 : 0.14 }}
+            inert={leaving}
+          >
+            <div className="setup-bubble-slot">
+              <AnimatePresence mode="wait" initial={false}>
+                <SpeechBubble
+                  key={`${step}:${line}`}
+                  text={line}
+                  ready={ready}
+                  reduced={reduced}
+                  onTalking={(value) => {
+                    void api.command("onboarding-speech", value);
+                  }}
+                  onDone={speechDone}
+                />
+              </AnimatePresence>
+            </div>
+            <div className="setup-reply-slot">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={step}
+                  className="setup-reply"
+                  initial={{ opacity: 0, y: reduced ? 0 : 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: reduced ? 0 : -4 }}
+                  transition={transition}
+                >
+                  {submittedReply && (
+                    <Bubble
+                      side="user"
+                      className="setup-user-reply"
+                      reduced={reduced}
+                    >
+                      {submittedReply}
+                    </Bubble>
+                  )}
+                  {step === 0 && !submittedReply && (
+                    <form
+                      className="setup-composer"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void moveStep(1, true);
+                      }}
+                    >
+                      <input
+                        autoFocus
+                        aria-label="Nama panggilanmu"
+                        autoComplete="given-name"
+                        placeholder="Namamu…"
+                        maxLength={40}
+                        value={profile.name}
+                        onChange={(e) =>
+                          setProfile((p) => ({ ...p, name: e.target.value }))
+                        }
+                      />
+                      <motion.button
+                        type="submit"
+                        className="setup-send"
+                        aria-label="Kirim nama"
+                        title="Kirim nama"
+                        disabled={!profile.name.trim() || saving}
+                        whileTap={reduced ? undefined : { scale: 0.89 }}
+                      >
+                        <ArrowUp size={19} strokeWidth={2.6} />
+                      </motion.button>
+                    </form>
+                  )}
+                  {step === 1 && !submittedReply && (
+                    <div className="setup-choice-reply">
+                      <div
+                        className="setup-choices"
+                        role="radiogroup"
+                        aria-label="Gaya bicara Bito"
+                      >
+                        {personalities.map((p) => (
+                          <motion.button
+                            key={p.value}
+                            role="radio"
+                            aria-checked={profile.style === p.value}
+                            className={
+                              profile.style === p.value ? "selected" : ""
+                            }
+                            onClick={() => {
+                              setProfile((previous) => ({
+                                ...previous,
+                                style: p.value,
+                              }));
+                              setStyleTouched(true);
+                            }}
+                            whileTap={reduced ? undefined : { scale: 0.95 }}
+                          >
+                            {profile.style === p.value && (
+                              <motion.span
+                                layoutId="setup-choice-selection"
+                                className="setup-choice-selection"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 420,
+                                  damping: 35,
+                                }}
+                              />
+                            )}
+                            <span>{p.title}</span>
+                          </motion.button>
+                        ))}
+                      </div>
+                      <motion.button
+                        className="setup-send"
+                        aria-label="Lanjut dengan gaya ini"
+                        title="Lanjut"
+                        disabled={saving}
+                        onClick={() => void moveStep(2, true)}
+                        whileTap={reduced ? undefined : { scale: 0.89 }}
+                      >
+                        <ArrowUp size={19} strokeWidth={2.6} />
+                      </motion.button>
+                    </div>
+                  )}
+                  {step === 2 && (
+                    <div className="setup-desktop-reply">
+                      {isDesktop && (
+                        <motion.button
+                          className="setup-desktop-action"
+                          aria-label="Pindahkan Bito ke desktop tanpa menyeret"
+                          title="Pindahkan tanpa menyeret"
+                          disabled={!armed}
+                          onClick={() => void act("onboarding-keyboard")}
+                          whileTap={reduced ? undefined : { scale: 0.92 }}
+                        >
+                          <Move size={18} />
+                        </motion.button>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </section>
+      </div>
     </main>
   );
 }

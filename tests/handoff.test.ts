@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   anchorBounds,
+  canWave,
   droppedOutside,
   easePosition,
   wordDelay,
@@ -69,4 +70,15 @@ test("native coordinates normalize negative zero at a screen edge", () => {
   const p = easePosition(from, to, 0.99);
   assert.equal(Object.is(p.x, -0), false);
   assert.equal(Object.is(p.y, -0), false);
+});
+
+test("onboarding clicks wave only in the first two ready scenes, leaving desktop drag exclusive", () => {
+  const scene = { step: 0, phase: "anchored", characterReady: true };
+  assert.equal(canWave(scene), true);
+  assert.equal(canWave({ ...scene, step: 1 }), true);
+  assert.equal(canWave({ ...scene, step: 2 }), false);
+  assert.equal(canWave({ ...scene, characterReady: false }), false);
+  for (const phase of ["ready", "dragging", "returning", "departing"])
+    assert.equal(canWave({ ...scene, phase }), false);
+  assert.equal(canWave(undefined), false);
 });

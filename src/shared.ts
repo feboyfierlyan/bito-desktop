@@ -61,6 +61,7 @@ export type Snapshot = AppState & {
     talking: boolean;
     characterReady: boolean;
     step: number;
+    wave?: number;
   };
   surface?: string;
 };

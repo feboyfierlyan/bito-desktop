@@ -17,6 +17,7 @@ import { readFile, writeFile, unlink, mkdir } from "node:fs/promises";
 import { mkdirSync } from "node:fs";
 import {
   anchorBounds,
+  canWave,
   droppedOutside,
   easePosition,
   type Rect,
@@ -762,6 +763,16 @@ async function command(name: string, payload: any): Promise<Reply> {
       }
       break;
     }
+    case "onboarding-wave":
+      if (
+        onboarding &&
+        canWave(onboarding.view) &&
+        Date.now() - (onboarding.view.wave || 0) > 650
+      ) {
+        onboarding.view.wave = Date.now();
+        publish();
+      }
+      break;
     case "onboarding-speech":
       if (onboarding) {
         onboarding.view.talking = z.boolean().parse(payload) && !dragging;

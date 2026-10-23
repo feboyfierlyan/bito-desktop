@@ -54,3 +54,13 @@ Gunakan `BITO_DATA_DIR` ke folder sementara baru agar data pengguna tetap utuh. 
 5. Coba “Pindahkan tanpa menyeret”, reduced motion, resize/move/minimize onboarding, dan monitor dengan skala berbeda. Windows perlu diuji langsung; CI build tidak menguji kelancaran gesture native.
 
 Verifikasi lokal 0.2: layout dua panel dan bicara saat reveal teramati di macOS; drop di dalam serta perpindahan keluar diuji dengan profil sementara. Pengguna juga mengonfirmasi alur sudah aman. Frame rate belum diukur secara kuantitatif.
+
+
+## Onboarding percakapan 0.3
+
+- Periksa layout terpusat pada 1040×740 dan 820×620: title/description di atas, input/pill di bawah bubble, tanpa divider/footer/kartu tambahan.
+- Kosong/whitespace tidak dapat dikirim. Enter dan tombol panah mengirim nama; bubble biru muncul sebelum langkah 2. Kembali mempertahankan nama dan pilihan.
+- Klik Bito di langkah 1 dan 2: wave. Klik cepat berulang tidak menumpuk pemicu. Langkah 3 tetap khusus drag keluar.
+- Ubah ketiga pill: contoh ucapan diperbarui dan `isTalking` mengikuti reveal. Kirim pilihan menampilkan balasan biru lalu langkah 3.
+- Bubble kedua pihak memanjang dari ekor dan berotasi ringan; glyph tidak meregang. Chat lama tidak mengulang entrance. Streaming, Markdown, copy, dan stop tetap dapat digunakan.
+- Mode reduced motion melewati reveal gerak dan jeda balasan. Jalur drag-out tetap memakai satu jendela/Rive yang sama.
