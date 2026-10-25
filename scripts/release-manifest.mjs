@@ -45,7 +45,7 @@ await writeFile(
       ? `Build: https://github.com/feboyfierlyan/bito-desktop/actions/runs/${process.env.GITHUB_RUN_ID}`
       : "Build: local",
     "Platforms: macOS Apple Silicon (arm64), macOS Intel (x64), Windows x64",
-    "Unsigned university prototype; macOS notarization and Windows Authenticode are not configured.",
+    "University prototype: macOS ad-hoc signatures verified; Developer ID/notarization and Windows Authenticode are not configured.",
     "CI validates tests and packaging. Native Windows/Intel Mac visual and gesture testing remains manual.",
     "",
   ].join("\n"),

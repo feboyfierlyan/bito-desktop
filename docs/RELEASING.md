@@ -4,7 +4,7 @@
 
 Download di [GitHub Releases](https://github.com/feboyfierlyan/bito-desktop/releases). Pilih OS/arsitektur sesuai nama file. v0.1–0.3 diarsipkan dari build aslinya; v0.4 memperluas paket Mac dengan Intel x64. Tidak mengubah atau mengganti installer versi lama dengan kode yang lebih baru.
 
-Build terbaru ada di `release/<versi>/`, terpisah dari installer checkpoint lama. `SHA256SUMS.txt` dan `BUILD-INFO.txt` menyertai setiap release. Installer belum ditandatangani/notariskan; ini distribusi prototype untuk pengujian kelompok.
+Build terbaru ada di `release/<versi>/`, terpisah dari installer checkpoint lama. `SHA256SUMS.txt` dan `BUILD-INFO.txt` menyertai setiap release. Paket Mac memakai ad-hoc signing tanpa sertifikat penerbit/notarization; Windows belum ditandatangani penerbit. ini distribusi prototype untuk pengujian kelompok.
 
 ## Membuat checkpoint berikutnya
 
@@ -13,7 +13,7 @@ Build terbaru ada di `release/<versi>/`, terpisah dari installer checkpoint lama
 3. Perbarui `CHANGELOG.md` dan buat `docs/releases/v<versi>.md`; baris pertama menjadi judul release.
 4. Jalankan `npm run check`, `npm test`, dan `npm run build`. Commit source/aset/dokumentasi; jangan commit installer, database, profil uji, atau API key.
 5. Push commit ke `main`; buat dan push tag `v<versi>` pada commit yang sama.
-6. GitHub Actions menguji dan membangun Mac arm64/x64 serta Windows x64. Job release menunggu keduanya sukses, memeriksa kelima paket, menghitung checksum, dan menyiapkan draft.
+6. GitHub Actions menguji dan membangun Mac arm64/x64 serta Windows x64. Paket ZIP Mac diperiksa ulang dengan codesign setelah diekstrak; kegagalan memblokir publikasi. Job release menunggu keduanya sukses, memeriksa kelima paket, menghitung checksum, dan menyiapkan draft.
 7. Setelah semua file terunggah, draft dipublikasikan sebagai Latest. Jika build gagal, release tidak dipublikasikan; perbaiki sebabnya atau rerun job yang gagal. Workflow menolak menimpa release yang sudah terbit.
 8. Unduh release ke `release/<versi>/`, verifikasi checksum, dan lakukan smoke test native. Catat batas pengujian dalam release notes.
 

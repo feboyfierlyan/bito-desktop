@@ -1,6 +1,6 @@
 {
   "name": "bito-desktop",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "Bito — a thoughtful desktop companion",
   "author": "Bito Project",
@@ -67,7 +67,7 @@
       ],
       "category": "public.app-category.productivity",
       "hardenedRuntime": false,
-      "identity": null,
+      "identity": "-",
       "icon": "public/icon.png",
       "artifactName": "Bito-${version}-macOS-${arch}.${ext}"
     },

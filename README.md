@@ -5,7 +5,7 @@
 <h1 align="center">Bito</h1>
 <p align="center"><strong>Teman kecil untuk menemani harimu.</strong><br />Tempat ngobrol, teman mikir, dan bantuan kecil—langsung di desktopmu.</p>
 <p align="center">
-  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.0"><strong>Unduh v0.5.0</strong></a> ·
+  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.1"><strong>Unduh v0.5.1</strong></a> ·
   <a href="#kenalan-dulu">Kenalan dulu</a> ·
   <a href="#mulai-dalam-tiga-langkah">Cara mulai</a> ·
   <a href="CHANGELOG.md">Yang baru</a>
@@ -41,15 +41,15 @@ Sudah pernah kenalan? Bito melanjutkan data lokal akunmu. Kamu bisa mengulang pe
 
 ## Bawa Bito ke desktopmu
 
-**[Download terbaru — v0.5.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.0)**
+**[Download terbaru — v0.5.1](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.1)**
 
-- **Mac dengan chip Apple** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.0/Bito-0.5.0-macOS-arm64.dmg) · M1 atau lebih baru.
-- **Mac dengan prosesor Intel** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.0/Bito-0.5.0-macOS-x64.dmg).
-- **Windows 64-bit** — [Unduh installer](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.0/Bito-0.5.0-Windows-x64-Setup.exe).
+- **Mac dengan chip Apple** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.1/Bito-0.5.1-macOS-arm64.dmg) · M1 atau lebih baru.
+- **Mac dengan prosesor Intel** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.1/Bito-0.5.1-macOS-x64.dmg).
+- **Windows 64-bit** — [Unduh installer](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.5.1/Bito-0.5.1-Windows-x64-Setup.exe).
 
-Paket ZIP untuk Mac juga tersedia di halaman rilis. Repo dan demo masih privat: unduhan memerlukan akses GitHub, sedangkan login aplikasi memerlukan akun demo yang diizinkan. Installer belum ditandatangani/notariskan; [panduan instalasi](docs/INSTALL.md) menjelaskan cara membukanya.
+Paket ZIP untuk Mac juga tersedia di halaman rilis. Repo dan demo masih privat: unduhan memerlukan akses GitHub, sedangkan login aplikasi memerlukan akun demo yang diizinkan. Installer demo belum memakai sertifikat penerbit atau notarization Apple; [panduan instalasi](docs/INSTALL.md) menjelaskan cara membukanya.
 
-[Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases) · [Catatan v0.5.0](docs/releases/v0.5.0.md)
+[Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases) · [Catatan v0.5.1](docs/releases/v0.5.1.md)
 
 ## Kamu tetap punya kendali
 
@@ -59,7 +59,7 @@ Bito tidak mengendalikan aplikasi lain atau membaca semua file di laptopmu. Peng
 
 ## Dibuat untuk tumbuh bersama pemakainya
 
-Bito adalah proyek kuliah yang mengeksplorasi companion desktop untuk motivasi, fokus, dan dukungan keseharian. **v0.5.0** adalah checkpoint untuk dicoba kelompok kecil, dengan ruang untuk memperbaiki perilaku dan percakapan lewat pengalaman nyata.
+Bito adalah proyek kuliah yang mengeksplorasi companion desktop untuk motivasi, fokus, dan dukungan keseharian. **v0.5.1** adalah checkpoint untuk dicoba kelompok kecil, dengan ruang untuk memperbaiki perilaku dan percakapan lewat pengalaman nyata.
 
 <details>
 <summary><strong>Ingin menjalankan atau mengembangkan Bito?</strong></summary>

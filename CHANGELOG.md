@@ -2,6 +2,12 @@
 
 Checkpoint prototype Bito. Setiap versi ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
 
+## [0.5.1](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.1) — 26 Oktober 2026
+
+- Perbaikan paket Mac: tanda tangan ad-hoc dibuat ulang setelah bundel aplikasi disusun.
+- CI mengekstrak ZIP Apple Silicon dan Intel, lalu memverifikasi seluruh tanda tangan/resource sebelum mengunggah paket.
+- v0.5.0 dipertahankan sebagai arsip; unduhan terbaru diarahkan ke v0.5.1. Belum ada sertifikat penerbit/notarization Apple.
+
 ## [0.5.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.0) — 26 Oktober 2026
 
 - Login Google dengan akses demo privat; koneksi AI bersama melalui backend Supabase, tanpa key pengguna di installer.

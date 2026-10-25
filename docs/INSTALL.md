@@ -12,11 +12,11 @@ Buka [rilis terbaru](https://github.com/feboyfierlyan/bito-desktop/releases/late
 
 1. Buka file DMG, lalu seret **Bito** ke **Applications**.
 2. Jalankan Bito dari Applications. Jika memilih ZIP, ekstrak dan pindahkan Bito.app ke Applications terlebih dahulu.
-3. Installer demo belum dinotariskan. Jika macOS menolak aplikasi dari pengembang yang belum dikenali, pastikan file berasal dari repo tim, lalu buka **System Settings → Privacy & Security → Open Anyway** dan ikuti konfirmasi macOS. Jangan menonaktifkan perlindungan sistem secara menyeluruh.
+3. Paket Mac memakai tanda tangan ad-hoc untuk integritas aplikasi, tetapi belum dinotariskan oleh Apple. Jika macOS menolak aplikasi dari pengembang yang belum dikenali, pastikan file berasal dari repo tim, lalu buka **System Settings → Privacy & Security → Open Anyway** dan ikuti konfirmasi macOS. Jangan menonaktifkan perlindungan sistem secara menyeluruh.
 
 ## Windows
 
-1. Jalankan **Bito-0.5.0-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
+1. Jalankan **Bito-0.5.1-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
 2. Installer demo belum memiliki tanda tangan penerbit. Jika SmartScreen muncul, pastikan unduhan berasal dari repo tim sebelum memilih **More info → Run anyway**. Perangkat yang dikelola kampus mungkin memerlukan bantuan administrator.
 3. Buka Bito dari shortcut setelah instalasi selesai.
 
