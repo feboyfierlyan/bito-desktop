@@ -2,6 +2,17 @@
 
 Checkpoint prototype Bito. Setiap versi ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
 
+## [0.5.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.0) — 26 Oktober 2026
+
+- Login Google dengan akses demo privat; koneksi AI bersama melalui backend Supabase, tanpa key pengguna di installer.
+- Qwen 3.8 27B lewat Groq; pilihan gaya To the point, Chill, Humoris, dan Care dengan migrasi profil lama.
+- Chat per kalimat/paragraf, typing antar-bubble, Markdown dan kartu hasil interaktif untuk timer, pengingat, checklist, serta file teks.
+- Panel chat putih susu dengan animasi isi yang terbungkus, resize, scroll/fade, pemisah hari, jam saat hover, status error/stop, dan kembali ke pesan terbaru.
+- Penempatan chat kiri/kanan mengikuti ruang layar, sapaan dan bubble notifikasi fungsional, wave saat masuk chat, serta ayunan drag.
+- Login artwork Bito, transisi ke onboarding yang tersambung, pemanasan aset Rive dan poster lokal, outline transparan tanpa halo putih.
+- Settings baru, penyimpanan akun lokal terpisah, sesi terenkripsi OS, dan kendali memori/ekspor data.
+- README bergaya halaman produk, panduan instalasi dan teknis terpisah, serta paket Mac Apple Silicon/Intel dan Windows x64.
+
 ## [0.4.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.4.0) — 23 Oktober 2026
 
 - Percakapan onboarding berkesinambungan: jawaban user lebih dulu, jeda 340 ms, lalu balasan Bito.

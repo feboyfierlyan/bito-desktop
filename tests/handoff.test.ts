@@ -4,9 +4,33 @@ import {
   anchorBounds,
   canWave,
   droppedOutside,
+  easeBounds,
   easePosition,
+  nativePresentationVisible,
   wordDelay,
 } from "../src/handoff";
+
+test("parked step-three mascot follows host activation and never floats over another app", () => {
+  const ready = { step: 2, phase: "ready" };
+  assert.equal(nativePresentationVisible(ready, true), true);
+  assert.equal(nativePresentationVisible(ready, false), false);
+  assert.equal(nativePresentationVisible(ready, true), true);
+  assert.equal(
+    nativePresentationVisible({ ...ready, phase: "returning" }, false),
+    false,
+  );
+  assert.equal(nativePresentationVisible({ ...ready, step: 1 }, true), false);
+  assert.equal(
+    nativePresentationVisible({ ...ready, purpose: "login" }, true),
+    false,
+  );
+  assert.equal(nativePresentationVisible(undefined, true), false);
+});
+
+test("a deliberate desktop drag and completed handoff survive host blur", () => {
+  for (const phase of ["dragging", "departing"])
+    assert.equal(nativePresentationVisible({ step: 2, phase }, false), true);
+});
 
 test("anchor maps renderer content to native DIP across a negative-coordinate monitor", () => {
   assert.deepEqual(
@@ -62,6 +86,21 @@ test("word cadence pauses at punctuation and caps long-word delays", () => {
   assert.ok(wordDelay("teman.") > wordDelay("teman"));
   assert.ok(wordDelay("teman,") > wordDelay("teman"));
   assert.equal(wordDelay("a".repeat(200)), 195);
+});
+
+test("the small login mascot grows and travels together into the onboarding scene", () => {
+  const from = { x: -900, y: 200, width: 104, height: 104 };
+  const to = { x: -1100, y: 370, width: 282, height: 282 };
+  assert.deepEqual(easeBounds(from, to, -1), from);
+  assert.deepEqual(easeBounds(from, to, 2), to);
+  let previous = from;
+  for (let i = 0; i <= 30; i++) {
+    const current = easeBounds(from, to, i / 30);
+    assert.ok(current.x <= previous.x && current.y >= previous.y);
+    assert.ok(current.width >= previous.width && current.width <= to.width);
+    assert.equal(current.width, current.height);
+    previous = current;
+  }
 });
 
 test("native coordinates normalize negative zero at a screen edge", () => {

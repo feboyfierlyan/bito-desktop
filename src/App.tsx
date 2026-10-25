@@ -1,49 +1,32 @@
 // Keep the React component boundary separate from the root bootstrap for Fast Refresh.
 import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, MotionConfig } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  MotionConfig,
+  LayoutGroup,
+} from "motion/react";
 import {
   ArrowRight,
-  ArrowLeft,
-  ArrowUp,
   X,
   Plus,
-  Settings as SettingsIcon,
-  Timer,
-  Paperclip,
-  Square,
   Check,
-  ChevronRight,
   MessageCircle,
-  MousePointer2,
-  Move,
-  MoreHorizontal,
   Pause,
   Play,
-  CheckCheck,
-  Bell,
-  Heart,
-  User,
-  KeyRound,
-  Monitor,
-  Shield,
-  Download,
-  Trash2,
-  FileText,
-  Copy,
-  Bookmark,
-  RefreshCw,
-  Sprout,
-  VolumeX,
 } from "lucide-react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { api, isDesktop } from "./bridge";
+import { appendReplyDelta } from "./reply-bubbles";
 import { Character } from "./Character";
-import { Onboarding } from "./Onboarding";
-import { Bubble } from "./Bubble";
+import { DesktopChat } from "./DesktopChat";
+import { GreetingBubble } from "./GreetingBubble";
+import { SettingsWindow } from "./SettingsWindow";
+import { SetupFlow } from "./SetupFlow";
+import { useDragSway } from "./use-drag-sway";
 import { isDrag, remaining } from "../electron/core";
-import type { Snapshot, Profile, Settings, Message } from "./shared";
+import type { Snapshot } from "./shared";
 import "./style.css";
+import "./DesktopChat.css";
 const spring = {
   type: "spring" as const,
   stiffness: 420,
@@ -82,14 +65,12 @@ export default function App() {
   useEffect(() => {
     void api.getState().then(setState);
     const off = api.onState(setState);
-    const delta = api.onDelta(({ id, delta }) =>
+    const delta = api.onDelta((event) =>
       setState((s) =>
         s
           ? {
               ...s,
-              messages: s.messages.map((m) =>
-                m.id === id ? { ...m, text: m.text + delta } : m,
-              ),
+              messages: s.messages.map((m) => appendReplyDelta(m, event)),
             }
           : s,
       ),
@@ -131,19 +112,26 @@ export default function App() {
       transition={spring}
       reducedMotion={state.settings.reducedMotion ? "always" : "user"}
     >
-      {route === "pet" ? (
+      {["auth", "onboarding", "welcome"].includes(route) ? (
+        <SetupFlow state={state} route={route} act={act} />
+      ) : state.auth?.configured &&
+        state.auth.status !== "ready" &&
+        state.presentation?.purpose !== "login" ? null : route === "pet" ? (
         <Pet state={state} />
       ) : route === "chat" ? (
-        <Chat state={state} act={act} />
-      ) : route === "onboarding" || route === "welcome" ? (
-        <Onboarding
-          key={route}
-          state={state}
-          act={act}
-          restart={route === "welcome"}
-        />
+        <LayoutGroup id="desktop-conversation">
+          <DesktopChat
+            state={state}
+            act={act}
+            panels={{
+              focus: <Focus state={state} act={act} />,
+              tasks: <Tasks state={state} act={act} />,
+            }}
+          />
+          <GreetingBubble state={state} />
+        </LayoutGroup>
       ) : (
-        <Studio state={state} act={act} initial={route} />
+        <SettingsWindow state={state} initial={route} />
       )}
       {error && (
         <motion.div
@@ -171,6 +159,9 @@ type Act = (
   payload?: unknown,
 ) => Promise<{ ok: boolean; error?: string; value?: unknown }>;
 function Pet({ state }: { state: Snapshot }) {
+  const sway = useDragSway(
+    state.settings.reducedMotion || !!state.presentation,
+  );
   const latest = useRef(state);
   latest.current = state;
   const pointer = useRef<{
@@ -178,6 +169,7 @@ function Pet({ state }: { state: Snapshot }) {
     y: number;
     drag: boolean;
     pointerId: number;
+    grab: { x: number; y: number };
   } | null>(null);
   useEffect(() => {
     const move = (e: MouseEvent) => {
@@ -197,6 +189,7 @@ function Pet({ state }: { state: Snapshot }) {
     function cancel() {
       if (latest.current.presentation && pointer.current?.drag) return;
       if (pointer.current?.drag) api.dragEnd();
+      sway.release();
       pointer.current = null;
     }
     return () => {
@@ -204,6 +197,18 @@ function Pet({ state }: { state: Snapshot }) {
       window.removeEventListener("blur", cancel);
     };
   }, []);
+  useEffect(() => {
+    if (!state.dragging) sway.release();
+  }, [state.dragging, sway.release]);
+  useEffect(
+    () =>
+      api.onDragMotion?.((motion) => {
+        if (motion.phase === "start") sway.begin(motion, motion.grab);
+        else if (motion.phase === "move") sway.move(motion.x, motion.y);
+        else sway.release();
+      }),
+    [sway.begin, sway.move, sway.release],
+  );
   return (
     <div
       className={`pet ${state.dragging ? "dragging" : ""} ${state.presentation ? "presenting" : ""} ${state.presentation?.phase === "ready" ? "ready" : ""}`}
@@ -230,6 +235,7 @@ function Pet({ state }: { state: Snapshot }) {
           y: e.screenY,
           drag: false,
           pointerId: e.pointerId,
+          grab: { x: e.clientX / innerWidth, y: e.clientY / innerHeight },
         };
         e.currentTarget.setPointerCapture(e.pointerId);
       }}
@@ -240,14 +246,19 @@ function Pet({ state }: { state: Snapshot }) {
           dy = e.screenY - p.y;
         if (!p.drag && isDrag(dx, dy)) {
           p.drag = true;
+          if (!isDesktop) sway.begin({ x: p.x, y: p.y }, p.grab);
           api.dragStart();
         }
-        if (p.drag) api.dragMove(dx, dy);
+        if (p.drag) {
+          if (!isDesktop) sway.move(e.screenX, e.screenY);
+          api.dragMove(dx, dy);
+        }
       }}
       onPointerUp={(e) => {
         if (e.button !== 0) return;
         const p = pointer.current;
         pointer.current = null;
+        sway.release();
         if (!p) return;
         if (p.drag) api.dragEnd();
         else if (!state.presentation) api.toggleChat();
@@ -257,380 +268,28 @@ function Pet({ state }: { state: Snapshot }) {
       onPointerCancel={() => {
         if (pointer.current?.drag) void api.command("drag-cancel");
         pointer.current = null;
+        sway.release();
+      }}
+      onLostPointerCapture={() => {
+        if (pointer.current?.drag) api.dragEnd();
+        pointer.current = null;
+        sway.release();
       }}
       onContextMenu={(e) => {
         e.preventDefault();
         api.contextMenu();
       }}
     >
-      <Character
-        state={state}
-        onReady={() => {
-          void api.command("character-ready");
-        }}
-      />
+      <div className="pet-sway" ref={sway.visual}>
+        <Character
+          state={state}
+          nativeSurface
+          onReady={(frame) => {
+            void api.command("character-ready", frame);
+          }}
+        />
+      </div>
     </div>
-  );
-}
-function Chat({ state, act }: { state: Snapshot; act: Act }) {
-  const seenMessages = useRef(new Set(state.messages.map((m) => m.id)));
-  useEffect(() => {
-    state.messages.forEach((m) => seenMessages.current.add(m.id));
-  }, [state.messages]);
-  const [text, setText] = useState(""),
-    [attachment, setAttachment] = useState<
-      { name: string; content: string } | undefined
-    >(),
-    [tab, setTab] = useState<"chat" | "focus" | "tasks">("chat"),
-    [copied, setCopied] = useState("");
-  const scroller = useRef<HTMLDivElement>(null),
-    textarea = useRef<HTMLTextAreaElement>(null),
-    nearBottom = useRef(true);
-  useEffect(() => {
-    if (nearBottom.current && scroller.current)
-      scroller.current.scrollTop = scroller.current.scrollHeight;
-  }, [state.messages, state.busy, tab]);
-  useEffect(() => {
-    if (state.chatOpen) setTimeout(() => textarea.current?.focus(), 200);
-  }, [state.chatOpen]);
-  useEffect(() => {
-    const close = (e: KeyboardEvent) => {
-      if (e.key === "Escape") void act("close-chat");
-    };
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, []);
-  async function send(value = text) {
-    if (state.busy || (!value.trim() && !attachment)) return;
-    const result = await act("send", { text: value, attachment });
-    if (result.ok) {
-      setText("");
-      setAttachment(undefined);
-      nearBottom.current = true;
-    }
-  }
-  const copy = async (m: Message) => {
-    await navigator.clipboard.writeText(m.text);
-    setCopied(m.id);
-    setTimeout(() => setCopied(""), 1500);
-  };
-  return (
-    <motion.main
-      className="chat-panel"
-      initial={{ opacity: 0, x: -12, scale: 0.965 }}
-      animate={{
-        opacity: state.chatOpen ? 1 : 0,
-        x: state.chatOpen ? 0 : -8,
-        scale: state.chatOpen ? 1 : 0.97,
-      }}
-      transition={spring}
-      style={{ pointerEvents: state.chatOpen ? "auto" : "none" }}
-    >
-      <header className="chat-header">
-        <div className="avatar">
-          <Sprout size={20} />
-        </div>
-        <div className="chat-name">
-          <strong>Bito</strong>
-          <span>
-            {state.busy
-              ? "Sedang memikirkan jawaban…"
-              : state.sleeping
-                ? "Sedang istirahat"
-                : state.focus.running
-                  ? "Menemanimu fokus"
-                  : "Di sini, menemanimu"}
-          </span>
-        </div>
-        <IconButton
-          label="Settings"
-          onClick={() => void act("show-settings", "settings")}
-        >
-          <SettingsIcon size={17} />
-        </IconButton>
-        <IconButton
-          label="Tutup percakapan"
-          onClick={() => void act("close-chat")}
-        >
-          <X size={18} />
-        </IconButton>
-      </header>
-      <nav className="chat-tabs">
-        {[
-          ["chat", "Percakapan", MessageCircle],
-          ["focus", "Fokus", Timer],
-          ["tasks", "Langkah kecil", CheckCheck],
-        ].map(([key, label, Icon]) => {
-          const I = Icon as typeof Timer;
-          return (
-            <button
-              key={String(key)}
-              className={tab === key ? "active" : ""}
-              onClick={() => setTab(key as typeof tab)}
-            >
-              <I size={14} />
-              {String(label)}
-              {tab === key && (
-                <motion.span layoutId="chat-tab" className="tab-line" />
-              )}
-            </button>
-          );
-        })}
-      </nav>
-      <AnimatePresence mode="wait" initial={false}>
-        {tab === "chat" ? (
-          <motion.div
-            key="messages"
-            className="conversation"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-          >
-            <div
-              className="messages"
-              ref={scroller}
-              onScroll={() => {
-                const el = scroller.current!;
-                nearBottom.current =
-                  el.scrollHeight - el.scrollTop - el.clientHeight < 90;
-              }}
-            >
-              {!state.messages.length && (
-                <div className="empty-chat">
-                  <div className="hello-icon">
-                    <Heart size={22} />
-                  </div>
-                  <h2>Hai, {state.profile.name || "teman"}.</h2>
-                  <p>
-                    {state.profile.project
-                      ? `Gimana kabar ${state.profile.project}? Kita bisa mulai dari satu hal kecil.`
-                      : "Ada yang sedang memenuhi pikiranmu? Cerita saja. Kita urai pelan-pelan."}
-                  </p>
-                  <div className="suggestions">
-                    {[
-                      "Bantu aku mulai",
-                      "Aku lagi mentok",
-                      "Temani fokus 15 menit",
-                    ].map((t) => (
-                      <button
-                        key={t}
-                        onClick={() =>
-                          t.includes("fokus")
-                            ? void act("focus-start", 15)
-                            : void send(t)
-                        }
-                      >
-                        {t}
-                        <ArrowRight size={14} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {state.messages.map((m, i) => (
-                <motion.article
-                  layout="position"
-                  key={m.id}
-                  className={`message ${m.role} ${m.status === "error" ? "failed" : ""}`}
-                  transition={{
-                    layout: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
-                  }}
-                >
-                  {(i === 0 ||
-                    new Date(m.createdAt).toDateString() !==
-                      new Date(
-                        state.messages[i - 1].createdAt,
-                      ).toDateString()) && (
-                    <time className="date-divider">
-                      {new Date(m.createdAt).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </time>
-                  )}
-                  <Bubble
-                    className="bubble"
-                    side={m.role === "user" ? "user" : "bito"}
-                    appear={!seenMessages.current.has(m.id)}
-                    reduced={state.settings.reducedMotion}
-                  >
-                    {m.text ? (
-                      <Markdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          a: ({ href, children }) => (
-                            <a
-                              href={href}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                void act("open-link", href);
-                              }}
-                            >
-                              {children}
-                            </a>
-                          ),
-                        }}
-                      >
-                        {m.text}
-                      </Markdown>
-                    ) : (
-                      <span
-                        className="typing"
-                        aria-label="Bito sedang berpikir"
-                      >
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                    )}
-                  </Bubble>
-                  {m.role === "assistant" && m.text && (
-                    <div className="message-actions">
-                      <button
-                        aria-label="Salin jawaban"
-                        onClick={() => void copy(m)}
-                      >
-                        {copied === m.id ? (
-                          <Check size={12} />
-                        ) : (
-                          <Copy size={12} />
-                        )}
-                      </button>
-                      <button
-                        aria-label="Simpan sebagai catatan"
-                        onClick={() => void act("save-note", m.text)}
-                      >
-                        <Bookmark size={12} />
-                      </button>
-                      {m.status === "interrupted" && <span>Dihentikan</span>}
-                      {m.status === "error" && (
-                        <button
-                          onClick={() => {
-                            const previous = state.messages
-                              .slice(0, i)
-                              .reverse()
-                              .find((p) => p.role === "user");
-                            if (previous) void send(previous.text);
-                          }}
-                        >
-                          <RefreshCw size={12} /> Coba lagi
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </motion.article>
-              ))}
-            </div>
-            {!state.hasKey && (
-              <button
-                className="connection-hint"
-                onClick={() => void act("show-settings", "ai")}
-              >
-                <KeyRound size={14} />
-                <span>Hubungkan AI untuk mulai ngobrol</span>
-                <ChevronRight size={14} />
-              </button>
-            )}
-            <div className="composer-area">
-              {attachment && (
-                <div className="attachment">
-                  <FileText size={14} />
-                  {attachment.name}
-                  <button
-                    aria-label="Lepas dokumen"
-                    onClick={() => setAttachment(undefined)}
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              )}
-              <form
-                className="composer"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void send();
-                }}
-              >
-                <IconButton
-                  label="Lampirkan dokumen teks"
-                  disabled={state.busy}
-                  onClick={async () => {
-                    const r = await act("read-document");
-                    if (r.value) setAttachment(r.value as any);
-                  }}
-                >
-                  <Plus size={20} />
-                </IconButton>
-                <textarea
-                  ref={textarea}
-                  aria-label="Pesan untuk Bito"
-                  placeholder="Cerita ke Bito…"
-                  rows={1}
-                  value={text}
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    e.target.style.height = "auto";
-                    e.target.style.height = `${Math.min(e.target.scrollHeight, 118)}px`;
-                  }}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !e.shiftKey &&
-                      !e.nativeEvent.isComposing
-                    ) {
-                      e.preventDefault();
-                      void send();
-                    }
-                  }}
-                />
-                {state.busy ? (
-                  <button
-                    type="button"
-                    className="send-button"
-                    aria-label="Hentikan jawaban"
-                    onClick={() => void act("stop")}
-                  >
-                    <Square size={14} fill="currentColor" />
-                  </button>
-                ) : (
-                  <button
-                    className="send-button"
-                    aria-label="Kirim pesan"
-                    disabled={(!text.trim() && !attachment) || !state.hasKey}
-                  >
-                    <ArrowUp size={19} />
-                  </button>
-                )}
-              </form>
-              <p className="chat-footnote">
-                Bito adalah AI. Hal penting tetap perlu diperiksa.
-              </p>
-            </div>
-          </motion.div>
-        ) : tab === "focus" ? (
-          <motion.div
-            key="focus"
-            className="chat-content"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            <Focus state={state} act={act} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="tasks"
-            className="chat-content"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-          >
-            <Tasks state={state} act={act} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.main>
   );
 }
 function Focus({ state, act }: { state: Snapshot; act: Act }) {
@@ -782,501 +441,5 @@ function Tasks({ state, act }: { state: Snapshot; act: Act }) {
         </p>
       )}
     </section>
-  );
-}
-function Studio({
-  state,
-  act,
-  initial,
-}: {
-  state: Snapshot;
-  act: Act;
-  initial: string;
-}) {
-  const [page, setPage] = useState(
-      initial === "settings" ? "profile" : initial,
-    ),
-    [saved, setSaved] = useState(false),
-    [profile, setProfile] = useState(state.profile),
-    [settings, setSettings] = useState(state.settings),
-    [key, setKey] = useState(""),
-    [testing, setTesting] = useState(false),
-    [connection, setConnection] = useState(""),
-    [memory, setMemory] = useState(""),
-    [reminder, setReminder] = useState(""),
-    [due, setDue] = useState("");
-  useEffect(
-    () => setPage(initial === "settings" ? "profile" : initial),
-    [initial],
-  );
-  const save = async () => {
-    const r = await act(
-      page === "profile" ? "profile" : "settings",
-      page === "profile" ? profile : settings,
-    );
-    if (r.ok) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1800);
-    }
-  };
-  const navigation = [
-    ["profile", "Tentang kamu", User],
-    ["personality", "Kepribadian", Heart],
-    ["desktop", "Desktop", Monitor],
-    ["ai", "Koneksi AI", KeyRound],
-    ["reminders", "Pengingat", Bell],
-    ["memory", "Memori & data", Shield],
-  ] as const;
-  return (
-    <main className="studio">
-      <aside>
-        <span className="wordmark">
-          bito<span>●</span>
-        </span>
-        <div className="sidebar-profile">
-          <div className="avatar">
-            <Sprout size={20} />
-          </div>
-          <div>
-            <strong>{state.profile.name || "Teman Bito"}</strong>
-            <small>Ruang kecilmu</small>
-          </div>
-        </div>
-        <nav>
-          {navigation.map(([value, label, Icon]) => (
-            <button
-              key={value}
-              className={page === value ? "active" : ""}
-              onClick={() => setPage(value)}
-            >
-              <Icon size={17} />
-              {label}
-            </button>
-          ))}
-        </nav>
-        <button className="sidebar-chat" onClick={() => void act("show-chat")}>
-          <MessageCircle size={17} /> Kembali ngobrol <ArrowRight size={15} />
-        </button>
-        <small className="version">Bito 0.4 · Dibuat untuk menemani</small>
-      </aside>
-      <section className="settings-content">
-        <div className="settings-heading">
-          <p className="eyebrow">BIKIN SENYAMAN KAMU</p>
-          <h1>
-            {navigation.find((n) => n[0] === page)?.[1] || "Tentang kamu"}
-          </h1>
-          <p className="lead">
-            {page === "ai"
-              ? "Hubungkan model pilihanmu. API key disimpan di perangkat ini."
-              : page === "memory"
-                ? "Kamu yang menentukan apa yang Bito ingat."
-                : "Hal-hal kecil yang membuat Bito terasa lebih dekat."}
-          </p>
-        </div>
-        {page === "profile" && (
-          <div className="settings-section">
-            <Field label="Nama panggilan">
-              <input
-                value={profile.name}
-                maxLength={40}
-                onChange={(e) =>
-                  setProfile({ ...profile, name: e.target.value })
-                }
-              />
-            </Field>
-            <Field
-              label="Proyek yang sedang kamu kerjakan"
-              hint="Bito akan memakai konteks ini untuk membantu dengan lebih pas."
-            >
-              <textarea
-                value={profile.project}
-                maxLength={200}
-                onChange={(e) =>
-                  setProfile({ ...profile, project: e.target.value })
-                }
-              />
-            </Field>
-          </div>
-        )}
-        {page === "personality" && (
-          <div className="settings-section">
-            <Field label="Gaya bicara">
-              <select
-                value={profile.style}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    style: e.target.value as Profile["style"],
-                  })
-                }
-              >
-                <option value="warm">Hangat dan menyemangati</option>
-                <option value="calm">Tenang dan lembut</option>
-                <option value="direct">Langsung dan praktis</option>
-              </select>
-            </Field>
-            <Field label="Bito boleh menyapa duluan">
-              <select
-                value={profile.proactive}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    proactive: e.target.value as Profile["proactive"],
-                  })
-                }
-              >
-                <option value="on-demand">Hanya saat dipanggil</option>
-                <option value="sometimes">
-                  Sesekali (maksimal satu kali per jam)
-                </option>
-                <option value="quiet">Mode tenang</option>
-              </select>
-            </Field>
-            <button
-              className="primary"
-              onClick={async () => {
-                const r = await act("profile", profile);
-                if (r.ok) {
-                  setSaved(true);
-                  setTimeout(() => setSaved(false), 1800);
-                }
-              }}
-            >
-              {saved ? <Check size={16} /> : null}
-              {saved ? "Tersimpan" : "Simpan kepribadian"}
-            </button>
-          </div>
-        )}
-        {page === "desktop" && (
-          <div className="settings-section">
-            <Field label={`Ukuran Bito · ${settings.size}px`}>
-              <input
-                type="range"
-                min="130"
-                max="260"
-                value={settings.size}
-                onChange={(e) =>
-                  setSettings({ ...settings, size: Number(e.target.value) })
-                }
-              />
-            </Field>
-            <Toggle
-              title="Selalu terlihat di atas jendela lain"
-              checked={settings.alwaysOnTop}
-              onChange={(v) => setSettings({ ...settings, alwaysOnTop: v })}
-            />
-            <Toggle
-              title="Tampilkan saat komputer dinyalakan"
-              checked={settings.launchAtLogin}
-              onChange={(v) => setSettings({ ...settings, launchAtLogin: v })}
-            />
-            <Toggle
-              title="Jangan ganggu"
-              hint="Tunda notifikasi sampai kamu siap."
-              checked={settings.dnd}
-              onChange={(v) => setSettings({ ...settings, dnd: v })}
-            />
-            <Toggle
-              title="Kurangi gerakan"
-              hint="Transisi lebih tenang dan karakter tidak bergerak saat idle."
-              checked={settings.reducedMotion}
-              onChange={(v) => setSettings({ ...settings, reducedMotion: v })}
-            />
-            <Toggle
-              title="Kurangi transparansi"
-              checked={settings.reducedTransparency}
-              onChange={(v) =>
-                setSettings({ ...settings, reducedTransparency: v })
-              }
-            />
-          </div>
-        )}
-        {page === "ai" && (
-          <div className="settings-section">
-            <div className="info-box">
-              <KeyRound size={18} />
-              <div>
-                <strong>
-                  {state.hasKey ? "API key sudah tersimpan" : "Belum terhubung"}
-                </strong>
-                <p>
-                  Menggunakan Responses API. Biaya pemakaian mengikuti akun
-                  penyedia AI kamu.
-                </p>
-              </div>
-            </div>
-            <Field
-              label="Alamat API"
-              hint="Default OpenAI. Endpoint lain harus mendukung Responses API. Mengubah alamat akan menghapus key lama."
-            >
-              <input
-                value={settings.baseURL}
-                onChange={(e) =>
-                  setSettings({ ...settings, baseURL: e.target.value })
-                }
-              />
-            </Field>
-            <Field label="Model">
-              <input
-                value={settings.model}
-                onChange={(e) =>
-                  setSettings({ ...settings, model: e.target.value })
-                }
-              />
-            </Field>
-            <Field
-              label={state.hasKey ? "Ganti API key (opsional)" : "API key"}
-            >
-              <input
-                type="password"
-                autoComplete="off"
-                placeholder="Tempel API key milikmu"
-                value={key}
-                onChange={(e) => setKey(e.target.value)}
-              />
-            </Field>
-            <div className="button-row">
-              <button
-                className="primary"
-                onClick={async () => {
-                  const r = await act("settings", settings);
-                  if (r.ok) {
-                    if (key) {
-                      const k = await act("api-key", key);
-                      if (!k.ok) return;
-                      setKey("");
-                    }
-                    setConnection("Pengaturan disimpan.");
-                  }
-                }}
-              >
-                Simpan koneksi
-              </button>
-              <button
-                className="secondary"
-                disabled={testing || !state.hasKey}
-                onClick={async () => {
-                  setTesting(true);
-                  setConnection("");
-                  try {
-                    const r = await act("test-ai");
-                    if (r.ok) setConnection(String(r.value));
-                  } finally {
-                    setTesting(false);
-                  }
-                }}
-              >
-                {testing ? "Memeriksa…" : "Tes koneksi"}
-              </button>
-            </div>
-            {connection && (
-              <p role="status" className="success-note">
-                <Check size={15} />
-                {connection}
-              </p>
-            )}
-            {state.hasKey && (
-              <button
-                className="text-button danger"
-                onClick={() => void act("api-key", "")}
-              >
-                Hapus API key
-              </button>
-            )}
-          </div>
-        )}
-        {page === "reminders" && (
-          <div className="settings-section">
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const r = await act("reminder-add", {
-                  title: reminder,
-                  due: new Date(due).getTime(),
-                });
-                if (r.ok) {
-                  setReminder("");
-                  setDue("");
-                }
-              }}
-            >
-              <Field label="Ingatkan aku untuk…">
-                <input
-                  required
-                  maxLength={240}
-                  placeholder="Misalnya: kirim revisi ke dosen"
-                  value={reminder}
-                  onChange={(e) => setReminder(e.target.value)}
-                />
-              </Field>
-              <Field label="Kapan?">
-                <input
-                  required
-                  type="datetime-local"
-                  value={due}
-                  onChange={(e) => setDue(e.target.value)}
-                />
-              </Field>
-              <button className="primary" type="submit">
-                <Plus size={16} /> Tambah pengingat
-              </button>
-            </form>
-            <div className="reminder-list">
-              {state.reminders.map((r) => (
-                <div
-                  key={r.id}
-                  className={`reminder-row ${r.done ? "done" : ""}`}
-                >
-                  <Bell size={17} />
-                  <div>
-                    <strong>{r.title}</strong>
-                    <small>
-                      {new Date(r.due).toLocaleString("id-ID")}
-                      {r.notified && !r.done ? " · Sudah diingatkan" : ""}
-                    </small>
-                  </div>
-                  {r.done ? (
-                    <Check size={16} />
-                  ) : (
-                    <>
-                      <button
-                        className="text-button"
-                        onClick={() => void act("reminder-snooze", r.id)}
-                      >
-                        +10m
-                      </button>
-                      <IconButton
-                        label="Tandai selesai"
-                        onClick={() => void act("reminder-done", r.id)}
-                      >
-                        <Check size={17} />
-                      </IconButton>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="quiet-note">
-              Bito mengingatkan saat aplikasi berjalan. Pengingat yang terlewat
-              diperiksa kembali saat aplikasi dibuka.
-            </p>
-          </div>
-        )}
-        {page === "memory" && (
-          <div className="settings-section">
-            <Field label="Sesuatu yang ingin Bito ingat">
-              <div className="inline-form">
-                <input
-                  value={memory}
-                  maxLength={500}
-                  placeholder="Misalnya: aku lebih nyaman belajar sore"
-                  onChange={(e) => setMemory(e.target.value)}
-                />
-                <IconButton
-                  label="Simpan memori"
-                  onClick={() => {
-                    if (memory.trim()) {
-                      void act("memory-add", memory);
-                      setMemory("");
-                    }
-                  }}
-                >
-                  <Plus size={18} />
-                </IconButton>
-              </div>
-            </Field>
-            {state.memories.map((m) => (
-              <div key={m.id} className="memory-row">
-                <span>{m.text}</span>
-                <IconButton
-                  label="Hapus memori"
-                  onClick={() => void act("memory-delete", m.id)}
-                >
-                  <Trash2 size={15} />
-                </IconButton>
-              </div>
-            ))}
-            <div className="data-actions">
-              <button className="secondary" onClick={() => void act("export")}>
-                <Download size={16} /> Ekspor data
-              </button>
-              <button
-                className="secondary danger"
-                onClick={() => void act("clear-chat")}
-              >
-                <Trash2 size={16} /> Hapus percakapan
-              </button>
-            </div>
-            <p className="quiet-note">
-              Profil, chat, dan memori tersimpan lokal. Saat mengirim pesan,
-              konteks percakapan dan memori dikirim ke penyedia AI pilihanmu.
-            </p>
-          </div>
-        )}
-        {["profile", "desktop"].includes(page) && (
-          <div className="save-bar">
-            <span>
-              {page === "profile" ? (
-                <button
-                  className="text-button"
-                  onClick={() => void act("show-settings", "welcome")}
-                >
-                  Ulangi perkenalan
-                </button>
-              ) : (
-                "Perubahan disimpan di perangkatmu."
-              )}
-            </span>
-            <button className="primary" onClick={() => void save()}>
-              {saved ? <Check size={16} /> : null}
-              {saved ? "Tersimpan" : "Simpan perubahan"}
-            </button>
-          </div>
-        )}
-      </section>
-    </main>
-  );
-}
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-      {hint && <small>{hint}</small>}
-    </label>
-  );
-}
-function Toggle({
-  title,
-  hint,
-  checked,
-  onChange,
-}: {
-  title: string;
-  hint?: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="toggle-row">
-      <span>
-        <strong>{title}</strong>
-        {hint && <small>{hint}</small>}
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className="switch" aria-hidden="true" />
-    </label>
   );
 }

@@ -9,7 +9,7 @@ Build terbaru ada di `release/<versi>/`, terpisah dari installer checkpoint lama
 ## Membuat checkpoint berikutnya
 
 1. Selesaikan revisi lokal di `npm run dev`. Profil uji `.bito-dev-data` terpisah dari profil aplikasi terpasang.
-2. Naikkan versi `package.json` dan `package-lock.json` bersama. Sesuaikan versi di tampilan About serta path launcher lokal.
+2. Naikkan versi `package.json` dan `package-lock.json` bersama. Tampilan About dan launcher mengambil versi langsung dari package.json.
 3. Perbarui `CHANGELOG.md` dan buat `docs/releases/v<versi>.md`; baris pertama menjadi judul release.
 4. Jalankan `npm run check`, `npm test`, dan `npm run build`. Commit source/aset/dokumentasi; jangan commit installer, database, profil uji, atau API key.
 5. Push commit ke `main`; buat dan push tag `v<versi>` pada commit yang sama.

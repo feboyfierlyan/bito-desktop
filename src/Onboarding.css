@@ -229,7 +229,7 @@
 .setup-choices button {
   position: relative;
   isolation: isolate;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   height: 36px;
   padding: 0 10px;

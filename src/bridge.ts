@@ -25,10 +25,12 @@ const fallback: BitoAPI = {
   },
   onDelta: () => () => {},
   onGaze: () => () => {},
+  onDragMotion: () => () => {},
   dragStart() {},
   dragMove() {},
   dragEnd() {},
   setHit() {},
+  setChatRegions() {},
   contextMenu() {},
   toggleChat() {},
   async command(name, p: any) {
@@ -63,7 +65,11 @@ const fallback: BitoAPI = {
       if (p.complete) location.search = "?surface=chat";
     }
     if (name === "profile") preview.profile = p;
+    if (name === "profile-patch")
+      preview.profile = { ...preview.profile, ...p };
     if (name === "settings") preview.settings = p;
+    if (name === "settings-patch")
+      preview.settings = { ...preview.settings, ...p };
     if (name === "show-settings")
       location.search = `?surface=${p || "settings"}`;
     if (name === "show-chat") location.search = "?surface=chat";

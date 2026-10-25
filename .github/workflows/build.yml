@@ -11,7 +11,25 @@ concurrency:
   group: desktop-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 jobs:
+  check:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
   desktop:
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    env:
+      # Public values only. The Gemini/provider and Supabase secret keys belong
+      # exclusively in Edge Function secrets, never in the desktop build.
+      BITO_SUPABASE_URL: ${{ vars.BITO_SUPABASE_URL }}
+      BITO_SUPABASE_PUBLISHABLE_KEY: ${{ vars.BITO_SUPABASE_PUBLISHABLE_KEY }}
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +51,9 @@ jobs:
       - name: Check release tag matches package version
         if: startsWith(github.ref, 'refs/tags/')
         run: node -e "const p=require('./package.json'); if(process.env.GITHUB_REF_NAME!=='v'+p.version) process.exit(1)"
+      - name: Require private demo configuration for a release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node -e "if(!process.env.BITO_SUPABASE_URL || !process.env.BITO_SUPABASE_PUBLISHABLE_KEY) throw Error('Set the public Supabase repository variables before releasing')"
       - name: Read package version
         id: package
         run: node -e "require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'version='+require('./package.json').version+'\n')"

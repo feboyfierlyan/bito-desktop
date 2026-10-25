@@ -8,6 +8,14 @@
       content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws://127.0.0.1:5173; worker-src 'self' blob:; object-src 'none'; base-uri 'self'"
     />
     <title>Bito</title>
+    <link rel="preload" href="./bito-poster.png" as="image" />
+    <link rel="preload" href="./rive.wasm" as="fetch" crossorigin />
+    <link
+      rel="preload"
+      href="./bito.riv?render=transparent-v1"
+      as="fetch"
+      crossorigin
+    />
   </head>
   <body>
     <div id="root"></div>

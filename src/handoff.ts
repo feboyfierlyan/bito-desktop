@@ -1,5 +1,18 @@
 export type Rect = { x: number; y: number; width: number; height: number };
 
+// A parked onboarding mascot belongs to its host, not to the desktop.
+// Only a deliberate drag/departure may outlive the host's activation.
+export function nativePresentationVisible(
+  view: { purpose?: "login"; step: number; phase: string } | undefined,
+  hostActive: boolean,
+): boolean {
+  if (!view || view.purpose === "login") return false;
+  if (["dragging", "departing"].includes(view.phase)) return true;
+  return (
+    hostActive && view.step === 2 && ["ready", "returning"].includes(view.phase)
+  );
+}
+
 // Electron content bounds and pointer coordinates use device-independent pixels.
 export function anchorBounds(slot: Rect, content: Rect, zoom = 1): Rect {
   return {
@@ -26,6 +39,18 @@ export function easePosition(from: Rect, to: Rect, progress: number): Rect {
     ...from,
     x: Math.round(from.x + (to.x - from.x) * ease) || 0,
     y: Math.round(from.y + (to.y - from.y) * ease) || 0,
+  };
+}
+export function easeBounds(from: Rect, to: Rect, progress: number): Rect {
+  const t = Math.min(1, Math.max(0, progress));
+  const ease = 1 - Math.pow(1 - t, 3);
+  return {
+    ...easePosition(from, to, t),
+    width: Math.max(1, Math.round(from.width + (to.width - from.width) * ease)),
+    height: Math.max(
+      1,
+      Math.round(from.height + (to.height - from.height) * ease),
+    ),
   };
 }
 export function wordDelay(word: string): number {

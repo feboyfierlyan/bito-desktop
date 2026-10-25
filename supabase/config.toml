@@ -1,0 +1,6 @@
+project_id = "bito-demo"
+
+[functions.bito-api]
+# The handler verifies the bearer token with Auth on EVERY request, including
+# membership/revocation. Supports projects using asymmetric signing keys.
+verify_jwt = false

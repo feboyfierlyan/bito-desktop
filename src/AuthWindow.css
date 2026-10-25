@@ -1,0 +1,221 @@
+@font-face {
+  font-family: "Bito Google Sans";
+  src: url("/google-sans-medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+.auth-window {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 540px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #f5f9ff;
+  color: #1d1d1f;
+}
+.auth-artwork {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+.auth-drag-area {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 36px;
+  z-index: 5;
+  -webkit-app-region: drag;
+}
+.auth-scene {
+  position: relative;
+  z-index: 1;
+  width: min(360px, calc(100% - 64px));
+  /* The invisible scene anchors the header. Feedback expands only downward. */
+  height: 312px;
+  margin-top: -16px;
+}
+.auth-card {
+  position: relative;
+  width: 100%;
+  height: auto;
+  padding: 32px 27px;
+  border: 1.5px solid #255b3f;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: 0 12px 40px #163e2826;
+}
+.auth-character-stage,
+.auth-character {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.auth-character .character {
+  width: 100%;
+  height: 100%;
+}
+.auth-content {
+  width: 100%;
+  min-width: 0;
+  margin-top: 7px;
+}
+.auth-heading {
+  text-align: center;
+}
+.auth-heading h1 {
+  margin: 0;
+  color: #1d1d1f;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -1.05px;
+  line-height: 1.2;
+}
+.auth-heading p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #73757d;
+  letter-spacing: -0.1px;
+}
+.auth-actions {
+  margin-top: 26px;
+}
+.auth-google {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #f2f2f2;
+  color: #1f1f1f;
+  font-family:
+    "Bito Google Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+.auth-google img {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+.auth-google:hover:not(:disabled) {
+  background: #e9edf2;
+}
+.auth-google:focus-visible {
+  outline: 3px solid #007aff55;
+  outline-offset: 4px;
+}
+.auth-google:disabled {
+  opacity: 1;
+  cursor: default;
+  color: #73757d;
+}
+.auth-google:disabled img {
+  opacity: 0.7;
+}
+.auth-google:active:not(:disabled) {
+  transform: none;
+}
+.auth-feedback {
+  position: relative;
+  overflow: hidden;
+}
+.auth-feedback-content {
+  padding-top: 13px;
+}
+.auth-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 7px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #73757d;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.auth-status svg {
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.auth-status.error {
+  color: #a23b36;
+}
+.auth-status.success {
+  color: #286b4c;
+}
+.auth-secondary-slot {
+  margin-top: 6px;
+  text-align: center;
+}
+.auth-secondary {
+  padding: 5px 9px;
+  min-height: 32px;
+  border-radius: 9px;
+  color: #0070e8;
+  font-size: 12px;
+  line-height: 20px;
+}
+.auth-secondary:hover:not(:disabled) {
+  background: #f1f6ff;
+}
+.auth-spinner {
+  animation: auth-spin 0.9s linear infinite;
+}
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 400px) {
+  .auth-scene {
+    width: calc(100% - 40px);
+  }
+  .auth-card {
+    padding-inline: 20px;
+  }
+  .auth-heading p {
+    font-size: 12px;
+  }
+  .auth-google {
+    font-size: 13px;
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner {
+    animation: none;
+  }
+  .auth-google {
+    transition: none;
+  }
+}
+body[data-motion="reduced"] .auth-spinner {
+  animation: none;
+}

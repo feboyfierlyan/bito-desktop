@@ -1,8 +1,8 @@
 {
   "name": "bito-desktop",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
-  "description": "Bito \u2014 a thoughtful desktop companion",
+  "description": "Bito — a thoughtful desktop companion",
   "author": "Bito Project",
   "main": "dist-electron/main.cjs",
   "scripts": {
@@ -13,6 +13,9 @@
     "start": "electron .",
     "test": "tsx --test tests/*.test.ts",
     "check": "tsc --noEmit",
+    "backend:login": "supabase login",
+    "backend:deploy": "supabase functions deploy bito-api --use-api",
+    "backend:check": "npx --yes deno check supabase/functions/bito-api/index.ts",
     "package": "npm run build && electron-builder --publish never",
     "package:dir": "npm run build && electron-builder --dir --publish never",
     "package:mac": "npm run build && electron-builder --mac --arm64 --x64 --publish never",
@@ -21,6 +24,7 @@
   },
   "dependencies": {
     "@rive-app/canvas": "2.45.0",
+    "@supabase/supabase-js": "^2.118.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.0",
     "openai": "^6.0.0",
@@ -39,6 +43,7 @@
     "electron-builder": "^26.15.3",
     "esbuild": "^0.28.0",
     "prettier": "^3.9.10",
+    "supabase": "^2.122.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vite": "8.3.5"

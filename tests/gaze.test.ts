@@ -51,6 +51,40 @@ test("native cursor mapping handles Retina DIP and negative monitor coordinates"
   );
 });
 
+test("login gaze follows the cursor, settles during verification, and preserves onboarding rules after handoff", () => {
+  const state: Snapshot = {
+    ...defaultState(),
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+    auth: { configured: true, status: "signed-out" },
+    presentation: {
+      purpose: "login",
+      step: 0,
+      phase: "anchored",
+      characterReady: true,
+      talking: false,
+    },
+  };
+  assert.equal(canTrackGaze(state), true);
+  state.auth!.status = "signing-in";
+  assert.equal(canTrackGaze(state), true);
+  state.auth!.status = "checking";
+  assert.equal(canTrackGaze(state), false);
+  state.auth!.status = "ready";
+  assert.equal(canTrackGaze(state), false);
+  state.presentation!.purpose = undefined;
+  assert.equal(canTrackGaze(state), true);
+  state.presentation!.step = 2;
+  assert.equal(canTrackGaze(state), false);
+  state.presentation!.purpose = "login";
+  state.presentation!.step = 0;
+  state.auth!.status = "signed-out";
+  state.settings.reducedMotion = true;
+  assert.equal(canTrackGaze(state), false);
+});
+
 test("pupils follow the cursor in both axes and stay within their safe ellipse", () => {
   for (const x of [-100, 0, 0.5, 1, 100]) {
     for (const y of [-100, 0, 0.5, 1, 100]) {
@@ -109,7 +143,7 @@ test("eye rig returns smoothly to the original pupil positions and releases cont
   assert.equal(l.x, 3);
 });
 
-test("prepared Rive adds only pupil names and preserves all original animation bytes", () => {
+test("prepared Rive preserves original animation bytes after names and transparent background are restored", () => {
   const source = readFileSync(
     new URL("../assets/bito-original.riv", import.meta.url),
   );
@@ -127,5 +161,8 @@ test("prepared Rive adds only pupil names and preserves all original animation b
       restored.subarray(offset + property.length),
     ]);
   }
+  assert.equal(restored[4008], 0);
+  assert.equal(source[4008], 255);
+  restored[4008] = source[4008];
   assert.deepEqual(restored, source);
 });

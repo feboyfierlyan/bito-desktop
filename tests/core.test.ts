@@ -19,10 +19,11 @@ test("a hand tremor stays a click, deliberate movement becomes drag", () => {
   assert.equal(isDrag(6, 0), true);
   assert.equal(isDrag(-10, 2), true);
 });
-test("chat stays to the right of Bito and fits a secondary monitor with negative coordinates", () => {
+test("chat switches left at the right edge of a secondary monitor", () => {
   const area = { x: -1440, y: 0, width: 1440, height: 900 };
   const p = placeChat({ x: -180, y: 850 }, 222, area);
-  assert.ok(p.chat.x >= p.pet.x + 222);
+  assert.equal(p.side, "left");
+  assert.ok(p.chat.x + p.chat.width <= p.pet.x);
   assert.ok(p.chat.x + p.chat.width <= 0);
   assert.ok(p.chat.y + p.chat.height <= 900);
   assert.ok(p.pet.y + 222 <= 900);
@@ -93,6 +94,7 @@ test("SQLite round trip preserves onboarding, reminders, chat and an active focu
     const s = defaultState();
     s.onboarded = true;
     s.profile.name = "Teman";
+    s.chatSize = { width: 560, height: 430 };
     s.messages.push({ id: "m", role: "user", text: "Halo", createdAt: 1 });
     s.reminders.push({
       id: "r",
@@ -121,7 +123,11 @@ test("companion prompt uses chosen personality and does not claim unrestricted d
   const s = defaultState();
   s.profile.name = "Teman";
   s.profile.style = "direct";
-  assert.match(systemPrompt(s), /Communication style: direct/);
-  assert.match(systemPrompt(s), /without a successful tool result/);
-  assert.match(systemPrompt(s), /Only save memory when user asks/);
+  const prompt = systemPrompt(s);
+  assert.match(prompt, /GAYA AKTIF — To the point/);
+  assert.match(
+    prompt,
+    /Only claim an action succeeded after a successful tool result/,
+  );
+  assert.match(prompt, /Only save memory when explicitly asked/);
 });

@@ -5,6 +5,11 @@ export function canTrackGaze(state: Snapshot): boolean {
   const p = state.presentation;
   return (
     !!p &&
+    !(
+      p.purpose === "login" &&
+      (["checking", "ready"].includes(state.auth?.status || "") ||
+        ["checking", "success"].includes(state.loginPreview || ""))
+    ) &&
     p.step < 2 &&
     p.characterReady &&
     p.phase === "anchored" &&

@@ -13,7 +13,8 @@ const env = {
   ...process.env,
   BITO_DEV_URL: url,
   BITO_DATA_DIR: process.env.BITO_DATA_DIR || resolve(".bito-dev-data"),
-  BITO_DEV_ONBOARDING: process.env.BITO_DEV_ONBOARDING || "1",
+  BITO_DEV_ONBOARDING: process.env.BITO_DEV_ONBOARDING || "0",
+  BITO_DEV_DESKTOP: process.env.BITO_DEV_DESKTOP || "1",
 };
 delete env.ELECTRON_RUN_AS_NODE;
 let child,

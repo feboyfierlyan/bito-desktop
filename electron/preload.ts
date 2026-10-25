@@ -8,6 +8,10 @@ const api: BitoAPI = {
     ipcRenderer.on("bito:state", handler);
     return () => ipcRenderer.removeListener("bito:state", handler);
   },
+  onSettingsClose: (fn) => {
+    ipcRenderer.on("bito:settings-close", fn);
+    return () => ipcRenderer.removeListener("bito:settings-close", fn);
+  },
   onDelta: (fn) => {
     const handler = (_: unknown, event: any) => fn(event);
     ipcRenderer.on("bito:delta", handler);
@@ -19,10 +23,17 @@ const api: BitoAPI = {
     ipcRenderer.on("bito:gaze", handler);
     return () => ipcRenderer.removeListener("bito:gaze", handler);
   },
+  onDragMotion: (fn) => {
+    const handler = (_: unknown, motion: Parameters<typeof fn>[0]) =>
+      fn(motion);
+    ipcRenderer.on("bito:drag-motion", handler);
+    return () => ipcRenderer.removeListener("bito:drag-motion", handler);
+  },
   dragStart: () => ipcRenderer.send("bito:drag-start"),
   dragMove: (dx, dy) => ipcRenderer.send("bito:drag-move", dx, dy),
   dragEnd: () => ipcRenderer.send("bito:drag-end"),
   setHit: (hit) => ipcRenderer.send("bito:hit", hit),
+  setChatRegions: (regions) => ipcRenderer.send("bito:chat-regions", regions),
   contextMenu: () => ipcRenderer.send("bito:menu"),
   toggleChat: () => ipcRenderer.send("bito:toggle"),
 };

@@ -3,34 +3,16 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { api, isDesktop } from "./bridge";
 import { Character } from "./Character";
+import { useSetupScene } from "./setup-context";
 import { Bubble } from "./Bubble";
 import { bubbleReveal } from "./bubble-motion";
 import { wordDelay } from "./handoff";
 import { conversationTiming, ConversationCadence } from "./onboarding-cadence";
+import { bitoStyles as personalities, onboardingVoice } from "./bito-voice";
 import type { Profile, Snapshot, Reply } from "./shared";
 import "./Onboarding.css";
 
 type Act = (name: string, payload?: unknown) => Promise<Reply>;
-const personalities = [
-  {
-    value: "warm",
-    title: "Hangat",
-    example:
-      "Oke, aku akan jadi teman yang hangat. Kita jalan pelan-pelan bareng, ya.",
-  },
-  {
-    value: "calm",
-    title: "Tenang",
-    example:
-      "Oke, aku akan menemanimu dengan tenang. Satu hal dulu, tanpa buru-buru.",
-  },
-  {
-    value: "direct",
-    title: "Langsung",
-    example:
-      "Siap. Aku akan bicara singkat, jelas, dan langsung bantu kamu menentukan langkah berikutnya.",
-  },
-] as const;
 
 function SpeechBubble({
   text,
@@ -153,6 +135,7 @@ export function Onboarding({
   act: Act;
   restart?: boolean;
 }) {
+  const sharedScene = useSetupScene();
   const [step, setStep] = useState(restart ? 0 : state.onboardingStep);
   const [profile, setProfile] = useState<Profile>(state.profile);
   type Turn = {
@@ -186,14 +169,14 @@ export function Onboarding({
     {
       id: "intro",
       side: "bito",
-      text: "Aku boleh panggil kamu siapa?",
+      text: onboardingVoice.intro,
       step: 0,
     },
     { id: `name:${name}`, side: "user", text: name, step: 1 },
     {
       id: helloId,
       side: "bito",
-      text: `Senang kenal kamu, ${name}. Mau aku jadi teman ngobrol yang seperti apa?`,
+      text: onboardingVoice.askStyle(name),
       step: 1,
     },
     { id: `choice:${style.value}`, side: "user", text: style.title, step: 2 },
@@ -201,7 +184,7 @@ export function Onboarding({
     {
       id: instructionId,
       side: "bito",
-      text: "Tahan aku, lalu seret keluar jendela ini. Kita mulai di desktop!",
+      text: onboardingVoice.desktop,
       step: 2,
       kind: "instruction",
     },
@@ -225,27 +208,40 @@ export function Onboarding({
   const [saving, setSaving] = useState(false),
     [localReady, setLocalReady] = useState(false);
   const slot = useRef<HTMLButtonElement>(null);
+  const nameField = useRef<HTMLInputElement>(null);
   const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const restartInitialized = useRef(false);
   const latestAct = useRef(act);
   latestAct.current = act;
   const osReduced = useReducedMotion();
   const reduced = state.settings.reducedMotion || !!osReduced;
-  const ready = isDesktop ? !!state.presentation?.characterReady : localReady;
+  const ready = sharedScene
+    ? sharedScene.ready && !sharedScene.transitioning
+    : isDesktop
+      ? !!state.presentation?.characterReady
+      : localReady;
   const phase = state.presentation?.phase || "anchored";
   const leaving = ["dragging", "returning", "departing"].includes(phase);
   const armed = phase === "ready";
+  useEffect(() => {
+    if (step === 2 && ready && phase === "anchored")
+      void api.command("onboarding-arm");
+  }, [step, ready, phase]);
+  useEffect(() => {
+    if (step === 0 && ready && !leaving)
+      nameField.current?.focus({ preventScroll: true });
+  }, [step, ready, leaving]);
   const heading = [
     {
       title: "Hai, aku Bito.",
-      description: "Teman kecil untuk menemani harimu.",
+      description: "Teman ngobrol yang siap nemenin harimu.",
     },
     {
-      title: "Biar terasa cocok.",
+      title: "Ngobrolnya enaknya gimana?",
       description: "Pilih cara ngobrol yang paling nyaman buatmu.",
     },
     {
-      title: "Bawa aku ke desktopmu.",
+      title: "Yuk, ke desktop.",
       description:
         "Klik untuk ngobrol. Seret untuk pindah. Klik kanan untuk pilihan.",
     },
@@ -440,6 +436,7 @@ export function Onboarding({
           <button
             type="button"
             ref={slot}
+            data-setup-anchor
             aria-label={
               step < 2
                 ? "Sapa Bito"
@@ -478,9 +475,13 @@ export function Onboarding({
               if (pointer.current?.drag) void api.command("drag-cancel");
               pointer.current = null;
             }}
+            onLostPointerCapture={() => {
+              if (pointer.current?.drag) api.dragEnd();
+              pointer.current = null;
+            }}
             className={`setup-character ${armed ? "setup-character-ready" : ""}`}
           >
-            {!isDesktop && (
+            {!sharedScene && !isDesktop && (
               <Character
                 state={{
                   ...state,
@@ -612,7 +613,7 @@ export function Onboarding({
                       }}
                     >
                       <input
-                        autoFocus
+                        ref={nameField}
                         aria-label="Nama panggilanmu"
                         autoComplete="given-name"
                         placeholder="Namamu…"

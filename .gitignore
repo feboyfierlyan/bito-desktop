@@ -9,6 +9,10 @@ release/
 test-results/
 *.sqlite*
 credentials.bin
+session-*.bin*
+device-id
+supabase/.temp/
+supabase/.branches/
 public/rive.wasm
 playwright-report/
 
@@ -16,3 +20,6 @@ playwright-report/
 
 # Local UI verification captures
 outputs/
+
+# Local captures, provider deployment bundles, and account-specific QA evidence
+output/
