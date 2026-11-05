@@ -2,7 +2,7 @@
 
 ## Download
 
-Buka [rilis terbaru](https://github.com/feboyfierlyan/bito-desktop/releases/latest) dengan akun GitHub yang punya akses repo.
+Unduh **Bito v0.6.0**, rilis Latest, dari [GitHub Releases](https://github.com/feboyfierlyan/bito-desktop/releases/latest). Installer tersedia publik; login aplikasi tetap memerlukan akun Google yang diizinkan oleh pengelola Bito.
 
 - Mac M1/M2/M3/M4 dan chip Apple yang lebih baru: pilih **macOS-arm64**.
 - Mac Intel: pilih **macOS-x64**. Jenis chip terlihat di menu Apple → About This Mac.
@@ -16,8 +16,8 @@ Buka [rilis terbaru](https://github.com/feboyfierlyan/bito-desktop/releases/late
 
 ## Windows
 
-1. Jalankan **Bito-0.5.1-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
-2. Installer demo belum memiliki tanda tangan penerbit. Jika SmartScreen muncul, pastikan unduhan berasal dari repo tim sebelum memilih **More info → Run anyway**. Perangkat yang dikelola kampus mungkin memerlukan bantuan administrator.
+1. Jalankan **Bito-0.6.0-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
+2. Installer Windows belum memiliki tanda tangan penerbit. Jika SmartScreen muncul, pastikan unduhan berasal dari repo tim sebelum memilih **More info → Run anyway**. Perangkat yang dikelola kampus mungkin memerlukan bantuan administrator.
 3. Buka Bito dari shortcut setelah instalasi selesai.
 
 ## Kenalan dengan Bito

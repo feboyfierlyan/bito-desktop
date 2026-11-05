@@ -1,68 +1,88 @@
 <p align="center">
-  <img src="docs/assets/bito-hero.png" alt="Bito, companion hijau kecil di desktop, dengan artwork karakter khas Bito" width="100%" />
+  <img src="docs/assets/bito-hero.png" alt="Bito, teman desktop kecil berwarna hijau dengan tunas di kepalanya" width="100%" />
 </p>
 
 <h1 align="center">Bito</h1>
-<p align="center"><strong>Teman kecil untuk menemani harimu.</strong><br />Tempat ngobrol, teman mikir, dan bantuan kecil—langsung di desktopmu.</p>
+<p align="center"><strong>Teman kecil untuk berpikir, merencanakan, dan mulai mengerjakan.</strong><br />Ngobrol, susun tugas, dan dapatkan bantuan saat bekerja—langsung di desktopmu.</p>
 <p align="center">
-  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.0"><strong>Unduh preview v0.6.0</strong></a> ·
-  <a href="#kenalan-dulu">Kenalan dulu</a> ·
-  <a href="#mulai-dalam-tiga-langkah">Cara mulai</a> ·
+  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/latest"><strong>Unduh Bito v0.6.0 · Latest</strong></a> ·
+  <a href="#apa-yang-bisa-kamu-lakukan">Jelajahi fitur</a> ·
+  <a href="#mulai-dengan-bito">Cara mulai</a> ·
   <a href="CHANGELOG.md">Yang baru</a>
 </p>
-<p align="center">macOS & Windows · Demo privat · Dibuat dengan karakter dan perhatian</p>
+<p align="center">macOS & Windows · Companion AI dengan workspace proyek</p>
 
-## Kenalan dulu
+Bito menemani kamu dari “mulai dari mana?” sampai langkah berikutnya terasa jelas. Ceritakan tugasmu, sertakan bahan yang relevan, lalu susun rencana yang bisa kamu ubah sendiri. Saat butuh bantuan, Bito tetap dekat sebagai karakter kecil yang bisa dipindahkan di desktop.
 
-Bito tinggal di desktopmu. Geser ke tempat yang nyaman, klik saat ingin ngobrol, lalu lanjutkan harimu. Mau cerita random, mikir bareng, atau minta diingatkan sesuatu? Mulai dari chat yang sederhana.
+## Unduh Bito
 
-### Ngobrol dengan caramu
+**[v0.6.0 adalah rilis Latest](https://github.com/feboyfierlyan/bito-desktop/releases/latest)**, tersedia sebagai rilis biasa di GitHub Releases.
 
-Pilih **To the point**, **Chill**, **Humoris**, atau **Care**. Bito menyesuaikan nada percakapannya, dengan bubble berurutan dan jeda mengetik. Bisa singkat, bisa serius, bisa ikut bercanda—sesuai obrolanmu.
+| Perangkat | Unduhan v0.6.0 |
+| --- | --- |
+| Mac Apple Silicon · M1 atau lebih baru | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-arm64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-arm64.zip) |
+| Mac Intel | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-x64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-x64.zip) |
+| Windows x64 | [Installer EXE](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-Windows-x64-Setup.exe) |
 
-### Bantuan yang bisa kamu pakai
+[Panduan instalasi](docs/INSTALL.md) · [Catatan rilis v0.6.0](docs/releases/v0.6.0.md) · [Checksum SHA-256](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/SHA256SUMS.txt) · [Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases)
 
-- **Pengingat & timer.** “Ingatkan aku minum 10 menit lagi.” Bito mengingatkan lewat bubble di desktop.
-- **Checklist.** Pecah rencana jadi langkah yang bisa kamu centang, langsung dari chat.
-- **File sederhana.** Minta Bito membuat TXT, Markdown, CSV, atau satu folder; kamu memilih tempat menyimpannya.
-- **Catatan yang kamu izinkan.** Minta Bito mengingat hal penting, lalu kelola memorinya di Settings.
+**Sebelum mengunduh:** installer tersedia publik, tetapi login dan layanan AI masih memerlukan akun Google yang diizinkan oleh pengelola Bito. macOS belum memiliki Developer ID/notarization dan installer Windows belum signed; peringatan keamanan OS mungkin muncul. Lihat [batasan rilis](#batasan-rilis) sebelum memasang.
 
-### Hadir tanpa memenuhi layar
+## Apa yang bisa kamu lakukan
 
-Karakter bisa kamu seret, chat bisa diubah ukurannya, dan panel menyesuaikan sisi layar. Bito menyapa saat ada pengingat atau balasan yang siap; **Jangan Ganggu** tersedia ketika kamu butuh ruang.
+### Dari ide menjadi langkah yang bisa dikerjakan
 
-## Mulai dalam tiga langkah
+Buat proyek dari penjelasan tugas dan bahan pendukungmu. Bito membantu menyusun kelompok tugas, langkah, dan tanggal. Kamu bisa menambah kelompok, mengedit tugas, mengatur tenggat, atau mengubah rencana setelah dibuat. Daftar tugas, kalender, dan progres berada dalam satu workspace agar konteksnya mudah diikuti.
 
-1. **Masuk dengan Google.** Gunakan akun yang sudah mendapat akses demo; kamu tidak perlu menyiapkan API key.
-2. **Kenalan sebentar.** Beri tahu nama panggilan dan pilih gaya ngobrolmu.
-3. **Bawa Bito ke desktop.** Tahan dan seret karakter keluar jendela perkenalan. Setelah itu, klik untuk ngobrol, seret untuk pindah, atau klik kanan untuk pilihan lainnya.
+### Ngobrol tanpa kehilangan konteks
 
-Sudah pernah kenalan? Bito melanjutkan data lokal akunmu. Kamu bisa mengulang perkenalan lewat Settings.
+Pilih obrolan umum atau kaitkan percakapan dengan proyek yang sedang kamu kerjakan. Bito punya empat gaya bicara: **To the point**, **Chill**, **Humoris**, dan **Care**. Lampirkan gambar, PDF, atau file teks, periksa pratinjaunya, lalu tulis pertanyaanmu. Lampiran chat baru dianalisis setelah kamu menekan **Kirim**.
 
-## Bawa Bito ke desktopmu
+### Tanya tentang yang ada di layar
 
-**[Download preview — v0.6.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.0)**
+Pilih **Tanya area layar**, tandai bagian yang ingin dibahas, lalu tambahkan pertanyaan. Cuplikan menjadi lampiran untuk pesan tersebut dan tidak otomatis dipakai kembali pada pesan berikutnya. Untuk bantuan langkah demi langkah, Bito dapat menampilkan petunjuk dan sorotan layar; kamu tetap yang menjalankan tindakannya.
 
-- **Mac dengan chip Apple** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-arm64.dmg) · M1 atau lebih baru.
-- **Mac dengan prosesor Intel** — [Unduh DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-macOS-x64.dmg).
-- **Windows 64-bit** — [Unduh installer](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.0/Bito-0.6.0-Windows-x64-Setup.exe).
+### Jaga rencana tetap dekat
 
-Paket ZIP untuk Mac juga tersedia di halaman rilis. Repo dan demo masih privat: unduhan memerlukan akses GitHub, sedangkan login aplikasi memerlukan akun demo yang diizinkan. Installer demo belum memakai sertifikat penerbit atau notarization Apple; [panduan instalasi](docs/INSTALL.md) menjelaskan cara membukanya.
+Gunakan checklist, pengingat, dan timer untuk langkah kecil sehari-hari. Hubungkan Google Calendar untuk mengirim jadwal rencana yang kamu setujui. Bito juga dapat membantu mencari informasi dengan sumber serta membuat file teks seperti Markdown atau CSV yang kamu simpan ke lokasi pilihanmu.
 
-[Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases) · [Catatan v0.6.0](docs/releases/v0.6.0.md)
+### Hadir secukupnya
+
+Bito berukuran default **180px**, dengan chat ringkas dan kontrol yang muncul saat dibutuhkan. Seret karakter ke posisi yang nyaman, klik untuk ngobrol, atau aktifkan **Jangan Ganggu** saat ingin fokus. Perpindahan dari onboarding ke desktop dan perubahan bentuk kontrol memakai animasi yang menyambung.
+
+## Mulai dengan Bito
+
+1. **Pasang aplikasi untuk perangkatmu.** Di Mac, buka DMG dan seret Bito ke Applications. Di Windows, jalankan installer EXE.
+2. **Masuk dan kenalan.** Gunakan akun Google yang sudah mendapat akses, isi nama panggilan, lalu pilih gaya bicara. Kamu tidak perlu memasukkan API key sendiri.
+3. **Bawa Bito ke desktop.** Seret karakter dari langkah terakhir onboarding. Klik untuk chat, atau buka Proyek untuk mulai menyusun pekerjaanmu.
+
+Untuk memperbarui aplikasi, keluar dari Bito lalu pasang versi baru. Jangan hapus data aplikasi jika ingin mempertahankan riwayat. Pembaruan otomatis belum tersedia; petunjuk lengkap ada di [panduan instalasi](docs/INSTALL.md).
 
 ## Kamu tetap punya kendali
 
-Profil, riwayat chat, tugas, dan pengingat disimpan di perangkat, terpisah per akun. Konteks percakapan dikirim ke layanan AI saat kamu mengirim pesan. Key layanan dikelola pemilik demo, bukan dimasukkan oleh setiap pengguna. Kamu bisa menghapus chat, mengelola memori, dan mengekspor data lewat Settings.
+- **Data lokal per akun.** Profil, riwayat chat, proyek, tugas, dan pengingat disimpan di perangkat. Kelola memori, hapus chat, atau ekspor data lewat Pengaturan.
+- **AI menggunakan layanan online.** Pesan, konteks percakapan yang relevan, dan lampiran yang dikirim diproses oleh layanan backend/AI. Penyimpanan lokal bukan berarti seluruh pemrosesan berlangsung offline.
+- **Bantuan layar atas permintaanmu.** Chat biasa tidak mengizinkan model mengambil tangkapan layar. Fitur bantuan layar memakai cuplikan dan konteks yang diperlukan selama permintaan atau sesi panduan aktif, dengan izin OS yang sesuai.
+- **Tindakan tetap di tanganmu.** Bito memberi petunjuk; ia tidak mengklik atau mengetik ke aplikasi lain untukmu. Akses file berasal dari file yang kamu pilih atau lampirkan.
 
-Bito tidak mengendalikan aplikasi lain atau membaca semua file di laptopmu. Pengingat bekerja saat aplikasi berjalan. Konversi PDF/Office, kalender, pencarian web, dan suara belum tersedia di versi ini.
+## Batasan rilis
 
-## Dibuat untuk tumbuh bersama pemakainya
+v0.6.0 ditandai sebagai **Latest** di GitHub. Status ini tidak menghilangkan batasan berikut:
 
-Bito adalah proyek kuliah yang mengeksplorasi companion desktop untuk motivasi, fokus, dan dukungan keseharian. **v0.6.0** adalah checkpoint untuk dicoba kelompok kecil, dengan ruang untuk memperbaiki perilaku dan percakapan lewat pengalaman nyata.
+- **Penandatanganan:** paket Mac memakai tanda tangan ad-hoc, belum Developer ID dan notarization Apple. Installer Windows belum memiliki tanda tangan penerbit.
+- **Akses akun:** layanan backend masih dibatasi untuk akun yang diizinkan. Akun Google Calendar dalam mode OAuth Testing mungkin juga perlu terdaftar sebagai test user.
+- **Calendar:** sinkronisasi satu arah, dari Bito ke Google Calendar, dan berjalan saat Bito terbuka. Pengingat lokal juga membutuhkan aplikasi tetap berjalan.
+- **Cakupan pengujian:** build dan tes CI macOS/Windows telah lolos. Interaksi native serta instalasi/upgrade Windows dan Mac Intel belum seluruhnya diuji langsung pada perangkat fisik. Login Google baru di setiap platform juga belum terverifikasi end-to-end; tes integrasi live memakai akun yang sudah terhubung.
+- **Koneksi dan hasil AI:** fitur AI serta bantuan layar memerlukan jaringan. Periksa kembali jawaban, tanggal, dan rencana sebelum mengandalkannya.
+
+Rilis ini telah melewati **389 tes lokal tanpa skip**, termasuk pengujian database, serta pemeriksaan build lintas platform. Detail verifikasi dan batasannya tersedia di [catatan rilis](docs/releases/v0.6.0.md) dan [dokumentasi pengujian](docs/TESTING.md).
+
+## Tentang Bito
+
+Bito dikembangkan sebagai proyek kuliah untuk mengeksplorasi bagaimana companion desktop dapat membantu orang memulai tugas, menjaga fokus, dan menjalani keseharian. Identitas karakternya tetap hangat dan playful, dengan workspace berbasis Astryx yang sederhana untuk pekerjaan yang lebih terstruktur.
 
 <details>
-<summary><strong>Ingin menjalankan atau mengembangkan Bito?</strong></summary>
+<summary><strong>Menjalankan atau mengembangkan Bito</strong></summary>
 
 Gunakan Node.js 24 atau lebih baru, lalu jalankan dari folder repo:
 
@@ -71,8 +91,10 @@ npm ci
 npm run dev
 ```
 
+Mode pengembangan menggunakan data yang terpisah dari aplikasi terpasang. Konfigurasi backend dan akses akun dijelaskan dalam panduan pengembang.
+
 [Panduan pengembang & backend](docs/DEVELOPMENT.md) · [Arsitektur](docs/ARCHITECTURE.md) · [Pengujian](docs/TESTING.md) · [Build & rilis](docs/RELEASING.md)
 
 </details>
 
-<p align="center"><sub>Karakter, artwork, dan animasi Bito merupakan bagian dari proyek tim. Belum tersedia lisensi distribusi publik.</sub></p>
+<p align="center"><sub>Karakter, artwork, dan animasi Bito merupakan bagian dari proyek tim. Unduhan aplikasi tersedia di GitHub Releases; belum tersedia lisensi distribusi ulang publik.</sub></p>

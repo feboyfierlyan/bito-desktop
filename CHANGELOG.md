@@ -1,6 +1,17 @@
 # Changelog
 
-Checkpoint prototype Bito. Setiap versi ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
+Perubahan Bito per versi. Setiap rilis ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
+
+## [0.6.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.0) — 5 November 2026
+
+- Rilis Latest untuk macOS Apple Silicon, macOS Intel, dan Windows x64.
+- Workspace Astryx dengan navigasi berlabel, kelompok tugas yang dapat diedit, tenggat, kalender, dan progres proyek.
+- Chat ringkas dengan pilihan proyek, pratinjau lampiran yang diproses setelah Kirim, dan cuplikan layar sekali pakai.
+- Bantuan layar, pencarian dengan sumber, serta sinkronisasi rencana yang disetujui ke Google Calendar.
+- Bito berukuran default 180px, dengan transisi onboarding dan kontrol yang menyambung.
+- Perbaikan lebar input chat, scroll detail proyek, dan penanganan penyimpanan saat disk penuh.
+- Penguatan akses file, izin bantuan layar, dan fungsi database; 389 tes lokal lolos tanpa skip.
+- macOS masih ad-hoc/belum notarized dan Windows belum signed. Cakupan pengujian serta batasan akses akun tercantum dalam [catatan rilis](docs/releases/v0.6.0.md).
 
 ## [0.5.1](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.5.1) — 26 Oktober 2026
 
