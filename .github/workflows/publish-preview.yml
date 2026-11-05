@@ -1,0 +1,71 @@
+name: Publish verified preview
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful Check and build desktop run to publish
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-bito-preview
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify completed candidate
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_RUN: ${{ inputs.build_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$BUILD_RUN" > "$RUNNER_TEMP/candidate.json"
+          jq -e '.conclusion == "success" and .status == "completed" and .head_branch == "main" and .path == ".github/workflows/build.yml" and .event == "workflow_dispatch"' "$RUNNER_TEMP/candidate.json" >/dev/null
+          echo "sha=$(jq -r .head_sha "$RUNNER_TEMP/candidate.json")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.candidate.outputs.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.build_run_id }}
+          pattern: Bito-*-${{ steps.candidate.outputs.sha }}
+          merge-multiple: true
+          path: release-assets
+      - run: node scripts/release-manifest.mjs release-assets
+      - name: Publish tested artifacts as preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CANDIDATE_SHA: ${{ steps.candidate.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(node -p 'require("./package.json").version')
+          tag="v$version"
+          notes="docs/releases/$tag.md"
+          test -f "$notes"
+          title=$(sed -n '1s/^# //p' "$notes")
+          # Never replace a published release or an existing tag on another commit.
+          if gh api "repos/$GH_REPO/git/ref/tags/$tag" > "$RUNNER_TEMP/tag.json" 2>/dev/null; then
+            test "$(jq -r .object.sha "$RUNNER_TEMP/tag.json")" = "$CANDIDATE_SHA"
+          else
+            gh api --method POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$tag" -f "sha=$CANDIDATE_SHA" >/dev/null
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --json isDraft --jq .isDraft)" = true
+          else
+            gh release create "$tag" --verify-tag --draft --prerelease --title "$title" --notes-file "$notes"
+          fi
+          gh release upload "$tag" release-assets/*.dmg release-assets/*.zip release-assets/*.exe release-assets/*.txt --clobber
+          gh release edit "$tag" --draft=false --prerelease --latest=false
