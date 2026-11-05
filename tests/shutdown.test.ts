@@ -41,7 +41,7 @@ test("shutdown saves once, ignores late drag/display events and keeps the databa
         `,
             }));
             build.onLoad(
-              { filter: /electron\/main\.ts$/ },
+              { filter: /electron[\\/]main\.ts$/ },
               async ({ path }) => ({
                 contents:
                   (await readFile(path, "utf8")) +

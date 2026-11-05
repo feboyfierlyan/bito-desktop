@@ -241,7 +241,7 @@ The onboarding release now animates a fixed Rive canvas with a compositor transf
 Run the full database suite with a disposable loopback PostgreSQL database named
 `bito_test_*` through `BITO_TEST_DATABASE_URL`. CI provisions PostgreSQL 17 and
 blocks desktop packaging when this check fails. The local release pass executed
-388 tests with zero skipped tests. Security regressions cover unexpected model
+389 tests with zero skipped tests. Security regressions cover unexpected model
 screen tools and raw-path attachment requests; regular-file reads are bounded.
 
 Real integration verification used the existing encrypted account session and

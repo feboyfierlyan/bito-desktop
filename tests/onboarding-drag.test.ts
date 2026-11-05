@@ -26,7 +26,7 @@ test("onboarding waits for the visible native frame, then one setup gesture foll
           export const BrowserWindow=class {};
           export const Menu={},MenuItem=class {},Tray=class {},nativeImage={},dialog={},Notification=class {},safeStorage={},shell={},powerMonitor={},desktopCapturer={},systemPreferences={},globalShortcut={};
         ` }));
-        build.onLoad({ filter: /electron\/main\.ts$/ }, async ({path}) => ({
+        build.onLoad({ filter: /electron[\\/]main\.ts$/ }, async ({path}) => ({
           contents: (await readFile(path, "utf8")) + `
             export const dragTest={ipcMain,screen,command,published:[],
               fixture(p,s){state=defaultState();pet=p;studio=s;quitting=false;switchingAccount=false;

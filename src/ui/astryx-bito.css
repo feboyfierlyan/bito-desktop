@@ -533,7 +533,7 @@ html[data-astryx-theme="neutral"],
   box-shadow: none;
   border: 0;
 }
-.bito-chat-composer textarea {
+.desktop-chat .desktop-composer .bito-chat-composer textarea {
   grid-column: 2;
   grid-row: 1;
   width: 100%;
