@@ -28,6 +28,15 @@ export class Store {
     return {
       ...base,
       ...saved,
+      projects: Array.isArray(saved.projects) ? saved.projects : [],
+      activeProjectId:
+        Array.isArray(saved.projects) &&
+        saved.projects.some(
+          (p: { id: string; status: string }) =>
+            p.id === saved.activeProjectId && p.status !== "archived",
+        )
+          ? saved.activeProjectId
+          : null,
       profile: {
         ...base.profile,
         ...saved.profile,
@@ -43,8 +52,11 @@ export class Store {
       )
       .run(JSON.stringify(state));
   }
+  get isOpen() {
+    return this.db.isOpen;
+  }
   close() {
-    this.db.close();
+    if (this.db.isOpen) this.db.close();
   }
   beginTool(id: string, fingerprint: string): ToolReceipt | null {
     const old = this.db
@@ -67,10 +79,20 @@ export class Store {
       .run(id, fingerprint);
     return null;
   }
-  finishTool(result: ToolReceipt) {
-    this.db
-      .prepare("UPDATE tool_receipts SET result=? WHERE id=?")
-      .run(JSON.stringify(result), result.id);
+  finishTool(result: ToolReceipt, state?: AppState) {
+    if (state) this.db.exec("BEGIN IMMEDIATE");
+    try {
+      this.db
+        .prepare("UPDATE tool_receipts SET result=? WHERE id=?")
+        .run(JSON.stringify(result), result.id);
+      if (state) {
+        this.save(state);
+        this.db.exec("COMMIT");
+      }
+    } catch (error) {
+      if (state) this.db.exec("ROLLBACK");
+      throw error;
+    }
   }
   saveFile(output: FileOutput) {
     this.db

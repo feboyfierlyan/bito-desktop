@@ -1,0 +1,1407 @@
+/* Quiet Bito surfaces. Astryx owns controls, keyboard behaviour and dialogs;
+   these owned classes define the shared reading width and visual hierarchy. */
+[data-astryx-theme="neutral"] {
+  --color-text-secondary: #626b77;
+  --color-text-tertiary: #737c89;
+  --radius-element: 7px;
+  --radius-container: 12px;
+  --radius-page: 12px;
+  --size-element-md: 36px;
+}
+.bito-button {
+  font-weight: 500;
+}
+.bito-button svg.lucide {
+  flex-shrink: 0;
+}
+.bito-field-control {
+  border-radius: 7px;
+  min-height: 36px;
+  padding: 8px 10px;
+  box-shadow: none;
+}
+.bito-field.bito-field.bito-field input:focus-visible,
+.bito-field.bito-field.bito-field textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.bito-field-control:focus-within {
+  box-shadow: none;
+}
+.projects-app.projects-board {
+  padding: 0;
+  background: #fafafa;
+  font-size: 13px;
+}
+.projects-board .board-rail {
+  width: 220px;
+  align-items: stretch;
+  padding: 44px 12px 16px;
+  gap: 16px;
+  background: #fafafa;
+  border-right: 1px solid #eceef0;
+}
+.workspace-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #32804d;
+  padding: 0 12px;
+  height: 32px;
+}
+.workspace-brand strong {
+  color: #242930;
+  font-size: 23px;
+  letter-spacing: -1px;
+}
+.projects-board .sidebar-create {
+  justify-content: flex-start;
+  gap: 9px;
+  color: #007aff;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  min-height: 36px;
+}
+.projects-board .sidebar-create:hover {
+  background: #edf4ff;
+}
+.board-rail nav {
+  gap: 3px;
+  width: 100%;
+}
+.projects-board .board-rail-button,
+.projects-board .board-rail-profile {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 7px;
+  background: transparent;
+  color: #535c67;
+  font-size: 13px;
+}
+.projects-board .board-rail-button svg {
+  width: 18px;
+  height: 18px;
+}
+.projects-board .board-nav-label {
+  display: block;
+  font-size: 13px;
+  line-height: 20px;
+}
+.projects-board .board-rail-button:hover {
+  background: #f0f1f3;
+}
+.projects-board .board-rail-button.selected,
+.projects-board .sidebar-project.selected {
+  background: #eaf3ff;
+  color: #006bdc;
+  box-shadow: none;
+}
+.projects-board .board-rail-profile {
+  margin-top: auto;
+}
+.sidebar-projects {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  gap: 3px;
+  -webkit-app-region: no-drag;
+}
+.sidebar-section-label {
+  padding: 12px 12px 8px;
+  color: #7a818a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.sidebar-project.bito-button {
+  display: flex;
+  width: 100%;
+  gap: 9px;
+  min-height: 36px;
+  padding: 8px 12px;
+  justify-content: flex-start;
+  text-align: left;
+  border-radius: 7px;
+  color: #515965;
+  font-size: 12px;
+}
+.sidebar-project .bito-button-content > span:not(.sidebar-project-dot) {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.sidebar-project-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: #87a7ce;
+}
+.sidebar-project small {
+  color: #7c8692;
+  font-size: 11px;
+}
+.projects-board .project-workspace {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.projects-board .project-topbar {
+  min-height: 112px;
+  padding: 46px 36px 22px;
+  align-items: center;
+  gap: 12px;
+}
+.projects-board .project-topbar h1 {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+.projects-board .project-topbar .project-icon {
+  opacity: 1;
+  color: #79818a;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+}
+.projects-board .board-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 36px 32px;
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+}
+.gallery-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 20px;
+  color: #737c89;
+  font-size: 12px;
+}
+.gallery-search {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: min(340px, 75%);
+}
+.gallery-search .bito-field-control {
+  background: #fafafa;
+  border-color: #edf0f2;
+}
+.projects-board .board-project-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border: 0;
+  border-bottom: 1px solid #edf0f2;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 17px 10px;
+  width: 100%;
+  min-height: 82px;
+  flex-shrink: 0;
+}
+.projects-board .board-project-card:hover:not(:disabled) {
+  transform: none;
+  background: #f8fafc;
+  box-shadow: none;
+  border-color: #edf0f2;
+}
+.board-project-caption {
+  padding: 0;
+  gap: 5px;
+  background: transparent;
+}
+.board-project-caption strong {
+  font-size: 14px;
+  font-weight: 550;
+}
+.board-project-caption > span {
+  font-size: 12px;
+  color: #737c89;
+}
+.project-list-icon {
+  color: #7c99ba;
+}
+.project-list-chevron {
+  color: #929ba7;
+}
+.bito-gallery-progress {
+  max-width: 120px;
+  margin-top: 4px;
+}
+.projects-board .board-project-add {
+  width: fit-content;
+  height: 36px;
+  min-height: 36px;
+  flex-shrink: 0;
+  margin-top: 12px;
+  padding: 6px 10px;
+  gap: 10px;
+  border: 0;
+  background: none;
+  color: #007aff;
+  border-radius: 6px;
+}
+.projects-board .project-board-layout {
+  display: block;
+  padding: 0 36px 36px;
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+}
+.board-view-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #edf0f2;
+  padding-bottom: 14px;
+}
+.board-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.board-view-actions .bito-button {
+  gap: 6px;
+  color: #687280;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.board-project-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 18px 0;
+  font-size: 12px;
+  color: #737c89;
+}
+.board-project-summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.projects-board .board-task-group {
+  margin-top: 22px;
+}
+.projects-board .board-task-group > header {
+  border-bottom: 1px solid #e9edf1;
+  padding-bottom: 9px;
+}
+.projects-board .board-task-group > header button {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #353d47;
+  text-align: left;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.board-task-group > header small {
+  font-size: 11px;
+  color: #89929f;
+  font-weight: 400;
+}
+.projects-board .board-task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 49px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.projects-board .board-task-title {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  text-align: left;
+  justify-content: flex-start;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #323b47;
+}
+.projects-board .board-task-title .bito-button-content > span {
+  overflow-wrap: anywhere;
+}
+.projects-board .board-task-date {
+  font-size: 11px;
+  color: #748092;
+  padding: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.projects-board .bito-task-checkbox {
+  padding: 5px;
+  flex: none;
+}
+.bito-task-checkbox .astryx-checkbox {
+  border-radius: 50%;
+}
+.projects-board .board-add-step {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  height: 36px;
+  margin-top: 14px;
+  width: fit-content;
+  padding: 6px 8px;
+  background: none;
+  border-radius: 6px;
+  color: #007aff;
+  font-size: 13px;
+}
+.completed-toggle.bito-button {
+  color: #737c89;
+  font-size: 12px;
+  padding: 5px 0;
+  align-self: flex-start;
+}
+.completed-toggle.bito-button:hover {
+  color: #007aff;
+  background: transparent;
+}
+.board-all-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 42px 20px;
+  text-align: center;
+  color: #3c8855;
+}
+.board-all-done h2 {
+  font-size: 17px;
+  font-weight: 550;
+  color: #374151;
+  margin: 0;
+}
+.board-all-done p {
+  font-size: 13px;
+  color: #737c89;
+  margin: 0;
+  line-height: 1.5;
+}
+.project-board-layout[data-view="progress"] .board-insights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.project-board-layout .board-calendar,
+.project-board-layout .board-progress-chart,
+.project-board-layout .board-milestones {
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  box-shadow: none;
+  background: white;
+}
+.board-calendar .calendar-days {
+  min-height: 200px;
+}
+.board-insights .board-secondary-actions {
+  grid-column: 1 / -1;
+}
+.board-progress-chart h2,
+.board-milestones h2 {
+  font-size: 13px;
+}
+.projects-board .saved-work-page {
+  padding: 0 36px 36px;
+  width: 100%;
+  max-width: 1020px;
+  margin: 0 auto;
+}
+.saved-work-full {
+  max-width: none;
+  margin: 0;
+}
+.saved-work-intro {
+  font-size: 12px;
+  margin: 4px 0 12px;
+}
+.quick-task-composer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.quick-task-composer > svg {
+  color: #007aff;
+}
+.quick-task-composer .bito-field {
+  flex: 1;
+}
+.quick-task-composer > button {
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.saved-work-task {
+  padding: 13px 2px;
+  font-size: 13px;
+}
+.saved-work-row {
+  padding: 13px 10px;
+  border-radius: 7px;
+  box-shadow: none;
+}
+.saved-work-row strong {
+  font-size: 13px;
+}
+.saved-work-row small {
+  font-size: 11px;
+}
+.workspace-dialog.bito-dialog {
+  --dialog-width: 520px;
+  border-radius: 12px;
+  box-shadow: 0 18px 64px #16233424;
+}
+.workspace-dialog.bito-dialog::backdrop {
+  background: #15233438;
+  backdrop-filter: none;
+}
+.bito-dialog .astryx-dialog-header {
+  padding: 18px 22px;
+}
+.bito-dialog .astryx-dialog-header h2 {
+  font-size: 16px;
+  letter-spacing: -0.2px;
+}
+.bito-dialog .workspace-dialog-body {
+  padding: 20px 22px 22px;
+}
+.bito-dialog .project-create {
+  padding: 0;
+}
+.bito-dialog .project-form {
+  max-width: none;
+  padding: 0;
+  gap: 12px;
+}
+.bito-dialog .project-intro {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+.bito-dialog .project-form > label,
+.bito-dialog .bito-form-field {
+  font-size: 12px;
+  color: #626b77;
+}
+.bito-dialog .project-form-actions {
+  margin-top: 16px;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.bito-dialog .project-form-actions .bito-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.bito-dialog .project-form-actions .project-primary {
+  order: 2;
+}
+.bito-dialog .project-hint {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.bito-dialog .project-disclosure {
+  margin: 4px 0;
+  border-top: 1px solid #edf0f2;
+  padding-top: 8px;
+}
+.bito-dialog .project-columns {
+  display: block;
+}
+.bito-dialog .project-content {
+  padding: 0;
+}
+.bito-dialog .project-tabs {
+  gap: 4px;
+}
+/* Preferences and onboarding use the same rhythm without touching native drag geometry. */
+.pref-sidebar {
+  background: #fafafa;
+  flex-basis: 190px;
+  padding-inline: 12px;
+  border-color: #eceef0;
+}
+.pref-nav-item {
+  border-radius: 7px;
+  font-size: 13px;
+  height: 36px;
+}
+.pref-nav-selection {
+  border-radius: 7px;
+}
+.pref-window-title {
+  font-size: 16px;
+}
+.pref-header {
+  padding: 24px 32px 18px;
+  min-height: 80px;
+}
+.pref-header h1 {
+  font-size: 22px;
+}
+.pref-scroll {
+  padding: 0 32px 28px;
+}
+.pref-group h2 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555f6c;
+  margin-bottom: 12px;
+}
+.pref-group-body {
+  border-radius: 8px;
+  box-shadow: none;
+  border-color: #e9edf1;
+}
+.pref-group-body > p.pref-secondary,
+.pref-group-body > p.board-error {
+  margin: 0;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+.bito-preference-switch {
+  min-height: 56px;
+  padding: 14px;
+}
+.setup-flow {
+  background: #f4f8f4;
+}
+.setup-flow-artwork {
+  opacity: 0.15;
+}
+.setup-flow-panel {
+  border: 1px solid #e0e9e2;
+  box-shadow: 0 8px 32px #173d2010;
+}
+.setup-description {
+  color: #737c89;
+  font-size: 13px;
+}
+.setup h1 {
+  font-size: 27px;
+  letter-spacing: -0.7px;
+}
+.setup-composer {
+  border-radius: 12px;
+  background: #fafbfd;
+  border-color: #dfe5eb;
+}
+.setup-speech {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.setup-choices .bito-button {
+  border-radius: 8px;
+  padding-inline: 9px;
+  font-size: 12px;
+}
+.auth-card {
+  border-radius: 16px;
+  box-shadow: 0 10px 36px #173d2010;
+}
+.auth-google.bito-button {
+  border-radius: 8px;
+  min-height: 40px;
+}
+/* Companion remains warm; controls stay compact and stable while menus overlay. */
+.desktop-chat-panel {
+  border-radius: 20px;
+}
+.desktop-chat .desktop-composer {
+  border-radius: 14px;
+  background: #f8f9fb;
+}
+.desktop-chat .desktop-bubble {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.desktop-chat .response-card {
+  border-radius: 9px;
+  box-shadow: none;
+}
+.desktop-popover {
+  border-radius: 10px;
+}
+.desktop-popover .bito-button {
+  font-size: 13px;
+  padding: 9px 12px;
+  gap: 10px;
+}
+.desktop-chat .project-selector-trigger {
+  border-radius: 7px;
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .projects-board .board-rail {
+    width: 184px;
+    padding-inline: 8px;
+  }
+  .projects-board .project-topbar {
+    padding-inline: 24px;
+  }
+  .projects-board .board-gallery,
+  .projects-board .project-board-layout,
+  .projects-board .saved-work-page {
+    padding-inline: 24px;
+  }
+}
+@media (max-width: 640px) {
+  .projects-board .board-rail {
+    width: 146px;
+    padding-inline: 6px;
+  }
+  .projects-board .board-rail-button,
+  .projects-board .board-rail-profile {
+    padding-inline: 8px;
+    gap: 7px;
+  }
+  .projects-board .board-nav-label {
+    font-size: 12px;
+  }
+  .sidebar-projects {
+    display: none;
+  }
+  .projects-board .project-topbar {
+    padding: 40px 16px 18px;
+  }
+  .projects-board .project-topbar h1 {
+    font-size: 19px;
+  }
+  .projects-board .board-gallery,
+  .projects-board .project-board-layout,
+  .projects-board .saved-work-page {
+    padding-inline: 16px;
+  }
+  .board-view-toolbar {
+    flex-wrap: wrap;
+  }
+  .project-board-layout[data-view="progress"] .board-insights {
+    grid-template-columns: 1fr;
+  }
+  .board-task-date {
+    max-width: 56px;
+  }
+  .quick-task-composer {
+    flex-wrap: wrap;
+  }
+  .preferences .pref-sidebar {
+    flex-basis: 145px;
+  }
+  .pref-scroll {
+    padding-inline: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .projects-app *,
+  .preferences *,
+  .setup-flow *,
+  .desktop-chat * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+[data-reduced-motion="true"] .board-gallery,
+[data-reduced-motion="true"] .project-board-layout {
+  animation: none;
+}
+/* Task capture follows the same compact composition inline and in quick add. */
+.sidebar-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-section-label .bito-button {
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+  padding: 4px;
+  color: #78818c;
+}
+.bito-dialog.is-capture .workspace-dialog-body {
+  padding: 0;
+}
+.bito-dialog.is-capture {
+  overflow: visible;
+}
+.task-composer {
+  padding: 18px 20px 0;
+  background: #fff;
+  border-radius: 12px;
+  min-width: 0;
+}
+.task-composer.is-inline {
+  border: 1px solid #d8dce2;
+  margin: 12px 0;
+  border-radius: 9px;
+}
+.task-composer .task-title-input .bito-field-control,
+.task-composer .task-description-input .bito-field-control {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+.task-composer .task-title-input input {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.task-composer .task-description-input textarea {
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 44px;
+  resize: none;
+}
+.task-composer .task-title-input .bito-field-control:focus-within,
+.task-composer .task-description-input .bito-field-control:focus-within {
+  box-shadow: none;
+}
+.task-composer-properties {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 17px;
+  flex-wrap: wrap;
+}
+.task-chip.bito-button {
+  min-height: 29px;
+  height: 29px;
+  border: 1px solid #e1e4e8;
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 4px 8px;
+  gap: 6px;
+  color: #657180;
+  background: white;
+}
+.task-chip.has-date {
+  color: #28804b;
+}
+.task-property-select {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e1e4e8;
+  border-radius: 5px;
+  padding-left: 8px;
+  color: #687280;
+  height: 29px;
+}
+.task-property-select .bito-field-control {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 27px;
+  height: 27px;
+  padding: 4px 7px;
+  font-size: 12px;
+}
+.task-property-select .bito-field {
+  width: auto;
+}
+[data-priority="1"] {
+  color: #c5453d;
+}
+[data-priority="2"] {
+  color: #b07119;
+}
+[data-priority="3"] {
+  color: #3774b8;
+}
+.task-composer-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 -20px;
+  padding: 12px 16px;
+  border-top: 1px solid #eceef0;
+}
+.task-location {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.task-location > span {
+  color: #7d8794;
+  display: flex;
+}
+.task-location .bito-field {
+  width: auto;
+  min-width: 0;
+  max-width: 170px;
+}
+.task-location .bito-field-control {
+  min-height: 28px;
+  height: 28px;
+  padding: 4px 6px;
+  font-size: 11px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.task-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.task-composer-actions .bito-button {
+  height: 32px;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.task-capture-error {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #b4443c;
+}
+.task-discard {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  padding: 10px 0;
+  border-top: 1px solid #eceef0;
+}
+.task-discard .bito-button {
+  font-size: 12px;
+  padding: 5px 7px;
+}
+.task-date-popover {
+  padding: 12px;
+  font-size: 12px;
+}
+.task-date-popover > strong {
+  display: block;
+  margin: 0 6px 10px;
+  font-size: 13px;
+}
+.task-date-popover > .bito-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 7px 6px;
+  gap: 9px;
+  font-size: 12px;
+  border-radius: 5px;
+}
+.task-date-popover small {
+  margin-left: auto;
+  color: #8a929c;
+  font-size: 11px;
+}
+.task-calendar-grid {
+  border-block: 1px solid #eceef0;
+  margin: 8px 0;
+  padding: 8px 0;
+}
+.projects-board .board-task-row {
+  align-items: flex-start;
+  padding: 11px 0;
+  gap: 10px;
+}
+.projects-board .bito-task-checkbox {
+  margin-top: 1px;
+}
+.board-task-content {
+  flex: 1;
+  min-width: 0;
+}
+.projects-board .board-task-title {
+  padding: 0;
+  min-height: 24px;
+  width: 100%;
+}
+.task-row-description {
+  color: #858c96;
+  font-size: 12px;
+  margin: 2px 0 3px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-row-metadata {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 3px;
+}
+.task-row-metadata .task-chip {
+  border: 0;
+  padding: 0;
+  height: 22px;
+  min-height: 22px;
+  font-size: 11px;
+  background: transparent;
+}
+.task-row-metadata .task-chip:hover {
+  background: #f3f6f9;
+}
+.task-priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.projects-board .board-task-group > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.projects-board .board-task-group > header .board-icon {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 6px;
+  color: #9299a2;
+}
+.section-expanded {
+  transform: rotate(90deg);
+}
+.workspace-task-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #28313b;
+  color: white;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px #0002;
+  z-index: 100;
+  font-size: 13px;
+}
+.saved-task-meta {
+  margin: 4px 0 0 30px;
+  color: #748092;
+  font-size: 12px;
+  display: flex;
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .task-composer-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .task-composer-actions {
+    align-self: flex-end;
+  }
+  .task-location .bito-field {
+    max-width: 150px;
+  }
+}
+.workspace-dialog.bito-dialog[open] {
+  align-items: stretch;
+}
+.workspace-dialog.bito-dialog > div {
+  width: 100%;
+}
+.task-composer .bito-field.task-title-input input {
+  font-size: 17px;
+  font-weight: 600;
+}
+.task-composer .bito-area-field.task-description-input .bito-field-control {
+  min-height: 48px;
+}
+.task-composer .bito-field.task-description-input textarea {
+  resize: none;
+}
+.workspace-dialog.bito-dialog.is-capture {
+  inset: min(14dvh, 110px) 0 auto;
+  margin: 0 auto;
+}
+.projects-board .project-topbar {
+  min-height: 94px;
+  padding-top: 36px;
+  padding-bottom: 18px;
+}
+.projects-board .board-task-groups {
+  padding-top: 8px;
+}
+.projects-board .board-task-group {
+  margin-top: 16px;
+  padding-bottom: 10px;
+}
+.board-work-session.is-idle {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 7px;
+  background: #fafcfa;
+  border-color: #eaf0ea;
+}
+.board-work-session.is-idle .board-session-copy small {
+  display: none;
+}
+.board-work-session.is-idle .board-session-copy strong {
+  font-size: 12px;
+  color: #66746b;
+  font-weight: 400;
+}
+.board-work-session.is-idle .project-primary {
+  font-size: 11px;
+  min-height: 30px;
+  padding: 6px 9px;
+  background: #eaf3ed;
+  color: #348052;
+  border-radius: 6px;
+}
+.task-date-popover {
+  padding: 0;
+}
+.task-calendar-grid .astryx-calendar {
+  margin-inline: auto;
+}
+.projects-board .bito-task-checkbox .astryx-checkbox-indicator,
+.saved-work-task .astryx-checkbox-indicator {
+  border-radius: 50%;
+}
+.projects-board .board-task-row[data-priority="1"] .astryx-checkbox-indicator {
+  border-color: #c5453d;
+}
+.projects-board .board-task-row[data-priority="2"] .astryx-checkbox-indicator {
+  border-color: #b07119;
+}
+.projects-board .board-task-row[data-priority="3"] .astryx-checkbox-indicator {
+  border-color: #3774b8;
+}
+.projects-board .task-row-description {
+  margin: 2px 0 3px;
+  line-height: 1.5;
+}
+.projects-board .board-work-session.is-idle .project-primary {
+  background: #eaf3ed;
+  color: #348052;
+}
+
+/* Project tasks and context stay visible together. */
+.projects-board .project-topbar {
+  height: auto;
+  min-height: 94px;
+  justify-content: flex-start;
+}
+.projects-board .project-topbar .project-back {
+  margin: 0;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.projects-board .project-topbar h1 {
+  margin: 0;
+}
+.projects-board .project-board-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  column-gap: 28px;
+  row-gap: 0;
+  align-items: start;
+  max-width: 1280px;
+}
+.project-board-layout > .board-view-toolbar {
+  grid-column: 1 / -1;
+}
+.board-list-heading {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: #626b77;
+}
+.project-board-layout > .board-project-summary {
+  grid-column: 1;
+  grid-row: 2;
+}
+.project-board-layout > .board-main-column {
+  grid-column: 1;
+  grid-row: 3;
+  min-width: 0;
+}
+.project-board-layout > .board-insights {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 18px;
+}
+.board-project-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.board-project-menu .bito-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 9px 10px;
+  font-size: 13px;
+  gap: 8px;
+  border-radius: 5px;
+}
+.projects-board .board-add-group {
+  margin-top: 18px;
+  padding: 10px 8px;
+  gap: 9px;
+  color: #626b77;
+  width: 100%;
+  justify-content: flex-start;
+  border-top: 1px solid #eceef0;
+  border-radius: 0;
+}
+.projects-board .board-add-group:hover {
+  color: #007aff;
+  background: #fafafa;
+}
+.board-insights .board-side-calendar {
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  background: white;
+  padding: 14px;
+}
+.board-side-calendar > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.board-side-calendar h2 {
+  font-size: 13px;
+  margin: 0;
+}
+.side-calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 12px;
+}
+.side-calendar-navigation > strong {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+}
+.side-calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin: 12px 0;
+}
+.side-calendar-week > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.side-calendar-week small {
+  color: #7a818b;
+  font-size: 10px;
+}
+.side-calendar-week strong {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 50%;
+}
+.side-calendar-week [data-today="true"] strong {
+  background: #eaf3ff;
+  color: #007aff;
+}
+.side-calendar-week i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: transparent;
+}
+.side-calendar-week i[data-event="true"] {
+  background: #8d98a5;
+}
+.side-calendar-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.projects-board .side-calendar-event {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.side-calendar-event time {
+  flex: none;
+  min-width: 35px;
+  color: #7a818b;
+}
+.side-calendar-event .bito-button-content > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.side-calendar-event.is-done {
+  color: #818993;
+}
+.projects-board .side-calendar-connect {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 10px 0 0;
+  border-top: 1px solid #edf0f2;
+  margin-top: 12px;
+  font-size: 11px;
+  color: #687280;
+}
+.board-insights .board-progress-chart {
+  padding: 14px;
+}
+.board-insights .board-milestone {
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 14px;
+}
+.board-insights .board-milestone time {
+  font-size: 10px;
+  white-space: nowrap;
+}
+.board-insights .board-milestone span {
+  font-size: 12px;
+}
+.saved-work-row .priority-copy {
+  text-align: left;
+}
+.priority-label {
+  font-size: 11px;
+}
+.priority-label[data-priority="1"] {
+  color: #b9413b;
+}
+.priority-label[data-priority="2"] {
+  color: #a36817;
+}
+.priority-label[data-priority="3"] {
+  color: #376ba5;
+}
+@media (max-width: 1100px) {
+  .projects-board .project-board-layout {
+    padding-left: 24px;
+    padding-right: 24px;
+    column-gap: 20px;
+    grid-template-columns: minmax(0, 1fr) 250px;
+  }
+}
+@media (max-width: 880px) {
+  .projects-board .project-board-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .project-board-layout > .board-insights {
+    grid-column: 1;
+    grid-row: 4;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+@media (max-width: 620px) {
+  .project-board-layout > .board-insights {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.projects-board .saved-work-page {
+  max-width: 1280px;
+}
+.saved-work-priority > small {
+  display: block;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.saved-work-priority .saved-work-row {
+  border: 0;
+  border-bottom: 1px solid #edf0f2;
+  border-radius: 0;
+  padding: 14px 8px;
+}
+
+/* Audit: context belongs beside its action, with one creation entry per level. */
+.project-board-container {
+  min-width: 0;
+}
+.project-archive-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  margin: 0 36px 16px;
+  border-bottom: 1px solid var(--bito-border, #e7e9ed);
+  color: #68717c;
+}
+.task-composer.is-inline .task-composer-footer {
+  justify-content: flex-end;
+}
+.board-progress-meter {
+  margin-top: 16px;
+}
+.task-chip.is-overdue {
+  color: #b5473b;
+}
+.saved-work-week-label {
+  margin-right: auto;
+  font-size: 13px;
+  font-weight: 500;
+}
+@media (max-width: 620px) {
+  .project-archive-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-inline: 16px;
+  }
+  .saved-work-week-label {
+    flex-basis: 100%;
+  }
+  .saved-work-week-nav {
+    flex-wrap: wrap;
+  }
+}

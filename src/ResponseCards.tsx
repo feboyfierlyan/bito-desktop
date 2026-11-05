@@ -1,3 +1,10 @@
+import { BitoDisclosure } from "./ui/BitoDisclosure";
+import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { ProgressBar } from "@astryxdesign/core/ProgressBar";
+import { BitoInput } from "./ui/controls";
+import { Card } from "@astryxdesign/core/Card";
+import { BitoButton } from "./ui/controls";
+import { SavedWorkDirectory } from "./SavedWorkDirectory";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -15,6 +22,8 @@ import {
 import { timeDigits, timerCardState } from "./result-cards";
 import type { Message, Reply, ResponseCard, Snapshot } from "./shared";
 import "./ResponseCards.css";
+import { ProjectProgressVisual, ProjectTimeline } from "./ProjectVisuals";
+import { openProjectSession, projectWorkEntry } from "./project-work";
 
 type Act = (name: string, payload?: unknown) => Promise<Reply>;
 type Props = {
@@ -53,12 +62,17 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
     state.focus.id === card.timerId &&
     state.focus.running &&
     state.chatOpen;
+  const confirmationActive =
+    card.kind === "quick-task-removal" &&
+    card.status === "pending" &&
+    now < card.expiresAt &&
+    state.chatOpen;
   useEffect(() => {
     setNow(Date.now());
-    if (!running) return;
+    if (!running && !confirmationActive) return;
     const interval = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(interval);
-  }, [running, state.focus.deadline]);
+  }, [running, confirmationActive, state.focus.deadline]);
   const request = async (command: string, extra: Record<string, unknown>) => {
     if (pending) return;
     setPending(true);
@@ -85,6 +99,279 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
       {error}
     </p>
   );
+  if (card.kind === "saved-work")
+    return (
+      <SavedWorkDirectory state={state} act={act} initialView={card.view} />
+    );
+  if (card.kind === "quick-task-removal") {
+    const expired = now >= card.expiresAt;
+    return (
+      <>
+        <h3>
+          {card.status === "removed"
+            ? `${card.removedCount} tugas singkat dihapus.`
+            : card.status === "cancelled"
+              ? "Dibatalkan. Tugasmu tetap tersimpan."
+              : "Hapus tugas singkat?"}
+        </h3>
+        {card.status === "pending" && (
+          <>
+            <p>
+              {card.tasks.length} tugas singkat akan dihapus. Proyek dan
+              pengingat tetap tersimpan.
+            </p>
+            <BitoDisclosure>
+              <summary>Lihat tugas</summary>
+              <ul>
+                {card.tasks.map((t) => (
+                  <li key={t.id}>{t.title}</li>
+                ))}
+              </ul>
+            </BitoDisclosure>
+            <div className="result-actions">
+              <BitoButton
+                className="result-primary"
+                disabled={pending || state.busy || expired}
+                onClick={() =>
+                  void request("quick-task-removal", { action: "confirm" })
+                }
+              >
+                {pending ? "Memproses…" : `Hapus ${card.tasks.length} tugas`}
+              </BitoButton>
+              <BitoButton
+                disabled={pending || state.busy}
+                onClick={() =>
+                  void request("quick-task-removal", { action: "cancel" })
+                }
+              >
+                Batal
+              </BitoButton>
+            </div>
+            {expired && <p>Konfirmasi kedaluwarsa. Minta hapus lagi, ya.</p>}
+          </>
+        )}
+        {notice}
+      </>
+    );
+  }
+  if (card.kind === "project") {
+    const project = state.projects.find((p) => p.id === card.projectId);
+    const review =
+      card.stage === "understanding" ? project?.understanding : undefined;
+    const current = !!card.draftId && project?.draft?.id === card.draftId;
+    const status =
+      !!project?.plan && !current && card.stage !== "understanding";
+    const session = project && openProjectSession(project);
+    const next = status
+      ? projectWorkEntry(project, session?.taskId, card.minutes ?? null)
+      : undefined;
+    return (
+      <>
+        <div className="result-eyebrow">
+          <ListChecks size={15} /> Proyek{" "}
+          <span className="result-status">
+            {card.stage === "understanding"
+              ? project?.understanding?.confirmedAt
+                ? "Sudah dikonfirmasi"
+                : "Pemahaman · perlu diperiksa"
+              : current
+                ? "Draf · perlu ditinjau"
+                : project?.plan
+                  ? "Rencana aktif"
+                  : "Perencanaan"}
+          </span>
+        </div>
+        <h3>{project?.name || card.title}</h3>
+        {status && (
+          <>
+            <ProjectProgressVisual project={project!} compact />
+            <ProjectTimeline project={project!} compact />
+            {session ? (
+              <p className="result-detail">
+                {session.phase === "review"
+                  ? "Sesi selesai · isi laporan hasilmu"
+                  : session.phase === "paused"
+                    ? "Sesi dijeda"
+                    : "Sesi berjalan"}{" "}
+                · {session.taskTitle}
+              </p>
+            ) : (
+              next && (
+                <p className="pw-card-next">
+                  <small>LANGKAH BERIKUTNYA</small>
+                  {next.objective}
+                  <small>{next.estimateLabel}</small>
+                </p>
+              )
+            )}
+          </>
+        )}
+        {review && (
+          <div className="result-task-review">
+            <p>{review.summary}</p>
+            <ul>
+              {review.deliverables.map((item, i) => (
+                <li key={i}>{item}</li>
+              ))}
+            </ul>
+            {review.requirements.length > 0 && (
+              <BitoDisclosure>
+                <summary>Ketentuan tugas</summary>
+                <ul>
+                  {review.requirements.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </BitoDisclosure>
+            )}
+            {review.unknowns.length > 0 && (
+              <BitoDisclosure>
+                <summary>Yang belum diketahui</summary>
+                <ul>
+                  {review.unknowns.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </BitoDisclosure>
+            )}
+          </div>
+        )}
+        {current && project.draft && (
+          <div className="result-task-review">
+            <p>{project.draft.summary}</p>
+            <ProjectTimeline
+              project={{ ...project, plan: project.draft }}
+              compact
+            />
+            <BitoDisclosure>
+              <summary>Lihat langkahnya</summary>
+              {project.draft.milestones.map((m) => (
+                <div key={m.id}>
+                  <strong>{m.title}</strong>
+                  <ul>
+                    {m.tasks.map((t) => (
+                      <li key={t.id}>
+                        {t.title}
+                        <small>
+                          {" "}
+                          · {t.estimateMin}–{t.estimateMax} mnt
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </BitoDisclosure>
+            {project.draft.assumptions.length > 0 && (
+              <BitoDisclosure>
+                <summary>Asumsi rencana</summary>
+                <ul>
+                  {project.draft.assumptions.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </BitoDisclosure>
+            )}
+            <small>
+              Ini draf. Tanggal target masih bisa diubah sebelum disetujui.
+            </small>
+          </div>
+        )}
+        <div className="result-actions">
+          {review && !review.confirmedAt && project && (
+            <BitoButton
+              className="result-primary"
+              disabled={pending || state.busy || project.status === "archived"}
+              onClick={() =>
+                void request("project-confirm-and-plan", {
+                  id: project.id,
+                  version: project.version,
+                  understandingId: review.id,
+                  understanding: {
+                    summary: review.summary,
+                    deliverables: review.deliverables,
+                    requirements: review.requirements,
+                    unknowns: review.unknowns,
+                    sourceIds: review.sourceIds,
+                  },
+                })
+              }
+            >
+              {pending ? "Menyiapkan…" : "Sudah pas, susun rencana"}
+            </BitoButton>
+          )}
+          {current && project?.draft && (
+            <BitoButton
+              className="result-primary"
+              disabled={
+                pending ||
+                state.busy ||
+                project.status === "archived" ||
+                !project.understanding?.confirmedAt
+              }
+              onClick={() =>
+                void request("project-approve", {
+                  id: project.id,
+                  version: project.version,
+                  draftId: project.draft!.id,
+                })
+              }
+            >
+              <Check size={13} /> Setujui rencana
+            </BitoButton>
+          )}
+
+          {status &&
+            next &&
+            (!session || session.phase === "paused") &&
+            project?.status === "active" && (
+              <BitoButton
+                className="result-primary"
+                disabled={
+                  pending ||
+                  state.busy ||
+                  state.projects.some(
+                    (p) => p.id !== project.id && openProjectSession(p),
+                  )
+                }
+                onClick={() =>
+                  void request("project-assist", {
+                    ...next.payload,
+                  })
+                }
+              >
+                <Play size={12} />{" "}
+                {next.continuing ? "Lanjut bareng Bito" : "Mulai bareng Bito"}
+              </BitoButton>
+            )}
+          <BitoButton
+            className="result-primary"
+            disabled={
+              !project || project.status === "archived" || pending || state.busy
+            }
+            onClick={() =>
+              void act("project-open", {
+                id: card.projectId,
+                tab:
+                  card.stage === "understanding"
+                    ? "understanding"
+                    : current
+                      ? "plan"
+                      : "overview",
+              })
+            }
+          >
+            {card.stage === "understanding"
+              ? "Ubah ringkasan"
+              : current
+                ? "Ubah rencana"
+                : "Lihat timeline"}
+          </BitoButton>
+        </div>
+        {notice}
+      </>
+    );
+  }
   if (card.kind === "timer") {
     const timer = timerCardState(card, state.focus, now);
     const live =
@@ -109,23 +396,16 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         >
           {timeDigits(timer.seconds)}
         </div>
-        <div
-          className="result-progress"
-          role="progressbar"
-          aria-label="Waktu fokus yang telah berlalu"
-          aria-valuemin={0}
-          aria-valuemax={timer.total}
-          aria-valuenow={Math.max(0, timer.total - timer.seconds)}
-        >
-          <span
-            style={{
-              width: `${timer.total ? Math.max(0, Math.min(100, 100 * (1 - timer.seconds / timer.total))) : 0}%`,
-            }}
-          />
-        </div>
+        <ProgressBar
+          className="bito-result-progress"
+          label="Waktu fokus yang telah berlalu"
+          isLabelHidden
+          value={Math.max(0, timer.total - timer.seconds)}
+          max={Math.max(1, timer.total)}
+        />
         {live && (
           <div className="result-actions">
-            <button
+            <BitoButton
               className="result-primary"
               disabled={pending || timer.seconds <= 0}
               onClick={() =>
@@ -140,21 +420,21 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
                 <Play size={14} />
               )}{" "}
               {timer.status === "running" ? "Jeda" : "Lanjutkan"}
-            </button>
-            <button
+            </BitoButton>
+            <BitoButton
               disabled={pending || timer.total >= 10800}
               onClick={() => void action("timer-add")}
             >
               +1 menit
-            </button>
-            <button
+            </BitoButton>
+            <BitoButton
               className="result-icon"
               aria-label="Akhiri sesi fokus"
               disabled={pending}
               onClick={() => void action("timer-end")}
             >
               <X size={16} />
-            </button>
+            </BitoButton>
           </div>
         )}
         {notice}
@@ -162,10 +442,19 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
     );
   }
   if (card.kind === "checklist") {
-    const tasks = card.tasks.map((item) => ({
-      ...item,
-      live: state.tasks.find((task) => task.id === item.id),
-    }));
+    const tasks = card.tasks
+      .map((item) => ({
+        ...item,
+        live: state.tasks.find((task) => task.id === item.id),
+      }))
+      .filter((task) => task.live);
+    if (!tasks.length)
+      return (
+        <>
+          <h3>{card.title}</h3>
+          <p>Tugas ini sudah dihapus.</p>
+        </>
+      );
     const done = tasks.filter((task) => task.live?.done).length;
     return (
       <>
@@ -178,38 +467,27 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         <h3>{card.title}</h3>
         <div className="result-task-list">
           {tasks.map((task) => (
-            <label
+            <div
               key={task.id}
               className="result-task"
               data-done={task.live?.done || false}
             >
-              <input
-                type="checkbox"
-                checked={task.live?.done || false}
-                disabled={!task.live || pending}
+              <CheckboxInput
+                label={task.live?.title || task.title}
+                value={task.live?.done || false}
+                isDisabled={!task.live || pending}
                 onChange={() => void action("task-toggle", { taskId: task.id })}
               />
-              <span className="result-checkbox" aria-hidden="true">
-                {task.live?.done && <Check size={12} />}
-              </span>
-              <span>{task.live?.title || task.title}</span>
-            </label>
+            </div>
           ))}
         </div>
-        <div
-          className="result-progress"
-          role="progressbar"
-          aria-label="Tugas selesai"
-          aria-valuemin={0}
-          aria-valuemax={tasks.length}
-          aria-valuenow={done}
-        >
-          <span
-            style={{
-              width: `${tasks.length ? (done / tasks.length) * 100 : 0}%`,
-            }}
-          />
-        </div>
+        <ProgressBar
+          className="bito-result-progress"
+          label="Tugas selesai"
+          isLabelHidden
+          value={done}
+          max={Math.max(1, tasks.length)}
+        />
         {notice}
       </>
     );
@@ -239,7 +517,7 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         <p className="result-detail">{dateLabel(due)}</p>
         {active && !editing && (
           <div className="result-actions">
-            <button
+            <BitoButton
               disabled={pending}
               onClick={() => {
                 setReminderTitle(title);
@@ -248,13 +526,13 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
               }}
             >
               Ubah
-            </button>
-            <button
+            </BitoButton>
+            <BitoButton
               disabled={pending}
               onClick={() => void action("reminder-cancel")}
             >
               Batalkan
-            </button>
+            </BitoButton>
           </div>
         )}
         <AnimatePresence initial={false}>
@@ -280,35 +558,35 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
                 });
               }}
             >
-              <label>
+              <div className="bito-form-field">
                 Pengingat
-                <input
+                <BitoInput
                   maxLength={240}
                   required
                   value={reminderTitle}
                   onChange={(event) => setReminderTitle(event.target.value)}
                 />
-              </label>
-              <label>
+              </div>
+              <div className="bito-form-field">
                 Waktu
-                <input
+                <BitoInput
                   type="datetime-local"
                   required
                   value={reminderDue}
                   onChange={(event) => setReminderDue(event.target.value)}
                 />
-              </label>
+              </div>
               <div className="result-actions">
-                <button
+                <BitoButton
                   className="result-primary"
                   disabled={pending}
                   type="submit"
                 >
                   Simpan
-                </button>
-                <button type="button" onClick={() => setEditing(false)}>
+                </BitoButton>
+                <BitoButton type="button" onClick={() => setEditing(false)}>
                   Batal
-                </button>
+                </BitoButton>
               </div>
             </motion.form>
           )}
@@ -331,22 +609,22 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         · UTF-8
       </p>
       <div className="result-actions">
-        <button
+        <BitoButton
           className="result-primary"
           disabled={pending}
           onClick={() => void request("file-output", { operation: "open" })}
         >
           Buka file
-        </button>
-        <button
+        </BitoButton>
+        <BitoButton
           className="result-icon"
           disabled={pending}
           aria-label={`Tampilkan ${card.name} di folder`}
           onClick={() => void request("file-output", { operation: "reveal" })}
         >
           <FolderOpen size={16} />
-        </button>
-        <button
+        </BitoButton>
+        <BitoButton
           className="result-preview-toggle"
           disabled={pending}
           aria-expanded={previewOpen}
@@ -370,7 +648,7 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
             size={13}
             style={{ transform: previewOpen ? "rotate(180deg)" : undefined }}
           />
-        </button>
+        </BitoButton>
       </div>
       <AnimatePresence initial={false}>
         {previewOpen && (
@@ -390,11 +668,14 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
   );
 }
 
+const MotionCard = motion.create(Card);
+
 export function ResponseCards(props: Props) {
   return (
     <div className="response-cards">
       {props.message.cards?.map((card) => (
-        <motion.section
+        <MotionCard
+          padding={0}
           key={card.id}
           className={`response-card response-card-${card.kind}`}
           aria-label={
@@ -404,7 +685,13 @@ export function ResponseCards(props: Props) {
                 ? "Pengingat Bito"
                 : card.kind === "checklist"
                   ? "Checklist Bito"
-                  : `File ${card.name}`
+                  : card.kind === "project"
+                    ? `Proyek ${card.title}`
+                    : card.kind === "quick-task-removal"
+                      ? "Konfirmasi hapus tugas singkat"
+                      : card.kind === "saved-work"
+                        ? "Tugas tersimpan"
+                        : `File ${card.name}`
           }
           initial={
             props.seen.has(card.id) || props.reduced
@@ -418,7 +705,7 @@ export function ResponseCards(props: Props) {
           }}
         >
           <CardContent {...props} card={card} />
-        </motion.section>
+        </MotionCard>
       ))}
     </div>
   );

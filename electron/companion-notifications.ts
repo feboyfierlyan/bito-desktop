@@ -1,6 +1,7 @@
 import { remaining } from "./core";
 import { reminderDue, timerFinished, replyReady } from "../src/bito-voice";
 import type { AppState, Message, ResponseCard } from "../src/shared";
+import { projectCoachRelevant } from "../src/project-companion";
 
 export type NoticeType = NonNullable<Message["notification"]>["type"];
 export type NoticeInput = {
@@ -10,6 +11,8 @@ export type NoticeInput = {
   text: string;
   createdAt: number;
   cards?: ResponseCard[];
+  projectId?: string;
+  coach?: NonNullable<Message["notification"]>["coach"];
 };
 
 /** Store the event and its transcript entry together; retries never add a second message. */
@@ -28,7 +31,12 @@ export function enqueueNotice(state: AppState, input: NoticeInput) {
     createdAt: input.createdAt,
     status: "complete",
     cards: input.cards,
-    notification: { type: input.type, sourceId: input.sourceId },
+    projectId: input.projectId,
+    notification: {
+      type: input.type,
+      sourceId: input.sourceId,
+      ...(input.coach ? { coach: input.coach } : {}),
+    },
   };
   state.messages.push(message);
   return { message, added: true };
@@ -41,6 +49,17 @@ export function noticeIsRelevant(
 ) {
   const notice = message.notification;
   if (!notice) return false;
+  if (notice.type === "project-coach")
+    return projectCoachRelevant(state, message, now);
+  if (notice.type === "work-session")
+    return state.projects.some(
+      (p) =>
+        p.id === message.projectId &&
+        p.status !== "archived" &&
+        p.sessions?.some(
+          (s) => s.id === notice.sourceId && s.phase === "review",
+        ),
+    );
   if (notice.type === "reminder") {
     return state.reminders.some(
       (reminder) =>
@@ -78,7 +97,8 @@ export function settleNotices(state: AppState, now: number, chatOpen: boolean) {
     if (
       message.notification &&
       message.notification.handledAt === undefined &&
-      (chatOpen || !noticeIsRelevant(state, message, now))
+      ((chatOpen && (message.projectId || null) === state.activeProjectId) ||
+        !noticeIsRelevant(state, message, now))
     ) {
       message.notification.handledAt = now;
       changed = true;
@@ -90,9 +110,11 @@ export function settleNotices(state: AppState, now: number, chatOpen: boolean) {
 const priority: Record<NoticeType, number> = {
   reminder: 0,
   timer: 0,
+  "work-session": 0,
   reply: 1,
   welcome: 2,
   "check-in": 3,
+  "project-coach": 3,
   test: 0,
 };
 export function nextNotice(state: AppState, now: number) {
@@ -184,6 +206,7 @@ export function collectDueNotices(
     enqueueNotice(state, {
       id: createId(),
       type: "reminder",
+      projectId: reminder.projectId,
       sourceId: `${reminder.id}:${reminder.due}`,
       text: reminderDue(reminder.title, state.profile.style),
       createdAt: now,
@@ -214,6 +237,7 @@ export function enqueueReplyNotice(
   return enqueueNotice(state, {
     id: createId(),
     type: "reply",
+    projectId: reply.projectId,
     sourceId: reply.id,
     createdAt: now,
     text: replyReady(state.profile.style, reply.status === "error"),

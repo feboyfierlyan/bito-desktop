@@ -1,3 +1,4 @@
+import { BitoButton } from "./ui/controls";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
@@ -10,6 +11,7 @@ import { Bubble } from "./Bubble";
 import { api } from "./bridge";
 import { wordDelay } from "./handoff";
 import type { Message, Snapshot } from "./shared";
+import { openProjectSession } from "./project-work";
 
 export function GreetingBubble({ state }: { state: Snapshot }) {
   const active =
@@ -36,6 +38,35 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
   const closing = state.greeting?.phase === "dismissing";
   const transferring = state.chatOpen && state.greeting?.phase === "opening";
   const [flying, setFlying] = useState(false);
+  const coach =
+    message.notification?.type === "project-coach"
+      ? message.notification.coach
+      : undefined;
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const choose = async (
+    event: React.MouseEvent,
+    action: "start" | "open" | "later" | "rest",
+  ) => {
+    event.stopPropagation();
+    if (actionBusy || closing || transferring) return;
+    setActionBusy(true);
+    setActionError("");
+    try {
+      const result = await api.command("companion-action", {
+        messageId: message.id,
+        action,
+      });
+      if (!result.ok)
+        setActionError(
+          result.error || "Saran sudah berubah. Buka tugas untuk melanjutkan.",
+        );
+    } catch {
+      setActionError("Belum tersambung. Coba sekali lagi.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
   const flightSpring = { stiffness: 420, damping: 38, mass: 0.8 };
   const x = useSpring(0, flightSpring),
     y = useSpring(0, flightSpring);
@@ -234,12 +265,15 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
               ? { position: "fixed", left: x, top: y, width, height }
               : undefined
           }
-          role="button"
-          tabIndex={closing ? -1 : 0}
-          aria-label="Buka percakapan dengan Bito"
+          role={coach ? "group" : "button"}
+          tabIndex={coach || closing ? -1 : 0}
+          aria-label={
+            coach ? "Saran tugas dari Bito" : "Buka percakapan dengan Bito"
+          }
           data-chat-hit
           onClick={open}
           onKeyDown={(event) => {
+            if (coach || event.target !== event.currentTarget) return;
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
               open();
@@ -253,18 +287,84 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
             closing={closing}
             handoffTail={flying && state.chatSide === "left"}
           >
-            <p aria-hidden="true">
-              {words.map((word, i) => (
-                <span
-                  key={i}
-                  className={`greeting-word ${i < count ? "revealed" : ""}`}
+            <p aria-hidden={!coach}>
+              {coach ? (
+                <BitoButton
+                  className="greeting-open-text"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    open();
+                  }}
+                  aria-label={`Buka chat: ${message.text}`}
                 >
-                  {word}
-                  {i < words.length - 1 ? " " : ""}
-                </span>
-              ))}
+                  {words.map((word, i) => (
+                    <span
+                      key={i}
+                      className={`greeting-word ${i < count ? "revealed" : ""}`}
+                    >
+                      {word}
+                      {i < words.length - 1 ? " " : ""}
+                    </span>
+                  ))}
+                </BitoButton>
+              ) : (
+                <>
+                  {words.map((word, i) => (
+                    <span
+                      key={i}
+                      className={`greeting-word ${i < count ? "revealed" : ""}`}
+                    >
+                      {word}
+                      {i < words.length - 1 ? " " : ""}
+                    </span>
+                  ))}
+                </>
+              )}
             </p>
           </Bubble>
+          {coach && (
+            <div
+              className="greeting-coach-controls"
+              style={{
+                opacity: count === words.length && !transferring ? 1 : 0,
+              }}
+              inert={count !== words.length || transferring || actionBusy}
+              aria-hidden={count !== words.length || transferring}
+            >
+              <div className="greeting-coach-actions">
+                {coach.reason !== "blocked" && coach.taskId ? (
+                  <BitoButton
+                    className="greeting-coach-start"
+                    disabled={actionBusy}
+                    onClick={(event) => void choose(event, "start")}
+                  >
+                    {state.projects.some((p) => p.id === message.projectId && openProjectSession(p)?.phase === "paused") ? "Lanjut sesi" : "Mulai 10 menit"}
+                  </BitoButton>
+                ) : (
+                <BitoButton
+                  className="greeting-coach-start"
+                  disabled={actionBusy}
+                  onClick={(event) => void choose(event, "open")}
+                >
+                  {coach.reason === "blocked"
+                    ? "Lihat hambatan"
+                    : "Lihat tugas"}
+                </BitoButton>
+                )}
+                <BitoButton
+                  disabled={actionBusy}
+                  onClick={(event) => void choose(event, "later")}
+                >
+                  Nanti
+                </BitoButton>
+              </div>
+              {actionError && (
+                <small role="status" className="greeting-coach-error">
+                  {actionError}
+                </small>
+              )}
+            </div>
+          )}
         </motion.div>
       </div>
     </motion.aside>

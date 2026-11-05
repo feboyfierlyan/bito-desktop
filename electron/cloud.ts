@@ -11,7 +11,11 @@ import {
   type ToolCall,
   type ToolResult,
 } from "../supabase/functions/_shared/protocol";
+import { readWebSearch, type WebSearch } from "../src/web-search";
 import type { AuthView, Profile } from "../src/shared";
+import { parseGroundingResult } from "../src/grounding";
+import { parseMaterialAnalysis } from "../src/task-material";
+import type { GroundingInput } from "../supabase/functions/_shared/grounding";
 import {
   AuthCompletionHost,
   renderCompletionPage,
@@ -68,6 +72,8 @@ export function cloudErrorText(code: string): string {
     sign_in_required: "Sesi masuk berakhir. Silakan masuk lagi.",
     daily_limit: "Jatah demo hari ini sudah habis. Coba lagi besok.",
     rate_limit: "Bito sedang menerima beberapa permintaan. Coba sebentar lagi.",
+    search_unavailable:
+      "Aku belum berhasil memastikan hasil pencariannya. Coba lagi sebentar, ya.",
     provider_limit:
       "Kuota layanan AI sedang tercapai. Coba lagi sebentar lagi.",
     busy: "Ada permintaan yang masih berjalan. Coba sebentar lagi.",
@@ -83,6 +89,13 @@ export function cloudErrorText(code: string): string {
     blocked:
       "Bito belum bisa menjawab permintaan ini. Coba susun ulang pesannya.",
     interrupted: "Jawaban dihentikan.",
+    screen_unavailable: "Bantuan layar belum tersedia. Coba lagi sebentar, ya.",
+    invalid_material:
+      "File belum bisa dibaca. Gunakan PDF/gambar yang valid, maksimal 6 MB.",
+    material_read_failed:
+      "Bahan belum berhasil dibaca. Coba file yang lebih jelas atau beberapa halaman pentingnya.",
+    invalid_grounding:
+      "Aku belum bisa memastikan bagian layarnya. Coba tanyakan lebih spesifik, ya.",
     oauth_timeout: "Waktu masuk habis. Silakan coba lagi.",
     oauth_port:
       "Jendela masuk masih dipakai aplikasi lain. Tutup lalu coba lagi.",
@@ -359,15 +372,98 @@ export class BitoCloud {
     await this.storage.clear?.();
     this.set({ status: "signed-out", email: undefined, userId: undefined });
   }
+  async analyzeMaterial(options: {
+    requestId: string;
+    deviceId: string;
+    name: string;
+    mimeType: string;
+    data: string;
+    signal: AbortSignal;
+  }) {
+    try {
+      const response = await this.request(
+        {
+          action: "material",
+          requestId: options.requestId,
+          deviceId: options.deviceId,
+          name: options.name,
+          mimeType: options.mimeType,
+          data: options.data,
+        },
+        options.signal,
+      );
+      return parseMaterialAnalysis(await response.json());
+    } catch (error) {
+      void this.request(
+        {
+          action: "cancel",
+          requestId: options.requestId,
+          deviceId: options.deviceId,
+        },
+        AbortSignal.timeout(4000),
+      ).catch(() => {});
+      throw error;
+    }
+  }
+  async ground(options: {
+    requestId: string;
+    deviceId: string;
+    input: GroundingInput;
+    signal: AbortSignal;
+    toolCallId?: string;
+    round?: number;
+  }) {
+    try {
+      const response = await this.request(
+        {
+          action: "ground",
+          requestId: options.requestId,
+          deviceId: options.deviceId,
+          question: options.input.question,
+          app: options.input.app,
+          title: options.input.title,
+          scope: options.input.scope,
+          history: options.input.history,
+          guide: options.input.guide,
+          elements: options.input.elements,
+          image: options.input.image,
+          profile: { style: options.input.style },
+          toolCallId: options.toolCallId,
+          round: options.round,
+        },
+        options.signal,
+      );
+      return parseGroundingResult(await response.json());
+    } catch (error) {
+      void this.request(
+        {
+          action: "cancel",
+          requestId: options.requestId,
+          deviceId: options.deviceId,
+        },
+        AbortSignal.timeout(4000),
+      ).catch(() => {});
+      throw error;
+    }
+  }
   async reply(options: {
     requestId: string;
     deviceId: string;
     profile: Profile;
+    projectContext?: string;
+    screenGuidance?: boolean;
+    screenContext?: { app: string; title: string };
     memories: string[];
     history: { role: string; content: string }[];
     signal: AbortSignal;
     onDelta: (text: string) => void;
-    execute: (call: ToolCall, signal: AbortSignal) => Promise<ToolResult>;
+    onActivity?: (phase: "searching" | "thinking") => void;
+    onSources?: (search: WebSearch) => void;
+    execute: (
+      call: ToolCall,
+      signal: AbortSignal,
+      context: { round: number },
+    ) => Promise<ToolResult>;
   }): Promise<string> {
     const history = options.history.slice(-32).map((m) => ({
       ...m,
@@ -388,6 +484,12 @@ export class BitoCloud {
       profile: options.profile,
       memories: options.memories.slice(-12).map((m) => m.slice(0, 500)),
       messages: history,
+      capabilities: {
+        screenGuide: options.screenGuidance === true,
+        projects: options.projectContext !== undefined,
+      },
+      projectContext: options.projectContext,
+      screenContext: options.screenContext,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     let text = "";
@@ -404,6 +506,12 @@ export class BitoCloud {
           if (event.type === "delta") {
             text += event.text;
             options.onDelta(event.text);
+          } else if (event.type === "activity") {
+            if (event.phase === "searching" || event.phase === "thinking")
+              options.onActivity?.(event.phase);
+          } else if (event.type === "sources") {
+            const search = readWebSearch(event.search);
+            if (search) options.onSources?.(search);
           } else if (event.type === "error") {
             if (["access_denied", "sign_in_required"].includes(event.code))
               this.set({
@@ -431,7 +539,45 @@ export class BitoCloud {
         ]);
         for (const call of tools.calls) {
           toolSignal.throwIfAborted();
-          results.push(await options.execute(call, toolSignal));
+          if (call.name === "inspect_screen" && options.screenGuidance !== true) {
+            results.push({ id: call.id, ok: false, result: "Screen access was not authorized for this turn. Ask the user to request screen help explicitly." });
+            continue;
+          }
+          const result = await options.execute(call, toolSignal, {
+            round: tools.round,
+          });
+          results.push(result);
+          if (call.name === "inspect_screen") {
+            let guide: {
+              guiding?: boolean;
+              handled?: boolean;
+              answer?: unknown;
+            } = {};
+            try {
+              guide = JSON.parse(result.result);
+            } catch {
+              /* ordinary tool error */
+            }
+            if (
+              (guide.handled === true ||
+                (result.ok && guide.guiding === true)) &&
+              typeof guide.answer === "string"
+            ) {
+              // The local guide owns the remaining flow. Release this waiting
+              // chat lease before it can submit the next verification request;
+              // no redundant model reply or unrelated tool execution follows.
+              await this.request(
+                {
+                  action: "cancel",
+                  requestId: options.requestId,
+                  deviceId: options.deviceId,
+                },
+                options.signal,
+              );
+              options.onDelta(guide.answer);
+              return text + guide.answer;
+            }
+          }
         }
         body = {
           action: "resume",

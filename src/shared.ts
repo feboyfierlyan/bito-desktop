@@ -1,21 +1,53 @@
+import type { Project } from "./projects";
 import type { BitoStyle } from "./bito-voice";
+import type { WebSearch } from "./web-search";
 import type { HitRegion } from "./chat-layout";
+export type AttachmentPreview = { name: string; kind: "text" | "pdf" | "image" | "area"; thumbnail?: string; excerpt?: string };
 export type Message = {
+  projectId?: string;
   id: string;
   role: "user" | "assistant";
   text: string;
+  displayText?: string;
+  attachments?: { name: string; kind: "text" | "pdf" | "image" }[];
   bubbles?: string[];
   createdAt: number;
   status?: "complete" | "interrupted" | "error";
   kind?: "welcome" | "notification";
   notification?: {
-    type: "welcome" | "reminder" | "timer" | "reply" | "check-in" | "test";
+    type:
+      | "welcome"
+      | "reminder"
+      | "timer"
+      | "work-session"
+      | "reply"
+      | "check-in"
+      | "project-coach"
+      | "test";
     sourceId: string;
     handledAt?: number;
+    coach?: {
+      reason: "start" | "resume" | "deadline" | "blocked" | "progress";
+      taskId: string | null;
+      anchor: string;
+    };
   };
+  selectedArea?: { id: string; width: number; height: number };
   cards?: ResponseCard[];
+  webSearch?: WebSearch;
 };
 export type ResponseCard =
+  | { id: string; kind: "quick-task-removal"; tasks: Task[]; expiresAt: number; status: "pending" | "cancelled" | "removed"; removedCount?: number }
+  | { id: string; kind: "saved-work"; view?: "tasks" | "schedule" | "priority" }
+  | {
+      id: string;
+      kind: "project";
+      projectId: string;
+      title: string;
+      draftId: string | null;
+      stage?: "understanding" | "status";
+      minutes?: number;
+    }
   | { id: string; kind: "timer"; timerId: string; seconds: number }
   | {
       id: string;
@@ -39,6 +71,7 @@ export type ResponseCard =
       bytes: number;
     };
 export type Reminder = {
+  projectId?: string;
   id: string;
   title: string;
   due: number;
@@ -46,7 +79,7 @@ export type Reminder = {
   notified: boolean;
   cancelled?: boolean;
 };
-export type Task = { id: string; title: string; done: boolean };
+export type Task = { id: string; title: string; done: boolean; details?: string; dueDate?: string | null; priority?: number };
 export type Memory = { id: string; text: string };
 export type Profile = {
   name: string;
@@ -64,6 +97,10 @@ export type Settings = {
   reducedTransparency: boolean;
   launchAtLogin: boolean;
   dnd: boolean;
+  projectNudges: boolean;
+  nudgeCadence: "gentle" | "balanced";
+  nudgeStartHour: number;
+  nudgeEndHour: number;
 };
 export type Focus = {
   id?: string;
@@ -74,6 +111,13 @@ export type Focus = {
   active?: boolean;
 };
 export type AppState = {
+  projectCompanion?: {
+    snoozedUntil: number;
+    lastEngagedAt: number;
+    offers: { key: string; at: number }[];
+  };
+  projects: Project[];
+  activeProjectId: string | null;
   onboarded: boolean;
   onboardingStep: number;
   profile: Profile;
@@ -102,6 +146,15 @@ export type AuthView = {
   error?: string;
 };
 export type Snapshot = AppState & {
+  messagePreviews?: Record<string, AttachmentPreview[]>;
+  calendar?: import("./calendar").CalendarConnection;
+  quickTasksNavigation?: string;
+  projectCreationNavigation?: string;
+  projectNavigation?: {
+    id: string;
+    projectId: string;
+    tab: "overview" | "understanding" | "plan";
+  };
   revisionMode?: boolean;
   loginPreview?:
     | "idle"
@@ -119,13 +172,19 @@ export type Snapshot = AppState & {
   chatSide?: "left" | "right";
   chatResizing?: boolean;
   chatWave?: number;
-  replyActivity?: { messageId: string; phase: "thinking" | "talking" };
+  replyActivity?: {
+    messageId: string;
+    phase: "thinking" | "talking" | "searching";
+  };
+  guideActivity?: "thinking" | "talking" | "waiting";
+  selectedArea?: import("./area-selection").SelectedArea;
   greeting?: {
     messageId: string;
     phase: "revealing" | "visible" | "dismissing" | "opening";
     talking: boolean;
   };
   dragging: boolean;
+  storageError?: string;
   presentation?: {
     purpose?: "login";
     hostActive?: boolean;
@@ -135,6 +194,7 @@ export type Snapshot = AppState & {
     nativeReady?: boolean;
     step: number;
     wave?: number;
+    release?: import("./pet-release").PetRelease;
   };
   surface?: string;
 };
@@ -145,6 +205,7 @@ export type DragMotion =
   | { phase: "move"; x: number; y: number }
   | { phase: "end" };
 export interface BitoAPI {
+  prepareDroppedFiles?(files: File[], slots: number): Promise<Reply>;
   getState(): Promise<Snapshot>;
   command(name: string, payload?: unknown): Promise<Reply>;
   onState(fn: (state: Snapshot) => void): () => void;

@@ -353,6 +353,83 @@ body[data-solid="true"] .desktop-chat-surface {
   outline-offset: 5px;
   border-radius: 24px;
 }
+.greeting-open-text {
+  display: block;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.greeting-coach-controls {
+  margin-top: 9px;
+  transition: opacity 180ms ease;
+}
+.greeting-coach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  cursor: default;
+}
+.greeting-coach-actions button {
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid #e5e8ee;
+  border-radius: 16px;
+  background: #fffffff5;
+  color: #48566b;
+  font: inherit;
+  font-size: 11px;
+  box-shadow: 0 2px 8px #172a4412;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+.greeting-coach-actions button:hover {
+  background: #edf4ff;
+}
+.greeting-coach-actions button:active {
+  transform: scale(0.96);
+}
+.greeting-coach-actions .greeting-coach-start {
+  background: #007aff;
+  color: #fff;
+  border-color: #007aff;
+}
+.greeting-coach-actions .greeting-coach-start:hover {
+  background: #0068e0;
+}
+.greeting-coach-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.greeting-open-text:focus-visible,
+.greeting-coach-actions button:focus-visible {
+  outline: 2px solid #8ebcf5;
+  outline-offset: 3px;
+}
+.greeting-coach-error {
+  display: block;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: #a94335;
+  background: #fff;
+  font-size: 11px;
+}
+.desktop-greeting[data-transferring="true"] .greeting-coach-controls {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .greeting-coach-controls,
+  .greeting-coach-actions button {
+    transition: none;
+  }
+}
 .greeting-word {
   opacity: 0;
   transition: opacity 150ms ease;
@@ -414,7 +491,7 @@ body[data-solid="true"] .desktop-chat-surface {
   will-change: height;
 }
 .desktop-composer-reveal:focus-within {
-  box-shadow: 0 0 0 2px #2b8cff12;
+  box-shadow: none;
 }
 .desktop-chat[data-dock="left"] .desktop-composer-reveal {
   margin-left: auto;
@@ -472,7 +549,7 @@ body[data-solid="true"] .desktop-chat-surface {
   background: #c3daf6;
   color: #ffffffeb;
 }
-.desktop-send > span {
+.desktop-send .bito-button-content > span {
   display: grid;
   place-items: center;
 }
@@ -593,3 +670,373 @@ body[data-solid="true"] .desktop-chat-surface {
   max-height: calc(100% - 24px);
   overflow-y: auto;
 }
+
+.desktop-context-attachment {
+  top: 0;
+  bottom: auto;
+  max-height: 36px;
+  background: #eef4fc;
+  color: #4e637d;
+}
+.desktop-context-attachment button {
+  width: 24px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.desktop-context-attachment button:hover {
+  background: #dbe7f8;
+}
+
+.desktop-area-message {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: flex-end;
+  color: #858c98;
+  font-size: 11px;
+  margin: 0 10px 5px;
+}
+
+/* Search evidence stays inside the transcript and follows panel/reflow motion. */
+.desktop-search-label {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #737881;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.desktop-search-sources {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
+  color: #737881;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.desktop-search-sources .astryx-collapsible-trigger {
+  cursor: pointer;
+  width: fit-content;
+  padding: 4px 2px;
+  border-radius: 6px;
+}
+.desktop-search-sources .astryx-collapsible-trigger:hover {
+  color: #007aff;
+}
+.desktop-search-sources ol {
+  margin: 5px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.desktop-search-sources li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: #49617c;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease;
+}
+.desktop-search-sources li a span {
+  overflow-wrap: anywhere;
+}
+.desktop-search-sources li a:hover {
+  background: #eaf2ff;
+  color: #007aff;
+}
+.desktop-search-sources li svg {
+  flex: 0 0 auto;
+}
+.desktop-search-suggestions {
+  display: block;
+  width: 100%;
+  border: 0;
+  margin-top: 6px;
+  border-radius: 8px;
+  background: white;
+}
+
+.desktop-project-context {
+  position: absolute;
+  left: 0;
+  max-width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: #e8f1ff;
+  color: #5684bb;
+  border-radius: 8px;
+  padding: 4px 9px;
+  font:
+    11px -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  cursor: pointer;
+}
+.desktop-project-context span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desktop-project-picker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  z-index: 12;
+}
+.desktop-project-picker .desktop-project-context {
+  position: relative;
+  max-width: 100%;
+}
+.desktop-project-context:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.desktop-project-menu {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  width: min(300px, 100%);
+  padding: 6px;
+  border: 1px solid #e7eaf0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 32px #24385b1f;
+  transform-origin: left bottom;
+  overflow: hidden;
+}
+.desktop-project-choices {
+  max-height: min(220px, 30vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.desktop-project-menu button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #364152;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease;
+}
+.desktop-project-menu .bito-button-content > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desktop-project-menu button svg {
+  flex: none;
+}
+.desktop-project-menu button:hover,
+.desktop-project-menu button:focus-visible {
+  background: #f1f5fc;
+}
+.desktop-project-menu button[aria-checked="true"] {
+  background: #eaf2ff;
+  color: #087bff;
+}
+.desktop-project-menu button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.desktop-project-menu .desktop-project-create {
+  border-top: 1px solid #f0f2f5;
+  border-radius: 0 0 10px 10px;
+  margin-top: 5px;
+  color: #087bff;
+}
+.desktop-project-menu p {
+  margin: 6px 10px;
+  font-size: 12px;
+  color: #b44334;
+}
+
+/* Files share the composer and panel animation; no separate overlay window. */
+.desktop-files {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  max-height: 118px;
+  overflow-y: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  font-size: 12px;
+}
+.desktop-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eaf2ff;
+  color: #376cba;
+  border-radius: 12px;
+  padding: 6px 8px;
+  max-width: 190px;
+  min-width: 0;
+}
+.desktop-file-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.desktop-file-chip button,
+.desktop-file-error button {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: inherit;
+  padding: 2px;
+  cursor: pointer;
+}
+.desktop-plan-files {
+  border: 0;
+  border-radius: 12px;
+  background: #007aff;
+  color: white;
+  padding: 7px 11px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.desktop-plan-files:active {
+  transform: scale(0.97);
+}
+.desktop-plan-files:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.desktop-file-status {
+  color: #718096;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.file-reading-dots {
+  letter-spacing: 2px;
+  animation: file-reading 1s ease-in-out infinite;
+}
+@keyframes file-reading {
+  50% {
+    opacity: 0.3;
+  }
+}
+.desktop-file-error {
+  color: #b94739;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-basis: 100%;
+}
+.desktop-file-warning {
+  color: #916b38;
+  flex-basis: 100%;
+}
+.desktop-file-drop {
+  position: absolute;
+  inset: 10px;
+  z-index: 80;
+  pointer-events: none;
+  border: 1.5px dashed #62a1fa;
+  border-radius: 24px;
+  background: rgba(242, 247, 255, 0.96);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #377ac8;
+  font-size: 13px;
+}
+.desktop-file-drop strong {
+  font-size: 17px;
+}
+.desktop-history-files {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+  margin: 0 0 5px;
+}
+.desktop-history-files > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 8px;
+  background: #e9f1ff;
+  color: #567aa9;
+  padding: 4px 7px;
+  font-size: 11px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .file-reading-dots {
+    animation: none;
+  }
+}
+
+/* Draft and sent attachments share the same small, recognisable preview. */
+.attachment-card { display:flex; align-items:center; gap:10px; min-width:0; color:#333b45; }
+.attachment-thumbnail,.attachment-document { width:66px; height:54px; flex:none; border-radius:8px; border:1px solid #e3e7ec; background:#fff; object-fit:contain; }
+.attachment-document { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:3px; overflow:hidden; padding:6px; color:#738396; }
+.attachment-document span { font-size:7px; line-height:1.2; width:100%; max-height:20px; overflow:hidden; }
+.attachment-caption { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.attachment-caption strong { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.attachment-caption small { font-size:10px; color:#828b98; }
+.desktop-chat .desktop-file-chip { min-width:180px; max-width:100%; padding:7px; gap:8px; border-radius:12px; }
+.desktop-chat .desktop-context-attachment { height:72px; padding:8px; gap:8px; border-radius:12px; }
+.desktop-context-attachment .attachment-card { flex:1; }
+.desktop-history-files { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+.desktop-history-files .attachment-card { max-width:260px; padding:8px; border:1px solid #e7ebef; background:#f8fafc; border-radius:12px; margin-bottom:6px; }
+
+.desktop-file-chip .attachment-document span { white-space:normal; }
+
+/* The empty composer stays proportional to the mini companion. */
+.desktop-composer-area { margin-top:8px; }
+.desktop-composer { min-height:42px; border-radius:22px; }
+.desktop-composer-reveal { border-radius:22px; }
+.desktop-composer textarea { margin:3px 0; font-size:13px; }
+.desktop-more,.desktop-send { width:30px; height:30px; }
+.desktop-more svg,.desktop-send svg { width:19px; height:19px; }
+.desktop-chat-panel { border-radius:24px; }
+.desktop-chat-resize-grip { opacity:0; }
+.desktop-chat-panel:hover .desktop-chat-resize-grip,.desktop-chat-resize-grip:focus-visible { opacity:.55; }
+.desktop-project-context { font-size:11px; height:22px; }
+
+.desktop-chat .desktop-more,.desktop-chat .desktop-send { width:30px; height:30px; min-width:30px; min-height:30px; }
+
+.desktop-chat { font-size:13px; }
+.desktop-chat .desktop-project-context.bito-button { font-size:11px; font-weight:450; height:22px; min-height:22px; padding:3px 7px; gap:4px; background:#f0f3f6; color:#667587; }
+.desktop-chat .desktop-popover .bito-button { font-size:12px; font-weight:400; padding:6px 8px; min-height:30px; gap:8px; border-radius:6px; }
+.desktop-chat .desktop-popover .bito-button svg { width:14px; height:14px; }
+.desktop-chat .desktop-more.bito-button,.desktop-chat .desktop-send.bito-button { width:28px; height:28px; min-width:28px; min-height:28px; max-width:28px; max-height:28px; }
+.desktop-chat .desktop-composer > .bito-chat-composer { grid-template-columns:28px minmax(0,1fr) 28px; }
+.desktop-chat-overlay { position:fixed; z-index:90; overflow:auto; scrollbar-width:thin; border-radius:10px; box-shadow:0 5px 20px #18292f20; }
+.desktop-chat-overlay .desktop-popover { position:relative; left:auto; bottom:auto; width:100%; max-width:none; margin:0; border-radius:10px; box-shadow:none; }
+.desktop-chat-overlay .desktop-project-choices { max-height:180px; }
+.desktop-chat-overlay .desktop-project-create { margin-top:4px; padding-top:7px; }

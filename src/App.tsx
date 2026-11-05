@@ -1,5 +1,11 @@
 // Keep the React component boundary separate from the root bootstrap for Fast Refresh.
-import React, { useEffect, useRef, useState } from "react";
+import { BitoButton, BitoInput } from "./ui/controls";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@astryxdesign/core/SegmentedControl";
+import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   motion,
@@ -12,6 +18,8 @@ import {
   Plus,
   Check,
   MessageCircle,
+  ScanLine,
+  FolderOpen,
   Pause,
   Play,
 } from "lucide-react";
@@ -20,9 +28,13 @@ import { appendReplyDelta } from "./reply-bubbles";
 import { Character } from "./Character";
 import { DesktopChat } from "./DesktopChat";
 import { GreetingBubble } from "./GreetingBubble";
+import { ProjectWindow } from "./ProjectWindow";
+import { projectMessages } from "./projects";
 import { SettingsWindow } from "./SettingsWindow";
 import { SetupFlow } from "./SetupFlow";
 import { useDragSway } from "./use-drag-sway";
+import { animatePetRelease } from "./pet-release";
+import { PetArtwork } from "./PetArtwork";
 import { isDrag, remaining } from "../electron/core";
 import type { Snapshot } from "./shared";
 import "./style.css";
@@ -47,7 +59,7 @@ function IconButton({
   disabled?: boolean;
 }) {
   return (
-    <button
+    <BitoButton
       className="icon-button"
       aria-label={label}
       title={label}
@@ -55,7 +67,7 @@ function IconButton({
       disabled={disabled}
     >
       {children}
-    </button>
+    </BitoButton>
   );
 }
 export default function App() {
@@ -121,7 +133,10 @@ export default function App() {
       ) : route === "chat" ? (
         <LayoutGroup id="desktop-conversation">
           <DesktopChat
-            state={state}
+            state={{
+              ...state,
+              messages: projectMessages(state.messages, state.activeProjectId),
+            }}
             act={act}
             panels={{
               focus: <Focus state={state} act={act} />,
@@ -130,20 +145,25 @@ export default function App() {
           />
           <GreetingBubble state={state} />
         </LayoutGroup>
+      ) : route === "projects" ? (
+        <ProjectWindow state={state} act={act} />
       ) : (
         <SettingsWindow state={state} initial={route} />
       )}
-      {error && (
+      {(error || (state.storageError && route !== "pet")) && (
         <motion.div
           role="alert"
           className="toast"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          {error}
-          <button aria-label="Tutup pemberitahuan" onClick={() => setError("")}>
+          {state.storageError || error}
+          {state.storageError ? <BitoButton onClick={() => void act("retry-save").then(result => { if (result.ok) setError(""); })}>Coba simpan lagi</BitoButton> : <BitoButton
+            aria-label="Tutup pemberitahuan"
+            onClick={() => setError("")}
+          >
             <X size={14} />
-          </button>
+          </BitoButton>}
         </motion.div>
       )}
       {!isDesktop && route !== "pet" && (
@@ -159,6 +179,14 @@ type Act = (
   payload?: unknown,
 ) => Promise<{ ok: boolean; error?: string; value?: unknown }>;
 function Pet({ state }: { state: Snapshot }) {
+  const releaseVisual = useRef<HTMLDivElement>(null);
+  const release = state.presentation?.release;
+  useLayoutEffect(() => {
+    if (!release || !releaseVisual.current) return;
+    return animatePetRelease(releaseVisual.current, release, id => {
+      void api.command("character-release-complete", id);
+    });
+  }, [release?.id]);
   const sway = useDragSway(
     state.settings.reducedMotion || !!state.presentation,
   );
@@ -177,8 +205,9 @@ function Pet({ state }: { state: Snapshot }) {
       const w = innerWidth,
         h = innerHeight;
       const x = e.clientX / w,
-        y = e.clientY / h;
+        y = e.clientY / (latest.current.presentation ? h : h - 30);
       const hit =
+        !!(e.target as Element)?.closest?.(".pet-tools") ||
         (y > 0.1 && y < 0.43 && x > 0.27 && x < 0.74) ||
         (y > 0.38 && y < 0.85 && x > 0.13 && x < 0.87) ||
         (y > 0.8 && y < 0.94 && x > 0.25 && x < 0.75);
@@ -211,8 +240,9 @@ function Pet({ state }: { state: Snapshot }) {
   );
   return (
     <div
-      className={`pet ${state.dragging ? "dragging" : ""} ${state.presentation ? "presenting" : ""} ${state.presentation?.phase === "ready" ? "ready" : ""}`}
-      role="button"
+      className={`pet ${state.dragging ? "dragging" : ""} ${state.presentation ? "presenting" : ""} ${state.presentation?.phase === "departing" ? "departing" : ""} ${state.presentation?.phase === "ready" ? "ready" : ""}`}
+      role="group"
+      data-reduced-motion={state.settings.reducedMotion}
       aria-label={
         state.presentation
           ? "Bito: tahan dan seret keluar jendela untuk mulai"
@@ -220,7 +250,7 @@ function Pet({ state }: { state: Snapshot }) {
       }
       tabIndex={0}
       onKeyDown={(e) => {
-        if (state.presentation) return;
+        if (state.presentation || e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") api.toggleChat();
         if (e.key === "ContextMenu") api.contextMenu();
       }}
@@ -233,11 +263,18 @@ function Pet({ state }: { state: Snapshot }) {
         pointer.current = {
           x: e.screenX,
           y: e.screenY,
-          drag: false,
+          drag: !!state.presentation,
           pointerId: e.pointerId,
           grab: { x: e.clientX / innerWidth, y: e.clientY / innerHeight },
         };
         e.currentTarget.setPointerCapture(e.pointerId);
+        // In step 3 this is the actual visible drag surface. Begin on press,
+        // so native cursor sampling also works when moving the window stops
+        // Chromium from reporting local pointer movement.
+        if (state.presentation) {
+          e.preventDefault();
+          api.dragStart();
+        }
       }}
       onPointerMove={(e) => {
         const p = pointer.current;
@@ -280,15 +317,30 @@ function Pet({ state }: { state: Snapshot }) {
         api.contextMenu();
       }}
     >
+      <div className="pet-visual" ref={releaseVisual}>
       <div className="pet-sway" ref={sway.visual}>
+        <PetArtwork>
         <Character
           state={state}
           nativeSurface
+          stableResolution
           onReady={(frame) => {
             void api.command("character-ready", frame);
           }}
         />
+        </PetArtwork>
       </div>
+      </div>
+      {!state.presentation && <div className="pet-tools"
+        onPointerDown={e => e.stopPropagation()} onPointerUp={e => e.stopPropagation()}
+        onContextMenu={e => e.stopPropagation()}>
+        <span className="pet-idle-handle" aria-hidden="true" />
+        <div className="pet-tool-actions">
+          <button aria-label="Ngobrol dengan Bito" title="Ngobrol" onClick={() => api.toggleChat()}><MessageCircle size={17}/></button>
+          <button aria-label="Tanya area layar" title="Tanya area layar" disabled={state.busy} onClick={() => void api.command("select-area")}><ScanLine size={17}/></button>
+          <button aria-label="Buka proyek" title="Proyek" onClick={() => void api.command("project-open")}><FolderOpen size={17}/></button>
+        </div>
+      </div>}
     </div>
   );
 }
@@ -342,19 +394,22 @@ function Focus({ state, act }: { state: Snapshot; act: Act }) {
         </div>
       </div>
       {!started && (
-        <div className="chips center">
+        <SegmentedControl
+          label="Durasi fokus"
+          value={String(minutes)}
+          onChange={(next) => setMinutes(Number(next))}
+          layout="fill"
+        >
           {[15, 25, 45].map((n) => (
-            <button
+            <SegmentedControlItem
               key={n}
-              className={minutes === n ? "selected" : ""}
-              onClick={() => setMinutes(n)}
-            >
-              {n} menit
-            </button>
+              value={String(n)}
+              label={`${n} menit`}
+            />
           ))}
-        </div>
+        </SegmentedControl>
       )}
-      <button
+      <BitoButton
         className="primary full"
         onClick={() =>
           void act(
@@ -377,11 +432,14 @@ function Focus({ state, act }: { state: Snapshot; act: Act }) {
             {started && sec > 0 ? "Lanjutkan" : "Mulai fokus"}
           </>
         )}
-      </button>
+      </BitoButton>
       {(started || active) && (
-        <button className="text-button" onClick={() => void act("focus-end")}>
+        <BitoButton
+          className="text-button"
+          onClick={() => void act("focus-end")}
+        >
           Selesaikan sesi
-        </button>
+        </BitoButton>
       )}
     </div>
   );
@@ -405,7 +463,7 @@ function Tasks({ state, act }: { state: Snapshot; act: Act }) {
           }
         }}
       >
-        <input
+        <BitoInput
           aria-label="Tugas baru"
           placeholder="Satu hal yang bisa kamu lakukan…"
           value={title}
@@ -425,14 +483,13 @@ function Tasks({ state, act }: { state: Snapshot; act: Act }) {
       </form>
       <div className="task-list">
         {state.tasks.map((t) => (
-          <button
-            key={t.id}
-            className={`task-row ${t.done ? "done" : ""}`}
-            onClick={() => void act("task-toggle", t.id)}
-          >
-            <span className="checkbox">{t.done && <Check size={13} />}</span>
-            {t.title}
-          </button>
+          <div key={t.id} className={`task-row ${t.done ? "done" : ""}`}>
+            <CheckboxInput
+              label={t.title}
+              value={t.done}
+              onChange={() => void act("task-toggle", t.id)}
+            />
+          </div>
         ))}
       </div>
       {!state.tasks.length && (

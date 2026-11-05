@@ -149,56 +149,10 @@
 .result-task:last-child {
   border-bottom: 0;
 }
-.result-task input {
-  position: absolute;
-  opacity: 0;
-  width: 18px;
-  height: 18px;
-  top: 10px;
-  left: 0;
-  margin: 0;
-}
-.result-checkbox {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  border: 1.4px solid #ced7e3;
-  border-radius: 6px;
-  color: #fff;
-  margin-top: 1px;
-  transition:
-    background 160ms,
-    border-color 160ms,
-    transform 150ms;
-}
-.result-task[data-done="true"] .result-checkbox {
-  background: #2b8cff;
-  border-color: #2b8cff;
-}
-.result-task[data-done="true"] > span:last-child {
-  color: #8b939e;
-  text-decoration: line-through;
-  text-decoration-color: #bfc7d1;
-}
-.result-task input:focus-visible + .result-checkbox {
-  outline: 3px solid #2b8cff60;
-  outline-offset: 3px;
-}
-.result-task:active .result-checkbox {
-  transform: scale(0.9);
-}
-.result-task input:disabled ~ span {
-  opacity: 0.55;
-  cursor: default;
-}
-.result-task > span:last-child {
-  min-width: 0;
-  transition: color 160ms;
-  font-size: 13px;
-  line-height: 20px;
-}
+.result-task .astryx-checkbox-input { width: 100%; }
+.result-task .astryx-checkbox-label { font-size: 13px; line-height: 20px; }
+.result-task[data-done="true"] .astryx-checkbox-label { color: #8b939e; text-decoration: line-through; }
+.bito-result-progress { margin: 13px 0 1px; }
 .response-card .result-detail {
   font-size: 12px;
   color: #8b929c;
@@ -288,3 +242,11 @@ body[data-motion="reduced"] .response-card * {
     transition: none !important;
   }
 }
+
+.result-task-review { font-size:14px; line-height:1.6; min-width:0; }
+.result-task-review p { margin:10px 0; }
+.result-task-review ul { padding-left:20px; margin:8px 0; }
+.result-task-review li { margin:6px 0; overflow-wrap:anywhere; }
+.result-task-review small { color:#758091; font-size:12px; }
+.result-task-review .bito-disclosure { margin:10px 0; }
+.result-task-review .astryx-collapsible-trigger { cursor:pointer; color:#377ac7; padding:4px 0; }

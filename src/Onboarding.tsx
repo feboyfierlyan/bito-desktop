@@ -1,3 +1,5 @@
+import { BitoInput } from "./ui/controls";
+import { BitoButton, MotionBitoButton } from "./ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
@@ -222,7 +224,7 @@ export function Onboarding({
       : localReady;
   const phase = state.presentation?.phase || "anchored";
   const leaving = ["dragging", "returning", "departing"].includes(phase);
-  const armed = phase === "ready";
+  const armed = phase === "ready" && (!isDesktop || !!state.presentation?.nativeReady);
   useEffect(() => {
     if (step === 2 && ready && phase === "anchored")
       void api.command("onboarding-arm");
@@ -381,13 +383,13 @@ export function Onboarding({
     >
       <div className="setup-titlebar" aria-hidden="true" />
       <nav className="setup-navigation" aria-label="Progres perkenalan">
-        <button
+        <BitoButton
           aria-label="Langkah sebelumnya"
           disabled={step === 0 || saving || leaving}
           onClick={() => void moveStep(step - 1)}
         >
           <ArrowLeft size={19} />
-        </button>
+        </BitoButton>
         <div
           className="setup-progress"
           role="progressbar"
@@ -400,13 +402,13 @@ export function Onboarding({
             <span key={i} className={i <= step ? "complete" : ""} />
           ))}
         </div>
-        <button
+        <BitoButton
           aria-label="Langkah berikutnya"
           disabled={step === 2 || !profile.name.trim() || saving || leaving}
           onClick={() => void moveStep(step + 1)}
         >
           <ArrowRight size={19} />
-        </button>
+        </BitoButton>
       </nav>
       <div className="setup-layout">
         <header className="setup-heading">
@@ -612,7 +614,7 @@ export function Onboarding({
                         void moveStep(1);
                       }}
                     >
-                      <input
+                      <BitoInput
                         ref={nameField}
                         aria-label="Nama panggilanmu"
                         autoComplete="given-name"
@@ -623,7 +625,7 @@ export function Onboarding({
                           setProfile((p) => ({ ...p, name: e.target.value }))
                         }
                       />
-                      <motion.button
+                      <MotionBitoButton
                         type="submit"
                         className="setup-send"
                         aria-label="Kirim nama"
@@ -632,7 +634,7 @@ export function Onboarding({
                         whileTap={reduced ? undefined : { scale: 0.89 }}
                       >
                         <ArrowUp size={19} strokeWidth={2.6} />
-                      </motion.button>
+                      </MotionBitoButton>
                     </form>
                   )}
                   {step === 1 && (
@@ -643,7 +645,7 @@ export function Onboarding({
                         aria-label="Gaya bicara Bito"
                       >
                         {personalities.map((p) => (
-                          <motion.button
+                          <MotionBitoButton
                             key={p.value}
                             role="radio"
                             aria-checked={profile.style === p.value}
@@ -670,10 +672,10 @@ export function Onboarding({
                               />
                             )}
                             <span>{p.title}</span>
-                          </motion.button>
+                          </MotionBitoButton>
                         ))}
                       </div>
-                      <motion.button
+                      <MotionBitoButton
                         className="setup-send"
                         aria-label="Lanjut dengan gaya ini"
                         title="Lanjut"
@@ -682,7 +684,7 @@ export function Onboarding({
                         whileTap={reduced ? undefined : { scale: 0.89 }}
                       >
                         <ArrowUp size={19} strokeWidth={2.6} />
-                      </motion.button>
+                      </MotionBitoButton>
                     </div>
                   )}
                 </motion.div>

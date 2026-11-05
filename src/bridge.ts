@@ -1,4 +1,7 @@
+import { parseQuickTask } from "./task-capture";
 import type { BitoAPI, Snapshot } from "./shared";
+import { projectCommand } from "../electron/projects";
+import { projectCoachAction } from "../electron/project-companion";
 import { canWave } from "./handoff";
 import { defaultState } from "../electron/core";
 // Browser preview is deliberately separate from the real Electron bridge.
@@ -34,6 +37,88 @@ const fallback: BitoAPI = {
   contextMenu() {},
   toggleChat() {},
   async command(name, p: any) {
+    if (name.startsWith("calendar-")) return { ok: false, error: "Calendar tersedia di aplikasi desktop." };
+    if (name === "companion-action") {
+      try {
+        const action = projectCoachAction(preview, p);
+        preview.greeting = undefined;
+        if (action.action !== "later") {
+          preview.projectNavigation = {
+            id: crypto.randomUUID(),
+            projectId: action.projectId,
+            tab: "overview",
+          };
+          window.dispatchEvent(
+            new CustomEvent("bito-route", { detail: "projects" }),
+          );
+        }
+        emit();
+        return { ok: true };
+      } catch (e) {
+        return {
+          ok: false,
+          error: e instanceof Error ? e.message : "Saran sudah berubah.",
+        };
+      }
+    }
+    if (
+      name === "project-import-material" ||
+      name === "project-create-from-file"
+    )
+      return {
+        ok: false,
+        error:
+          "Tambahkan PDF/gambar dari aplikasi desktop Bito yang dibuka lewat mode revisi.",
+      };
+    if (name === "new-project-consumed") {
+      if (p === preview.projectCreationNavigation) {
+        preview.projectCreationNavigation = undefined;
+        emit();
+      }
+      return { ok: true };
+    }
+    if (name === "new-project") {
+      preview.projectNavigation = undefined;
+      preview.quickTasksNavigation = undefined;
+      preview.projectCreationNavigation = crypto.randomUUID();
+      emit();
+      window.dispatchEvent(new CustomEvent("bito-route", { detail: "projects" }));
+      return { ok: true };
+    }
+    if (name === "project-open") {
+      preview.projectCreationNavigation = undefined;
+      if (p)
+        projectCommand(
+          preview,
+          "project-select",
+          typeof p === "string" ? p : p.id,
+        );
+      if (preview.activeProjectId)
+        preview.projectNavigation = {
+          id: crypto.randomUUID(),
+          projectId: preview.activeProjectId,
+          tab: typeof p === "object" && p?.tab ? p.tab : "overview",
+        };
+      emit();
+      window.dispatchEvent(
+        new CustomEvent("bito-route", { detail: "projects" }),
+      );
+      return { ok: true };
+    }
+    if (name.startsWith("project-")) {
+      try {
+        const result = projectCommand(preview, name, p);
+        if (name === "project-create") preview.projectCreationNavigation = undefined;
+        emit();
+        return result;
+      } catch (e) {
+        return {
+          ok: false,
+          error:
+            e instanceof Error ? e.message : "Proyek belum bisa diperbarui.",
+        };
+      }
+    }
     if (
       name === "onboarding-wave" &&
       canWave(preview.presentation) &&
@@ -94,7 +179,7 @@ const fallback: BitoAPI = {
     }
     if (name === "focus-end") preview.focus = defaultState().focus;
     if (name === "task-add")
-      preview.tasks.push({ id: crypto.randomUUID(), title: p, done: false });
+      preview.tasks.push({ id: crypto.randomUUID(), ...parseQuickTask(p), done: false });
     if (name === "task-toggle")
       preview.tasks = preview.tasks.map((t) =>
         t.id === p ? { ...t, done: !t.done } : t,

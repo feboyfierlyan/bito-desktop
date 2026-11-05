@@ -1,6 +1,6 @@
 {
   "name": "bito-desktop",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "description": "Bito — a thoughtful desktop companion",
   "author": "Bito Project",
@@ -23,8 +23,12 @@
     "release:manifest": "node scripts/release-manifest.mjs"
   },
   "dependencies": {
+    "@astryxdesign/cli": "^0.7.5",
+    "@astryxdesign/core": "^0.7.5",
+    "@astryxdesign/theme-neutral": "^0.7.5",
     "@rive-app/canvas": "2.45.0",
-    "@supabase/supabase-js": "^2.118.0",
+    "@stylexjs/stylex": "^0.19.1",
+    "@supabase/supabase-js": "2.118.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.0",
     "openai": "^6.0.0",
@@ -35,6 +39,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -42,6 +47,7 @@
     "electron": "45.0.0",
     "electron-builder": "^26.15.3",
     "esbuild": "^0.28.0",
+    "jsdom": "^30.1.3",
     "prettier": "^3.9.10",
     "supabase": "^2.122.0",
     "tsx": "^4.20.0",
@@ -60,6 +66,10 @@
       "package.json"
     ],
     "asar": true,
+    "asarUnpack": [
+      "dist-electron/native/screen-context",
+      "dist-electron/native/screen-context.ps1"
+    ],
     "mac": {
       "target": [
         "dmg",
@@ -90,5 +100,8 @@
       "icon": "public/icon.png"
     }
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "minimatch@>=7 <11.0.1": "11.0.1"
+  }
 }

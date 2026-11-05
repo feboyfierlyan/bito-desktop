@@ -1,6 +1,22 @@
 # Panduan mencoba Bito
 
+## Bantuan layar — revisi 27 Oktober
+
+Fixture penjelasan layar mencakup validasi maksimal lima area, confidence/box tidak sah, satu area per giliran, klik Bito untuk lanjut/selesai tanpa panggilan AI baru, layar berubah, Esc, alasan error aman, dan bubble mengetik yang sudah tampil sebelum chat menutup. Pengujian ini memakai gambar dan jendela tiruan; tidak membuktikan ketepatan model live.
+
+Saat bantuan layar pertama dipakai di macOS, Bito mengecek lalu meminta izin Aksesibilitas melalui API resmi jika belum diizinkan. Pengguna tetap mengaktifkannya sendiri di Pengaturan Sistem. Nama pada mode revisi dapat tampil sebagai Electron. Permintaan tidak diulang dalam sesi yang sama; pembacaan gambar tetap menjadi fallback ketika izin belum diberikan. Fixture menguji permintaan satu kali dan pengiriman ulang setelah izin diberikan, tanpa membuka pengaturan atau mengubah izin OS selama tes.
+
+Tes otomatis `grounding.test.ts`, `screen-guide.test.ts` dan `screen-assistance.test.ts` memeriksa routing chat vs pertanyaan layar, pemetaan box pada monitor negatif/retina, posisi karakter, validasi JSON/confidence, perubahan isi/frame jendela, pembatalan saat drag, click-through tanpa fokus, izin layar, autentikasi/allowlist dan screenshot yang tidak disimpan. Tes juga mensimulasikan ID Electron hilang, thumbnail kosong, fallback sumber native/jendela, koordinat menu bar, sumber tangkapan kedua putus, konteks follow-up dan pergantian aplikasi. Helper Swift dikompilasi universal arm64/x86_64; capture layar nyata dan ketepatan model belum diuji manual oleh agen. Windows helper disertakan, tetapi belum diuji visual di Windows. Tes tambahan memakai provider/capture tiruan untuk alur permintaan tersirat → tool → pembacaan → sorotan → jawaban lanjutan; obrolan biasa tanpa capture; kapabilitas klien lama; JSON hasil panjang; izin/perangkat/round/call yang salah, replay dan pembatalan. Tes PostgreSQL lokal memeriksa perebutan lease paralel dan akumulasi token observasi.
+
+Untuk uji visual oleh pengguna: buka dokumen/editor lalu kirim “bantu aku bikin daftar isi di dokumen ini”. Chat harus menutup, satu bubble pasif memberi langkah, sorotan menerima klik tembus ke aplikasi dan Bito mendekat. Setelah menu terbuka, panduan memverifikasi tampilan baru lalu menunjukkan kontrol berikutnya. Coba salah klik, klik tanpa perubahan, menu/popover baru, loading lambat, berpindah aplikasi, Escape dan drag. Idle tidak memanggil AI. Membuka chat membatalkan panduan. Chat biasa tidak mengambil gambar. Ini bantuan baca/tunjuk, bukan klik otomatis; shortcut seleksi area belum termasuk.
+
+Tes fixture juga memeriksa aktivasi aplikasi yang terlambat, menunggu tanpa capture, klik aplikasi yang melanjutkan request yang sama, Escape saat menunggu, serta alasan gagal yang sama persis di bubble dan riwayat tanpa jawaban model tambahan. Tes fixture panduan berurutan mencakup gerbang aktivitas + dua frame stabil, perubahan menu kecil, elemen native palsu/nonaktif/di luar frame, bukti langkah, salah klik, satu bubble, pergantian aplikasi, hasil terlambat, Escape, selesai dan pelepasan lease chat sebelum pemeriksaan berikutnya. Helper macOS dikompilasi tanpa dijalankan pada layar nyata; UI Automation/capture Windows perlu pemeriksaan pengguna di Windows.
+
 ## Sebelum mulai
+
+Regresi pemulihan panduan (28 Oktober 2026): fixture memeriksa kembali ke aplikasi tanpa perubahan versus kembali sambil membuka menu; stabilitas elemen native dan frame selain piksel; pemulihan fokus karakter; callback abort/hasil dari sesi yang telah diganti; satu verifikasi ulang otomatis sesudah hasil kedaluwarsa tanpa loop AI; kesamaan instruksi lanjutan/error pada bubble dan riwayat; serta ID native yang tidak dapat dipastikan tidak menghasilkan instruksi klik palsu. Semua pemeriksaan menggunakan host Electron dan provider tiruan, tanpa interaksi desktop atau request AI live.
+
+Regresi percepatan (29 Oktober 2026): fixture memeriksa notifikasi native saat RPC menunggu, token observer lama, burst event selama inferensi, pelepasan observer saat pembatalan, perubahan UI tanpa klik, serta intent menu yang diteruskan tanpa request model kedua. Kasus negatif mencakup item tertutup/nonaktif/duplikat, parent/PID/jendela yang berubah, cache kedaluwarsa atau berbeda piksel/tujuan/gaya, dan hasil tidak pasti/selesai yang tidak boleh dipakai ulang. Instruksi harus sudah tersedia sebelum perjalanan Bito berakhir. Seluruh tes dijalankan dengan `node --import tsx --test --test-reporter=spec tests/*.test.ts`: 192 lolos, 1 tes database opsional dilewati. Pemeriksaan TypeScript dan kompilasi helper universal/main lolos. Backend bito-api versi 20 cocok dengan bundle lokal; request tanpa login tetap ditolak (401), tanpa request Gemini. Tidak ada tes manual desktop oleh agen.
 
 Gunakan aplikasi Electron, bukan browser preview. Simpan pekerjaan lain sebelum menguji notifikasi/always-on-top. Jangan gunakan API key produksi tim di screenshot atau issue.
 
@@ -53,7 +69,6 @@ Gunakan aplikasi Electron, bukan browser preview. Simpan pekerjaan lain sebelum 
 
 `npm test` mencakup logika desktop, callback PKCE loopback, sesi terenkripsi, isolasi akun, streaming Gemini tiruan, error/stop, handoff tool dan pembuatan folder nyata di temp. `npm run backend:check` memeriksa sumber Deno. Tes database opsional menggunakan PostgreSQL lokal disposable untuk RLS, izin RPC, revokasi, kuota konkuren dan idempotensi; lihat README. Pengujian ini tidak membuktikan kualitas Gemini live, deployment, atau kelancaran di semua OS. Build CI membuktikan packaging runner, bukan pemeriksaan visual Windows.
 
-
 ## Onboarding checkpoint 0.4
 
 1. Coba langkah 1 → 2 → 3 dan kembali 3 → 2 → 1. Bubble user muncul lebih dulu, kemudian balasan Bito. Header dan input tidak menggeser slot karakter.
@@ -66,7 +81,6 @@ Gunakan aplikasi Electron, bukan browser preview. Simpan pekerjaan lain sebelum 
 8. Setelah onboarding selesai, coba chat, drag desktop, context menu dan Settings. Ulangi perkenalan lewat Settings dan batalkan: posisi/ukuran desktop sebelumnya dipulihkan.
 
 Checkpoint ini mencakup 26 tes otomatis, termasuk batas pupil, reset/release kontrol mata, pembatalan balasan tertunda dan navigasi cepat. CI membangun macOS arm64/x64 dan Windows x64. Pengujian visual onboarding dilakukan di macOS Apple Silicon; 60/120 fps dan gesture pada Windows/Intel belum diukur atau diverifikasi langsung.
-
 
 ## Suara companion (revisi)
 
@@ -81,7 +95,6 @@ Uji onboarding dari menu Mode revisi: nama → gaya → tanggapan pilihan → in
 `tests/rich-results.test.ts` memeriksa tindakan timer lama vs sesi baru, jeda/lanjut/tambah/akhir, checklist tanpa duplikasi, penolakan ID tugas asing, validasi dan pembatalan pengingat, tulisan UTF-8, batas byte, pembatalan dialog, penolakan overwrite/symlink, serta persistensi dan isolasi registry file antar-akun.
 
 Uji desktop: minta timer + checklist, jeda timer dan centang satu tugas, mulai ulang aplikasi, lalu pastikan status dipulihkan. Buat file TXT/MD/CSV dari percakapan, pilih folder, buka pratinjau dan tampilkan hasil di folder. Coba nama yang sudah ada, batal memilih folder, ubah/batalkan reminder, serta resize chat sambil kartu terbuka. Riwayat yang sedang dibaca tidak boleh ditarik ke bawah oleh pembaruan kartu. Windows tetap memerlukan uji visual pada perangkat Windows asli.
-
 
 ## Bubble notifikasi dalam pemakaian harian (mode revisi)
 
@@ -105,7 +118,6 @@ notifikasi sistem; sapaan santai tidak memunculkan kembali Bito. Notifikasi terj
 memerlukan aplikasi tetap berjalan; ketika aplikasi dibuka lagi, pengingat yang
 terlewat diproses. Pengujian visual manual diserahkan ke pengguna pada revisi ini.
 
-
 ## Balasan beberapa bubble (mode revisi)
 
 Satu permintaan model dapat memilih 1–4 bubble dengan pemisah internal. Paragraf,
@@ -125,7 +137,6 @@ Untuk AI sebenarnya, coba percakapan biasa atau minta balasan 2–3 bubble. Kart
 copy/save, retry, timestamp dan pemberitahuan balasan selesai tetap terikat ke satu
 balasan utuh. Riwayat lama tetap ditampilkan seperti sebelumnya.
 
-
 ## Satu wadah animasi panel chat (mode revisi)
 
 Panel putih sekarang memuat transcript, input, kartu hasil, menu dan pegangan resize
@@ -140,9 +151,102 @@ parsial, posisi monitor negatif, serta hit regions supaya area yang belum terlih
 tidak mengambil klik. Unit terkait layout/reflow/sapaan dan typecheck lolos.
 Tes visual buka-tutup cepat, menu, resize, dan perpindahan sapaan dilakukan pengguna;
 agen tidak menjalankan pengujian aplikasi secara manual untuk revisi ini.
+
 # Revisi Qwen dan gaya chat
 
 - Tes otomatis provider memakai respons tiruan; tidak memakai key, kuota AI, atau UI manual: `node --import tsx --test tests/groq.test.ts tests/reply-bubbles.test.ts tests/companion-context.test.ts tests/preference-writer.test.ts`.
 - Pemilik mencoba sendiri: Settings → Bito → Gaya bicara. Bandingkan sapaan pendek, giliran knock-knock tanpa spoiler, kabar senang, curhat tanpa solusi, dan permintaan faktual pada empat mode. Contoh adalah sasaran nada, bukan jawaban tetap.
 - Balasan chat biasa harus terpisah per kalimat/paragraf, typing muncul antar-bubble, Stop membatalkan bubble yang belum dikirim. Email/kode/tabel/teks siap salin harus tetap utuh. Riwayat lama tetap menggunakan pengelompokan tersimpannya.
-- Groq aktif ketika pemilik menyimpan `GROQ_API_KEY` di server dan tidak memaksa `BITO_AI_PROVIDER=gemini`. Tes live satu percakapan serta tindakan reminder dilakukan pemilik; adapter menguji alur tool/resume dengan mock.
+- Groq aktif jika pemilik memilih `BITO_AI_PROVIDER=groq`; default adalah Gemini 3.8 Flash. Tes live satu percakapan serta tindakan reminder dilakukan pemilik; adapter menguji alur tool/resume dengan mock.
+
+## Gemini 3.8 Flash / quota-free demo
+
+- `tests/gemini.test.ts` memeriksa endpoint/key header, thinking low, streaming bubble, token thinking, tool/signature resume, stop, final round dan kegagalan tanpa retry memakai respons tiruan.
+- `tests/private-demo-db.test.ts` menerapkan migrasi terbaru pada database lokal sementara, memastikan legacy quota tidak memblokir tiga akun sekaligus serta akses, revocation dan idempotency tetap bekerja.
+- Tidak ada tes UI manual atau request AI live oleh agen untuk revisi ini. Pemilik mencoba percakapan dan tindakan di aplikasi sesudah backend terunggah.
+
+Verifikasi revisi 26 Oktober 2026: typecheck aplikasi dan Deno backend lolos; 36 tes provider/cloud/bubble lolos; 9 tes database lokal sementara lolos. `bito-api` versi 13 ACTIVE dan isi deployment cocok dengan bundle yang diperiksa. Pemeriksaan SQL remote memastikan kuota dihapus, akses RPC khusus server, dan duplicate/member checks tetap ada. Request remote tanpa login ditolak HTTP 401. Respons AI live dari aplikasi dilakukan pemilik. Tidak ada build installer atau push rilis pada revisi ini.
+
+Pencarian web: `tests/web-search.test.ts` memeriksa pemilihan tool server, chat satu request, kueri tanpa profil/riwayat, metadata sumber, sitasi, pemakaian token tiga tahap, pembatalan, hasil tanpa bukti, serta tindakan lokal campuran yang ditunda tanpa side effect ganda. `tests/cloud.test.ts` memeriksa transport activity/sumber dari backend sampai klien, menyimpan konteks tool lengkap sebelum menerbitkan sumber, dan tidak membocorkan key. Tes ini memakai penyedia palsu; tidak membuktikan relevansi hasil Google secara live.
+
+## Sapaan tugas proaktif
+
+`tests/project-companion.test.ts` menguji saran berbasis rencana yang disetujui,
+checkpoint, hambatan, tenggat, dan laporan hasil nyata. Termasuk jam lokal/semalam,
+DND, mode tenang, snooze, sesi terbuka, kedaluwarsa, perubahan rencana, klik ganda,
+isolasi akun, deduplikasi, serta anggaran frekuensi yang tetap tersimpan setelah restart.
+Scheduler tidak memanggil model atau memantau isi layar. Task tidak selesai hanya
+karena waktu sesi habis; laporan pengguna tetap diperlukan.
+
+Untuk dicoba sendiri tanpa menunggu: siapkan tugas dengan rencana aktif dan tanpa
+sesi terbuka, lalu **Mode revisi → Tes sapaan tugas**. Tombol **Mulai 15 menit**
+membuka ringkasan dan memulai sesi tugas yang ditawarkan. **Lihat tugas** membuka
+ringkasan tanpa sesi; **Nanti** menjeda saran tugas minimal satu jam. Preview tidak
+menghabiskan anggaran saran otomatis dan tetap menghormati DND/jam menyapa.
+
+Settings → Bito → Teman nugas mengatur bantuan tugas, frekuensi (maksimal 2 atau
+3 tawaran per hari), dan jam lokal. Mode tenang mematikan semua sapaan otomatis.
+Normalnya ada jeda startup/kembali aktif 45 detik dan jeda interaksi/edit tugas
+dua menit. Saran otomatis hanya tampil saat aplikasi berjalan, Bito terlihat,
+komputer aktif, dan tidak sedang chat, mengatur proyek, fokus, atau memakai panduan
+layar. Saran yang tidak relevan tidak diantrekan untuk mengejar pengguna nanti.
+Pengujian visual dan pengalaman dilakukan pengguna; agen hanya menjalankan cek otomatis.
+
+
+## Task flow redesign · 4 November 2026
+
+This revision follows the user's updated instruction: the agent runs interaction and visual checks itself. `tests/ui/index.html?surface=projects` is a DEV-only browser fixture using production components and the preview command handler. It seeds isolated browser data and does not modify the Electron account database.
+
+Automated coverage includes real Astryx composer input, failed-save retention, duplicate-submit protection, explicit discard, project/section capture, individual dates, priority metadata, stale versions, atomic deadline validation, progress preservation, and preservation of task metadata during AI plan revision.
+
+Browser checks covered global and inline capture, date shortcuts/calendar selection, project/section selection, task completion/reopening, task visibility in schedule/priority, Escape and continue editing, project navigation, and 1280px/800px layouts. Calendar/AI transport tests use mocks; this is not a claim of a live Google account or AI request.
+
+### 5 November 2026 — project layout and custom groups
+
+- Agent exercised the production components in the disposable browser fixture at 1280×900 and 800×700: project menu → details, Escape focus return, create empty group → rename → add a P1 task, and the priority directory. Header/back button vertical centers matched; popover bounds stayed inside the viewport; narrow layout stacked the context rail below tasks without horizontal overflow.
+- Focused text input and selector were inspected in the browser: no outline or box-shadow glow. Sidebar Ngobrol and workspace close action are removed. Calendar and progress render alongside the list without view tabs.
+- Regression suite: 362 tests, 361 passed, 1 skipped; production build passed. Group tests cover SQLite reopen, preserved existing tasks, version checks, draft/read-only rejection, group limits and adding to an unplanned project. Empty groups do not appear completed in calendar/roadmap summaries.
+- UI proof: `/tmp/bito-ui-proof/project-revision.jpg`. Browser fixture uses disposable state; external services and native desktop handoff were not re-tested in this revision.
+
+### 5 November 2026 — whole-app audit follow-up
+
+- Mobbin research and implementation decisions are recorded in `DESIGN_SYSTEM.md`. The shared Astryx foundation remains in use.
+- New real-component regressions check that the sidebar creates projects, group creation has one entry even with its menu open, inline tasks have a fixed destination, and a single progress observation does not produce an empty history chart. Archive tests verify that viewing an archive sends no restore/select command, its controls are disabled, and explicit restoration issues the expected commands.
+- Agent-operated browser checks covered project gallery, grouped tasks, inline creation, project detail/menu, pre-archived read-only content, priorities, weekly schedule, quick tasks, new-project input, settings pages, reminders, login and all three onboarding steps. Project layout/menu were inspected at 1280×900 and 800×700; chat at 540×740. No user manual testing was requested.
+- Chat text and composer position remained unchanged while opening its project selector. Computed styles were checked through all seven input/container layers after removing the remaining focus glow. Settings navigation was tested with an invalid empty name (stays on the current page with an error), then a valid name (saves and navigates).
+- Native Electron check used `/tmp/bito-audit-native`, a separate temporary database, and a build with cloud/Calendar configuration disabled. The agent completed onboarding, dragged Bito from step three, observed the onboarding window transition to the desktop pet, and opened chat by clicking the pet. The temporary process was stopped after testing. This does not involve the user's account database.
+- Final regression suite: **364 tests; 363 passed, 1 skipped, 0 failed**. TypeScript and production build passed. The existing Vite bundle-size warning remains. The suite needed loopback-listener access for mocked OAuth/Calendar callbacks; no live Google or AI request was made.
+- Direct clicking of the archive action was rejected by automatic approval review. The safe alternative was a pre-archived disposable fixture plus component tests, not a retry against an active project.
+- UI evidence: `/tmp/bito-audit/after-project.png` and `/tmp/bito-audit/native-pet.png`. Browser preview is not evidence for real OAuth, network failures, or OS permission prompts; these remain covered by mocked/domain tests where available.
+
+
+### 2026-11-05: chat drafts, compact controls and onboarding release
+
+- Real macOS Electron, fresh isolated profile: first area drag opens chat, includes a crop thumbnail, and typing works immediately without a second selection. Draft capture was removed without sending desktop pixels.
+- Browser fixture with synthetic Bito image: attaching leaves zero user messages; text can be edited before Send; Send moves the attachment to message history and clears the composer. Menus remain overlays: measured compact panel height stays 105px before/after opening the project selector at a 320px viewport. Preview rail uses untransformed height to avoid overlapping the project label during motion.
+- Thinking overlay visually checked: 68×44px rather than the text bubble's 300×210 placement estimate.
+- Automated regressions cover first drag/new-session reset, empty-question crop staging, one-shot consumption, deferred image analysis, failed-send draft retention, original-byte isolation, scope/expiry, compact docking and real native release interpolation (including reduced motion).
+- Live screenshot-to-cloud submission was not performed: automatic approval review rejected sending a desktop crop. Send behavior was checked with synthetic data and local fixtures instead.
+
+Final verification: 371 tests, 370 passed, 1 existing private-database integration test skipped. Production build and TypeScript check passed. Native onboarding release also has an isolated main-process test that samples the actual window bounds through the 460ms interpolation and checks the final 180 setting, stable foot anchor and reduced-motion endpoint.
+
+### 2026-11-05 — release morph and full-disk recovery
+
+The onboarding release now animates a fixed Rive canvas with a compositor transform for 560 ms. Main waits for the renderer's final-frame acknowledgement before committing the native window once; stale/duplicate acknowledgements are ignored and reduced motion completes immediately. `PetArtwork` keeps the same 320 px layout/buffer on desktop, avoiding the final canvas reallocation. The local release fixture measured 35 frames, 34 distinct widths, and one unchanged 1056×1056 backing buffer. The user also confirmed the revised motion is smooth.
+
+`state-persistence.test.ts` forces a real SQLite `SQLITE_FULL` condition with a page limit: save errors remain recoverable, previous saved data remains readable, and the latest pending state saves after capacity returns. Native position saves now publish a persistent storage warning and retry instead of throwing out of a drag callback. Disk space on this machine remains low; only regenerable caches in old temporary QA profiles were removed (182 MiB), not databases or personal files.
+
+## Release 0.6.0 preview verification — 2026-11-05
+
+Run the full database suite with a disposable loopback PostgreSQL database named
+`bito_test_*` through `BITO_TEST_DATABASE_URL`. CI provisions PostgreSQL 17 and
+blocks desktop packaging when this check fails. The local release pass executed
+388 tests with zero skipped tests. Security regressions cover unexpected model
+screen tools and raw-path attachment requests; regular-file reads are bounded.
+
+Real integration verification used the existing encrypted account session and
+synthetic input only: authenticated membership, streamed AI reply, image material
+analysis, region grounding, and an explicitly authorized Calendar event create,
+read-back and delete. This verifies the API path, not a fresh Google consent flow
+on every packaged OS. No user screen contents were uploaded. Native Windows and
+Intel UI/upgrade verification and distribution signing remain preview limitations.

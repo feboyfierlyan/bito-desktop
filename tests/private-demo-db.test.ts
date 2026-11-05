@@ -9,7 +9,7 @@ import { randomUUID } from "node:crypto";
 // Never accepts a cloud database, production name, or non-loopback address.
 const database = process.env.BITO_TEST_DATABASE_URL;
 test(
-  "private demo database: RLS, atomic quotas, idempotency, revocation and leases",
+  "private demo database: RLS, uncapped chat accounting, idempotency, revocation and leases",
   { skip: !database },
   async (t) => {
     const url = new URL(database!);
@@ -49,11 +49,35 @@ test(
         "utf8",
       ),
     );
+    sql(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261026072018_remove_chat_request_quotas.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    sql(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261027055037_screen_observation_lease.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    sql(`create function public.rls_auto_enable() returns event_trigger language plpgsql security definer as $$ begin end $$; grant execute on function public.rls_auto_enable() to anon,authenticated;`);
+    sql(readFileSync(new URL("../supabase/migrations/20261105072725_harden_administrative_function_permissions.sql", import.meta.url), "utf8"));
+    await t.test("administrative trigger is not executable by client roles", () => {
+      assert.equal(sql("select has_function_privilege('anon','public.rls_auto_enable()','execute'),has_function_privilege('authenticated','public.rls_auto_enable()','execute');"), "f|f");
+    });
     const a = randomUUID(),
       b = randomUUID(),
+      c = randomUUID(),
       device = randomUUID();
     sql(
-      `insert into auth.users(id) values('${a}'),('${b}'); insert into public.demo_members(email) values('a@example.test'),('b@example.test');`,
+      `insert into auth.users(id) values('${a}'),('${b}'),('${c}'); insert into public.demo_members(email) values('a@example.test'),('b@example.test'),('c@example.test');`,
     );
     assert.equal(
       sql(
@@ -66,6 +90,9 @@ test(
         `set role service_role;select public.bito_claim_member('${b}','b@example.test');`,
       ),
       "t",
+    );
+    sql(
+      `set role service_role;select public.bito_claim_member('${c}','c@example.test');`,
     );
     const reserve = (
       u: string,
@@ -154,20 +181,23 @@ test(
       },
     );
     await t.test(
-      "global daily ceiling cannot be exceeded by simultaneous users",
+      "legacy daily/minute settings no longer block three simultaneous demo users",
       async () => {
         reset();
-        sql("update public.demo_policy set daily_global=1;");
+        sql(
+          "update public.demo_policy set daily_global=1,daily_user=1,minute_global=1,minute_user=1;",
+        );
         const results = await Promise.allSettled([
           asyncSql(reserve(a)),
           asyncSql(reserve(b)),
+          asyncSql(reserve(c)),
         ]);
-        assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
-        assert.equal(sql("select count(*) from public.demo_usage;"), "1");
+        assert.equal(results.filter((r) => r.status === "fulfilled").length, 3);
+        assert.equal(sql("select count(*) from public.demo_usage;"), "3");
       },
     );
     await t.test(
-      "failed jobs count against quota and repeated request IDs never re-execute",
+      "failed jobs remain accounted, retries never re-execute, and later chats are not quota blocked",
       () => {
         reset();
         const id = randomUUID();
@@ -175,7 +205,8 @@ test(
         sql(finish(a, id, "error"));
         assert.throws(() => sql(reserve(a, id)), /request_exists/);
         sql("update public.demo_policy set daily_user=1;");
-        assert.throws(() => sql(reserve(a)), /daily_limit/);
+        assert.equal(JSON.parse(sql(reserve(a))).status, "running");
+        assert.equal(sql("select count(*) from public.demo_usage;"), "2");
         assert.equal(
           sql(
             `select contents::text||instructions from public.demo_jobs where id='${id}';`,
@@ -199,6 +230,58 @@ test(
         assert.equal(JSON.parse(sql(reserve(a, id, device, 1))).round, 2);
         assert.throws(() => sql(reserve(a, id, device, 1)), /invalid_job/);
         assert.equal(sql("select count(*) from public.demo_usage;"), "2");
+      },
+    );
+    await t.test(
+      "screen observation atomically shares a chat lease, counts usage, refuses replay and respects cancellation",
+      async () => {
+        reset();
+        const id = randomUUID(),
+          call = randomUUID();
+        sql(
+          `select public.bito_reserve('${a}','${device}','${id}','[]',E'test\\n[BITO_SCREEN_GUIDE_V1]');`,
+        );
+        const pending = JSON.stringify([
+          { id: call, name: "inspect_screen", args: { question: "Where?" } },
+        ]);
+        sql(
+          `select public.bito_finish('${a}','${device}','${id}',1,'waiting','[]','${pending}',5,3);`,
+        );
+        const observe = (finish = false, d = device, q = "Where?") =>
+          `select public.bito_screen_observation('${a}','${d}','${id}',1,'${call}','${q}',${finish},50,20);`;
+        assert.throws(
+          () => sql(`set role authenticated;${observe()}`),
+          /permission denied/,
+        );
+        assert.throws(() => sql(observe(false, randomUUID())), /invalid_job/);
+        assert.throws(
+          () => sql(observe(false, device, "Other?")),
+          /invalid_job/,
+        );
+        const race = await Promise.allSettled([
+          asyncSql(observe()),
+          asyncSql(observe()),
+        ]);
+        assert.equal(race.filter((r) => r.status === "fulfilled").length, 1);
+        assert.throws(() => sql(reserve(a)), /busy/);
+        assert.throws(() => sql(reserve(a, id, device, 1)), /invalid_job/);
+        assert.equal(JSON.parse(sql(observe(true))).status, "waiting");
+        assert.equal(
+          sql(
+            `select input_tokens||':'||output_tokens from public.demo_usage where job_id='${id}'`,
+          ),
+          "55:23",
+        );
+        assert.throws(() => sql(observe()), /invalid_job/);
+        assert.equal(JSON.parse(sql(reserve(a, id, device, 1))).round, 2);
+        sql(finish(a, id, "complete", 2));
+        assert.throws(() => sql(observe(true)), /invalid_job/);
+        assert.equal(
+          sql(
+            `select contents::text||instructions from public.demo_jobs where id='${id}'`,
+          ),
+          "[]",
+        );
       },
     );
     await t.test(

@@ -119,8 +119,9 @@ export function splitReplyBubbles(
 }
 
 export function messageBubbleTexts(
-  message: Pick<Message, "text" | "bubbles" | "cards">,
+  message: Pick<Message, "text" | "displayText" | "bubbles" | "cards">,
 ) {
+  if (message.displayText !== undefined) return [message.displayText];
   const parts = message.bubbles?.filter((part) => !!part.trim());
   return parts?.length
     ? parts

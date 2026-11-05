@@ -1,3 +1,12 @@
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@astryxdesign/core/SegmentedControl";
+import { Selector } from "@astryxdesign/core/Selector";
+import { Switch as AstryxSwitch } from "@astryxdesign/core/Switch";
+import { Card } from "@astryxdesign/core/Card";
+import { Slider } from "@astryxdesign/core/Slider";
+import { BitoInput, BitoButton, BitoTextArea } from "./ui/controls";
 import { version } from "../package.json";
 import { bitoStyles } from "./bito-voice";
 // @refresh reset
@@ -18,6 +27,7 @@ import {
   Bell,
 } from "lucide-react";
 import { api } from "./bridge";
+import { calendarSyncLabel } from "./calendar";
 import { preferenceWriter } from "./preference-writer";
 import { usePreferenceDraft } from "./use-preference-draft";
 import type { Profile, Snapshot } from "./shared";
@@ -48,7 +58,9 @@ function Group({ title, children }: { title?: string; children: ReactNode }) {
   return (
     <section className="pref-group">
       {title && <h2>{title}</h2>}
-      <div className="pref-group-body">{children}</div>
+      <Card className="pref-group-body" padding={0}>
+        {children}
+      </Card>
     </section>
   );
 }
@@ -56,30 +68,26 @@ function Switch({
   label,
   hint,
   checked,
+  disabled,
   onChange,
 }: {
   label: string;
   hint?: string;
   checked: boolean;
+  disabled?: boolean;
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="pref-switch-row">
-      <span>
-        <span className="pref-label">{label}</span>
-        {hint && <small>{hint}</small>}
-      </span>
-      <input
-        type="checkbox"
-        role="switch"
-        aria-label={label}
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      <span className="pref-switch-track" aria-hidden="true">
-        <span />
-      </span>
-    </label>
+    <AstryxSwitch
+      className="bito-preference-switch"
+      label={label}
+      description={hint}
+      value={checked}
+      isDisabled={disabled}
+      onChange={onChange}
+      labelPosition="start"
+      labelSpacing="spread"
+    />
   );
 }
 
@@ -119,9 +127,15 @@ export function SettingsWindow({
         ? "saved"
         : "idle";
   const selected = page === "data" || page === "reminders" ? "app" : page;
-  const go = (next: Page) => {
-    void profile.flush();
-    void settings.flush();
+  const go = async (next: Page) => {
+    const saved = await Promise.all([profile.flush(), settings.flush()]);
+    if (!saved.every(Boolean)) {
+      setNoticeError(true);
+      setNotice(
+        "Perubahan belum tersimpan. Periksa isian sebelum pindah halaman.",
+      );
+      return;
+    }
     setPage(next);
     if (["you", "bito", "app"].includes(next))
       localStorage.setItem("bito-settings-page", next);
@@ -196,7 +210,7 @@ export function SettingsWindow({
       data-platform={/Mac/.test(navigator.platform) ? "mac" : "other"}
     >
       <aside className="pref-sidebar">
-        <div className="pref-window-title">Settings</div>
+        <div className="pref-window-title">Pengaturan</div>
         <nav
           aria-label="Bagian pengaturan"
           ref={nav}
@@ -222,7 +236,7 @@ export function SettingsWindow({
           }}
         >
           {pages.map(({ id, label, icon: Icon }) => (
-            <button
+            <BitoButton
               key={id}
               className={`pref-nav-item ${selected === id ? "selected" : ""}`}
               aria-current={selected === id ? "page" : undefined}
@@ -241,7 +255,7 @@ export function SettingsWindow({
               )}
               <Icon size={17} strokeWidth={1.8} />
               <span>{label}</span>
-            </button>
+            </BitoButton>
           ))}
         </nav>
         <small className="pref-version">Bito · {version}</small>
@@ -250,13 +264,13 @@ export function SettingsWindow({
         <header className="pref-header">
           <div>
             {["data", "reminders"].includes(page) && (
-              <button
+              <BitoButton
                 className="pref-back"
                 onClick={() => go("app")}
                 aria-label="Kembali ke Aplikasi"
               >
                 <ArrowLeft size={17} />
-              </button>
+              </BitoButton>
             )}
             <h1>{title}</h1>
           </div>
@@ -276,15 +290,17 @@ export function SettingsWindow({
                 Tersimpan
               </>
             ) : status === "error" ? (
-              <button
+              <BitoButton
                 onClick={() => {
                   void profile.retry();
                   void settings.retry();
                 }}
               >
                 Coba simpan lagi
-              </button>
-            ) : null}
+              </BitoButton>
+            ) : (
+              "Tersimpan otomatis"
+            )}
           </div>
         </header>
         <div className="pref-scroll" ref={scroll}>
@@ -301,9 +317,10 @@ export function SettingsWindow({
             {page === "you" && (
               <>
                 <Group>
-                  <label className="pref-field">
+                  <div className="pref-field bito-form-field">
                     <span>Nama panggilan</span>
-                    <input
+                    <BitoInput
+                      label="Nama panggilan"
                       value={profile.draft.name}
                       maxLength={40}
                       autoComplete="off"
@@ -321,10 +338,11 @@ export function SettingsWindow({
                       onBlur={() => void profile.flush()}
                     />
                     {errorFor("name")}
-                  </label>
-                  <label className="pref-field">
+                  </div>
+                  <div className="pref-field bito-form-field">
                     <span>Proyek yang sedang dikerjakan</span>
-                    <textarea
+                    <BitoTextArea
+                      label="Proyek yang sedang dikerjakan"
                       rows={3}
                       value={profile.draft.project}
                       maxLength={200}
@@ -335,10 +353,10 @@ export function SettingsWindow({
                       onBlur={() => void profile.flush()}
                     />
                     {errorFor("project")}
-                  </label>
+                  </div>
                 </Group>
                 <Group>
-                  <button
+                  <BitoButton
                     className="pref-link-row"
                     disabled={actionBusy || state.busy}
                     onClick={async () => {
@@ -352,7 +370,7 @@ export function SettingsWindow({
                   >
                     <span>Ulangi perkenalan</span>
                     <ChevronRight size={16} />
-                  </button>
+                  </BitoButton>
                 </Group>
                 <Group title="Yang Bito ingat">
                   <form
@@ -362,31 +380,31 @@ export function SettingsWindow({
                       void addMemory();
                     }}
                   >
-                    <input
+                    <BitoInput
                       aria-label="Hal yang ingin Bito ingat"
                       placeholder="Tambahkan sesuatu tentangmu"
                       value={memory}
                       maxLength={500}
                       onChange={(e) => setMemory(e.target.value)}
                     />
-                    <button
+                    <BitoButton
                       type="submit"
                       aria-label="Tambah memori"
                       disabled={!memory.trim() || memoryBusy}
                     >
                       <Plus size={18} />
-                    </button>
+                    </BitoButton>
                   </form>
                   {state.memories.map((m) => (
                     <div className="pref-memory-row" key={m.id}>
                       <span>{m.text}</span>
-                      <button
+                      <BitoButton
                         aria-label={`Hapus memori: ${m.text}`}
                         disabled={actionBusy}
                         onClick={() => void run("memory-delete", m.id)}
                       >
                         <X size={15} />
-                      </button>
+                      </BitoButton>
                     </div>
                   ))}
                 </Group>
@@ -397,95 +415,137 @@ export function SettingsWindow({
                 <Group title="Kepribadian">
                   <div className="pref-field">
                     <span>Gaya bicara</span>
-                    <div
-                      className="pref-segmented"
-                      role="radiogroup"
-                      aria-label="Gaya bicara"
-                      onKeyDown={(e) => {
-                        if (
-                          !["ArrowLeft", "ArrowRight", "Home", "End"].includes(
-                            e.key,
-                          )
-                        )
-                          return;
-                        e.preventDefault();
-                        const choices = bitoStyles.map((style) => style.value);
-                        const at = choices.indexOf(profile.draft.style);
-                        const next =
-                          e.key === "Home"
-                            ? 0
-                            : e.key === "End"
-                              ? choices.length - 1
-                              : (at +
-                                  (e.key === "ArrowLeft" ? -1 : 1) +
-                                  choices.length) %
-                                choices.length;
-                        profile.edit("style", choices[next]);
-                        e.currentTarget
-                          .querySelectorAll<HTMLButtonElement>("button")
-                          [next].focus();
-                      }}
-                    >
-                      {bitoStyles.map((item) => (
-                        <button
-                          key={item.value}
-                          role="radio"
-                          aria-checked={profile.draft.style === item.value}
-                          tabIndex={profile.draft.style === item.value ? 0 : -1}
-                          onClick={() => profile.edit("style", item.value)}
-                        >
-                          {profile.draft.style === item.value && (
-                            <motion.span
-                              className="pref-segment-selected"
-                              layoutId="settings-style"
-                              transition={
-                                reduced
-                                  ? { duration: 0 }
-                                  : {
-                                      type: "spring",
-                                      stiffness: 500,
-                                      damping: 38,
-                                    }
-                              }
-                            />
-                          )}
-                          <span>{item.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                    {errorFor("style")}
-                  </div>
-                  <label className="pref-setting-row">
-                    <span>Kebiasaan menyapa</span>
-                    <select
-                      aria-label="Kebiasaan menyapa"
-                      value={profile.draft.proactive}
-                      onChange={(e) =>
-                        profile.edit(
-                          "proactive",
-                          e.target.value as Profile["proactive"],
-                        )
+                    <SegmentedControl
+                      className="bito-personality-control"
+                      label="Gaya bicara"
+                      value={profile.draft.style}
+                      layout="fill"
+                      onChange={(value) =>
+                        profile.edit("style", value as Profile["style"])
                       }
                     >
-                      <option value="on-demand">Saat dipanggil</option>
-                      <option value="sometimes">Sesekali</option>
-                      <option value="quiet">Mode tenang</option>
-                    </select>
-                  </label>
+                      {bitoStyles.map((item) => (
+                        <SegmentedControlItem
+                          key={item.value}
+                          value={item.value}
+                          label={item.title}
+                        />
+                      ))}
+                    </SegmentedControl>
+                    {errorFor("style")}
+                  </div>
+                  <div className="pref-setting-row">
+                    <span>Sapaan di luar tugas</span>
+                    <Selector
+                      label="Sapaan di luar tugas"
+                      isLabelHidden
+                      containerClassName="bito-preference-selector"
+                      value={profile.draft.proactive}
+                      onChange={(value) =>
+                        profile.edit("proactive", value as Profile["proactive"])
+                      }
+                      options={[
+                        { value: "on-demand", label: "Saat dipanggil" },
+                        { value: "sometimes", label: "Sesekali" },
+                        { value: "quiet", label: "Semua sapaan otomatis mati" },
+                      ]}
+                    />
+                  </div>
                   {errorFor("proactive")}
                 </Group>
+                <Group title="Teman nugas">
+                  <Switch
+                    label="Bito boleh menawarkan bantuan"
+                    hint="Saran dari progres dan tenggat tugasmu, tanpa perlu chat dulu."
+                    checked={settings.draft.projectNudges ?? true}
+                    onChange={(v) => settings.edit("projectNudges", v)}
+                  />
+                  {errorFor("projectNudges")}
+                  {settings.draft.projectNudges !== false && (
+                    <>
+                      <div className="pref-setting-row">
+                        <span>Frekuensi</span>
+                        <Selector
+                          label="Frekuensi bantuan tugas"
+                          isLabelHidden
+                          containerClassName="bito-preference-selector"
+                          value={settings.draft.nudgeCadence || "gentle"}
+                          onChange={(value) =>
+                            settings.edit(
+                              "nudgeCadence",
+                              value as "gentle" | "balanced",
+                            )
+                          }
+                          options={[
+                            {
+                              value: "gentle",
+                              label: "Pelan · maksimal 2 kali sehari",
+                            },
+                            {
+                              value: "balanced",
+                              label: "Seimbang · maksimal 3 kali sehari",
+                            },
+                          ]}
+                        />
+                      </div>
+                      {errorFor("nudgeCadence")}
+                      <div className="pref-setting-row">
+                        <span>Mulai menyapa</span>
+                        <Selector
+                          label="Jam mulai bantuan tugas"
+                          isLabelHidden
+                          containerClassName="bito-preference-selector"
+                          value={String(settings.draft.nudgeStartHour ?? 9)}
+                          onChange={(value) =>
+                            settings.edit("nudgeStartHour", Number(value))
+                          }
+                          options={Array.from({ length: 24 }, (_, hour) => ({
+                            value: String(hour),
+                            label: `${String(hour).padStart(2, "0")}.00`,
+                          }))}
+                        />
+                      </div>
+                      <div className="pref-setting-row">
+                        <span>Berhenti menyapa</span>
+                        <Selector
+                          label="Jam selesai bantuan tugas"
+                          isLabelHidden
+                          containerClassName="bito-preference-selector"
+                          value={String(settings.draft.nudgeEndHour ?? 21)}
+                          onChange={(value) =>
+                            settings.edit("nudgeEndHour", Number(value))
+                          }
+                          options={Array.from({ length: 24 }, (_, hour) => ({
+                            value: String(hour),
+                            label: `${String(hour).padStart(2, "0")}.00`,
+                          }))}
+                        />
+                      </div>
+                      {errorFor("nudgeStartHour")}
+                      {errorFor("nudgeEndHour")}
+                      <div className="pref-setting-row">
+                        <span className="pref-secondary">
+                          {profile.draft.proactive === "quiet"
+                            ? "Mode tenang sedang mematikan semua sapaan otomatis."
+                            : "Jam lokal perangkat. Nanti menunda saran selama 1 jam."}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </Group>
                 <Group title="Di desktop">
-                  <label className="pref-field pref-size">
+                  <div className="pref-field pref-size">
                     <span>
                       Ukuran Bito<output>{settings.draft.size}px</output>
                     </span>
-                    <input
-                      type="range"
+                    <Slider
+                      label="Ukuran Bito"
+                      isLabelHidden
+                      valueDisplay="none"
                       min={130}
                       max={260}
                       value={settings.draft.size}
-                      onChange={(e) => {
-                        const size = Number(e.target.value);
+                      onChange={(size: number) => {
                         settings.edit("size", size, "commit");
                         previewSize.current = size;
                         if (!previewFrame.current)
@@ -497,12 +557,11 @@ export function SettingsWindow({
                             );
                           });
                       }}
-                      onPointerUp={() => void settings.flush()}
-                      onKeyUp={() => void settings.flush()}
+                      onChangeEnd={() => void settings.flush()}
                       onBlur={() => void settings.flush()}
                     />
                     {errorFor("size")}
-                  </label>
+                  </div>
                   <Switch
                     label="Selalu di atas jendela lain"
                     checked={settings.draft.alwaysOnTop}
@@ -520,7 +579,7 @@ export function SettingsWindow({
                       <span>Masuk sebagai</span>
                       <span className="pref-secondary">{state.auth.email}</span>
                     </div>
-                    <button
+                    <BitoButton
                       className="pref-link-row"
                       disabled={actionBusy || state.busy}
                       onClick={async () => {
@@ -533,9 +592,102 @@ export function SettingsWindow({
                     >
                       <span>Keluar dari akun</span>
                       <ChevronRight size={16} />
-                    </button>
+                    </BitoButton>
                   </Group>
                 )}
+                <Group title="Google Calendar">
+                  <div className="pref-setting-row">
+                    <span>
+                      {state.calendar?.status === "connected"
+                        ? "Terhubung"
+                        : state.calendar?.status === "connecting"
+                          ? "Menunggu izin di browser…"
+                          : "Belum terhubung"}
+                    </span>
+                    <span className="pref-secondary">
+                      {state.calendar?.email}
+                    </span>
+                  </div>
+                  <Switch
+                    label="Sinkronisasi otomatis"
+                    hint="Rencana yang disetujui dan perubahan jadwal otomatis mengikuti Bito."
+                    checked={!!state.calendar?.automatic}
+                    disabled={
+                      actionBusy ||
+                      (state.calendar?.status !== "connected" &&
+                        !state.calendar?.automatic)
+                    }
+                    onChange={(enabled) =>
+                      void run("calendar-auto", { enabled })
+                    }
+                  />
+                  <p className="pref-secondary" role="status">
+                    {calendarSyncLabel(state.calendar)}
+                  </p>
+                  {state.calendar?.syncStatus === "error" &&
+                    state.calendar.status === "connected" && (
+                      <BitoButton
+                        className="pref-link-row"
+                        disabled={actionBusy}
+                        onClick={() => void run("calendar-retry")}
+                      >
+                        <span>Coba sinkronkan lagi</span>
+                        <ChevronRight size={16} />
+                      </BitoButton>
+                    )}
+                  {state.calendar?.error && (
+                    <p role="status" className="board-error">
+                      {state.calendar.error}
+                    </p>
+                  )}
+                  {!state.calendar?.configured ? (
+                    state.revisionMode ? (
+                      <BitoButton
+                        className="pref-link-row"
+                        disabled={actionBusy}
+                        onClick={() => void run("calendar-import")}
+                      >
+                        <span>Siapkan koneksi Calendar</span>
+                        <ChevronRight size={16} />
+                      </BitoButton>
+                    ) : (
+                      <p className="pref-secondary">
+                        Koneksi Calendar belum tersedia di versi ini.
+                      </p>
+                    )
+                  ) : state.calendar.status === "connected" ? (
+                    <BitoButton
+                      className="pref-link-row"
+                      disabled={actionBusy}
+                      onClick={() => void run("calendar-disconnect")}
+                    >
+                      <span>Putuskan koneksi di perangkat ini</span>
+                      <ChevronRight size={16} />
+                    </BitoButton>
+                  ) : state.calendar.status === "connecting" ? (
+                    <BitoButton
+                      className="pref-link-row"
+                      disabled={actionBusy}
+                      onClick={() => void run("calendar-cancel")}
+                    >
+                      <span>Batalkan</span>
+                      <ChevronRight size={16} />
+                    </BitoButton>
+                  ) : (
+                    <BitoButton
+                      className="pref-link-row"
+                      disabled={actionBusy}
+                      onClick={() => void run("calendar-connect")}
+                    >
+                      <span>
+                        {state.calendar.status === "expired"
+                          ? "Hubungkan ulang"
+                          : "Hubungkan Google Calendar"}
+                      </span>
+                      <ChevronRight size={16} />
+                    </BitoButton>
+                  )}
+                </Group>
                 <Group>
                   <Switch
                     label="Buka saat komputer dinyalakan"
@@ -566,10 +718,13 @@ export function SettingsWindow({
                   {errorFor("reducedTransparency")}
                 </Group>
                 <Group>
-                  <button className="pref-link-row" onClick={() => go("data")}>
+                  <BitoButton
+                    className="pref-link-row"
+                    onClick={() => go("data")}
+                  >
                     <span>Data & penyimpanan</span>
                     <ChevronRight size={16} />
-                  </button>
+                  </BitoButton>
                 </Group>
               </>
             )}
@@ -590,22 +745,22 @@ export function SettingsWindow({
                   </div>
                 </Group>
                 <Group>
-                  <button
+                  <BitoButton
                     className="pref-link-row"
                     disabled={actionBusy}
                     onClick={() => void run("export")}
                   >
                     <span>Ekspor data</span>
                     <Download size={16} />
-                  </button>
-                  <button
+                  </BitoButton>
+                  <BitoButton
                     className="pref-link-row pref-danger"
                     disabled={actionBusy || state.busy}
                     onClick={() => void run("clear-chat")}
                   >
                     <span>Hapus percakapan</span>
                     <Trash2 size={16} />
-                  </button>
+                  </BitoButton>
                 </Group>
                 <p className="pref-caption">
                   Profil, percakapan, dan memori tersimpan di perangkatmu.
@@ -632,31 +787,32 @@ export function SettingsWindow({
                       }
                     }}
                   >
-                    <label className="pref-field">
+                    <div className="pref-field bito-form-field">
                       <span>Ingatkan aku untuk</span>
-                      <input
+                      <BitoInput
+                        label="Ingatkan aku untuk"
                         required
                         maxLength={240}
                         value={reminder}
                         onChange={(e) => setReminder(e.target.value)}
                       />
-                    </label>
+                    </div>
                     <label className="pref-field">
                       <span>Kapan?</span>
-                      <input
+                      <BitoInput
                         type="datetime-local"
                         required
                         value={due}
                         onChange={(e) => setDue(e.target.value)}
                       />
                     </label>
-                    <button
+                    <BitoButton
                       className="pref-primary"
                       disabled={actionBusy}
                       type="submit"
                     >
                       Tambah pengingat
-                    </button>
+                    </BitoButton>
                   </form>
                 </Group>
                 {state.reminders
@@ -671,12 +827,12 @@ export function SettingsWindow({
                             {new Date(r.due).toLocaleString("id-ID")}
                           </small>
                         </span>
-                        <button
+                        <BitoButton
                           aria-label="Tandai selesai"
                           onClick={() => void run("reminder-done", r.id)}
                         >
                           <Check size={17} />
-                        </button>
+                        </BitoButton>
                       </div>
                     </Group>
                   ))}

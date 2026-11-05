@@ -62,6 +62,24 @@ Hasil dipisahkan per versi di `release/0.5.0/`: Mac `.dmg` dan `.zip`, Windows i
 - Aset Rive disiapkan transparan. Runtime dan file dipanaskan per renderer, poster lokal menjaga tampilan sebelum frame pertama, dan perpindahan jendela menunggu frame yang siap. Hak ekspor aset mengikuti lisensi proyek.
 - Akun dan backend privat sudah disiapkan di source; proyek cloud, provider Google, allowlist dan secret perlu dikonfigurasi pemilik sebelum tes live. Belum ada sinkronisasi riwayat antarperangkat, auto-update, telemetry, atau sistem pembayaran.
 
+## Coba bantuan layar (mode revisi)
+
+Jalankan `npm run dev` dari folder aplikasi. Masuk dengan akun demo, buka aplikasi lain (misalnya editor/dokumen), lalu klik Bito dan kirim “tombol plugins dimana ya?” atau “tombol close di mana?”. Tidak perlu menyalakan mode Lihat Layar. Pertanyaan chat biasa tidak mengambil gambar layar.
+
+macOS meminta izin **Privacy & Security → Screen & System Audio Recording**. Pada mode revisi nama proses dapat tampil sebagai **Electron** atau aplikasi peluncurnya. Jika diminta sistem, buka ulang proses revisi setelah memberi izin. Native helper metadata dikompilasi saat menjalankan revisi; membutuhkan Xcode Command Line Tools hanya di mesin pengembang, bukan pengguna installer.
+
+Untuk panduan berurutan, coba “bantu aku bikin daftar isi di dokumen ini”. Chat menutup dan satu bubble pasif memberi langkah aktif. Klik kontrol yang disorot di aplikasi asal; setelah tampilan berubah dan stabil, Bito memverifikasi hasil lalu menunjukkan langkah berikutnya. Tidak perlu klik Bito untuk melanjutkan. Salah klik tidak dihitung sebagai kemajuan. Pindah aplikasi menjeda; Escape, membuka chat atau drag menghentikan panduan.
+
+Accessibility macOS membantu pembacaan nama/posisi kontrol bila sudah diizinkan; fitur memakai gambar jika elemen tersebut tidak tersedia. Jendela target harus terlihat di satu monitor. Uji visual dilakukan oleh pengguna; tes otomatis memakai metadata, gambar dan provider tiruan tanpa mengakses desktop. Ketepatan semua aplikasi belum dijamin. Seleksi area tersedia melalui shortcut di bawah.
+
+## Tanya area pilihan (mode revisi)
+
+Tekan **Fn kiri + Control kiri** di macOS. Kombinasi modifier dibaca langsung dari state HID macOS, tanpa merekam input ketikan dan tanpa event tap yang memerlukan izin pemantauan keyboard. Satu kali aktivasi per tekan, berlaku dalam urutan tombol mana pun. Option/Alt + Space tidak didaftarkan agar tidak bentrok dengan ChatGPT. Shortcut alternatif **Cmd + Shift + 2** di Mac / **Ctrl + Shift + 2** di Windows juga tersedia melalui menu tray **Tanya area layar**.
+
+Layar dibekukan dan diredupkan. Satu drag langsung menambahkan cuplikan sebagai draft di chat dan memfokuskan input. Pengguna dapat mengetik atau melepas thumbnail sebelum Send. Cuplikan dikonsumsi sekali saat dikirim; pesan berikutnya tidak memakai gambar tersebut. Untuk bertanya tentang area lain, mulai Tanya area layar lagi. Draft juga dilepas saat chat ditutup, konteks/akun berubah, atau kedaluwarsa setelah 15 menit. Escape, klik kanan, atau tombol tutup pada overlay membatalkan pemilihan tanpa mengirim gambar.
+
+Gambar penuh dan potongan hanya berada dalam memori proses. Hanya potongan dikirim ke model setelah pertanyaan dikirim; gambar tidak disimpan dalam riwayat SQLite atau job backend. Gambar adalah snapshot, bukan rekaman langsung. Area dipilih pada monitor tempat cursor berada; koordinat crop memakai ukuran bitmap sebenarnya agar tepat pada Retina dan monitor dengan skala berbeda. Izin Screen Recording tetap diperlukan. Ketepatan jawaban model harus diperiksa pengguna.
+
 ## Perintah pengujian
 
 ```sh
@@ -125,11 +143,11 @@ Status: login Google dan chat Gemini live sudah berhasil diuji pada proyek demo 
 
 1. Buat proyek **Supabase Free** bernama `bito-demo`. Pilih region dekat pengguna. Simpan password database sendiri; jangan kirim ke chat atau repo.
 2. Di **Settings → API Keys**, ambil Project URL dan **publishable key** (atau legacy `anon`). Salin `.env.example` menjadi `.env.local` dan isi hanya dua nilai publik tersebut. `sb_secret_…`, service role, OAuth secret, dan Gemini key tidak boleh masuk file konfigurasi aplikasi. Sesudah mengubahnya, mulai ulang `npm run dev`.
-3. Buka **SQL Editor**, jalankan isi `supabase/migrations/202610240001_private_demo.sql` **sekali**, lalu `supabase/migrations/20261025113434_revision_demo_quotas.sql` untuk batas revisi terbaru. Alternatif CLI: link proyek lalu `npx supabase db push`, dengan password yang dimasukkan sendiri di terminal. Semua tabel memakai RLS, tanpa izin tabel/RPC untuk klien biasa.
+3. Buka **SQL Editor**, jalankan isi `supabase/migrations/202610240001_private_demo.sql` **sekali**, lalu `supabase/migrations/20261025113434_revision_demo_quotas.sql` untuk riwayat batas revisi, lalu `supabase/migrations/20261026072018_remove_chat_request_quotas.sql` untuk menghapus kuota aplikasi. Alternatif CLI: link proyek lalu `npx supabase db push`, dengan password yang dimasukkan sendiri di terminal. Semua tabel memakai RLS, tanpa izin tabel/RPC untuk klien biasa.
 4. Di **Table Editor → demo_members**, tambahkan email Google pemilik, anggota kelompok dan dosen dalam huruf kecil; biarkan `user_id` kosong dan `active=true`. ID diikat server saat login pertama yang tervalidasi. Menyetel `active=false` menolak request berikutnya tanpa menerbitkan ulang installer.
 5. Aktifkan **Authentication → Sign In / Providers → Google**. Di Google Cloud Console, buat OAuth client jenis **Web application**, isi consent screen dan tambahkan akun demo sebagai test users bila aplikasi masih berstatus Testing. Redirect URI Google harus `https://PROJECT_REF.supabase.co/auth/v1/callback`. Masukkan client ID dan client secret hanya ke provider Google di dashboard Supabase. Setup Google OAuth tidak memerlukan pengaktifan billing Gemini/Google Cloud lama. [Panduan resmi Google login](https://supabase.com/docs/guides/auth/social-sign-in/auth-google).
 6. Pada **Authentication → URL Configuration → Redirect URLs**, tambahkan **hanya** `http://127.0.0.1:43821/auth/callback/*`. Wildcard ini terbatas pada nonce sekali pakai di loopback komputer pengguna. Jangan ganti menjadi wildcard semua host. Port ini dipakai sama di Mac dan Windows; jika sedang dipakai, Bito menampilkan error dan tidak pindah ke host/port sembarang.
-7. Di **Edge Functions → Secrets**, isi `GEMINI_API_KEY` dengan **key baru** dari proyek AI Studio Free Tier; ganti key yang pernah terpapar di chat. Opsional `GEMINI_MODEL=gemini-3.5-flash-lite`. Supabase menyediakan kredensial internal Edge Function secara otomatis; tidak ada service role key di aplikasi desktop. Jangan memasukkan secrets ke `.env.local` aplikasi.
+7. Di **Edge Functions → Secrets**, isi `GEMINI_API_KEY` dengan **key baru** dari proyek AI Studio milik pemilik; ganti key yang pernah terpapar di chat. Gunakan `BITO_AI_PROVIDER=gemini` dan `GEMINI_MODEL=gemini-3.8-flash`. Untuk demo ini pemilik memakai key project `interviewcoder` pada billing Postpay dengan kredit eligible dan project spend cap di AI Studio. Supabase menyediakan kredensial internal Edge Function secara otomatis; tidak ada service role key di aplikasi desktop. Jangan memasukkan secrets ke `.env.local` aplikasi.
 8. Unggah fungsi dari folder proyek:
 
    ```sh
@@ -146,7 +164,7 @@ Untuk build GitHub Actions nanti, buat repository **Variables**, bukan secrets A
 
 ### Qwen lewat Groq — mode revisi
 
-Backend mendukung model `qwen/qwen3.8-27b` yang sama dengan Groq Playground. Pemilik membuat key di [Groq](https://console.groq.com/keys), tetap pada paket Free, lalu menyimpan `GROQ_API_KEY` di Supabase **Edge Functions → Secrets**. Kehadiran key ini memilih Groq untuk seluruh akun demo pada deployment terbaru; tidak ada key AI di desktop dan tidak perlu mengubah Settings setiap pengguna. `BITO_AI_PROVIDER=gemini` memilih kembali Gemini; `BITO_AI_PROVIDER=groq` mewajibkan Groq dan gagal aman jika key belum tersedia. Tidak ada perpindahan provider atau retry otomatis ketika kuota habis. Jangan mengganti provider di tengah tindakan yang masih berjalan; selesaikan atau hentikan chat tersebut dahulu.
+Backend mendukung model `qwen/qwen3.8-27b` yang sama dengan Groq Playground. Pemilik membuat key di [Groq](https://console.groq.com/keys), tetap pada paket Free, lalu menyimpan `GROQ_API_KEY` di Supabase **Edge Functions → Secrets**. Pilih `BITO_AI_PROVIDER=groq` untuk memakai Qwen secara eksplisit; default terbaru adalah Gemini 3.8 Flash, termasuk bila kedua key ada; tidak ada key AI di desktop dan tidak perlu mengubah Settings setiap pengguna. `BITO_AI_PROVIDER=gemini` memilih Gemini; `BITO_AI_PROVIDER=groq` mewajibkan Groq dan gagal aman jika key belum tersedia. Tidak ada perpindahan provider atau retry otomatis ketika kuota habis. Jangan mengganti provider di tengah tindakan yang masih berjalan; selesaikan atau hentikan chat tersebut dahulu.
 
 Paket gratis Groq saat pemeriksaan 25 Oktober 2026 mencantumkan 30 request/menit, 1.000 request/hari, 8.000 token/menit, dan 200.000 token/hari untuk model ini. Seluruh pengguna berbagi batas organisasi; riwayat, instruksi, tool, dan jawaban memakai token. Tindakan bisa memerlukan beberapa request. Nilai aktual mengikuti [Limits akun](https://console.groq.com/settings/limits), bukan jumlah bubble. Model ini berstatus Preview. Harga berbayar terpisah; aplikasi tidak mengubah paket atau mengaktifkan pembayaran.
 
@@ -154,13 +172,13 @@ Pilihan gaya baru: **To the point, Chill, Humoris, Care** pada onboarding/Settin
 
 ### Batas internal
 
-- `demo_policy` setelah migrasi batas revisi: 400 pemanggilan model/hari bersama, 200/akun/hari, 8/menit bersama, 4/akun/menit. Maksimal dua pemanggilan model bersamaan dan satu job aktif per akun, maksimal empat putaran model/job, 1.024 token output/putaran, timeout provider 85 detik. Set `enabled=false` untuk menjeda demo. Ini batas internal Bito; kuota aktual Gemini tetap terpisah. Penggunaan yang sudah tercatat tidak dihapus saat batas dinaikkan.
-- Setiap putaran, termasuk yang gagal/dihentikan, menghabiskan satu reservasi. Tidak ada retry provider otomatis atau peningkatan ke paket berbayar. Free Tier harus tetap dipilih pada proyek AI Studio. Batas aplikasi bukan pengganti status billing provider.
+- Setelah migrasi `20261026072018_remove_chat_request_quotas.sql`, tidak ada kuota jumlah chat per hari/per menit atau batas dua pengguna bersamaan. Kolom allowance lama di `demo_policy` disimpan untuk kompatibilitas migrasi dan tidak lagi diperiksa. Satu job aktif per akun mencegah klik ganda; maksimum empat putaran tindakan/job dan timeout 85 detik mencegah loop macet. Gemini 3.8 Flash memakai thinking `low`, dengan anggaran 4.096 token termasuk thinking per putaran. `enabled=false` masih dapat menjeda layanan oleh pemilik.
+- Setiap putaran dicatat untuk pemantauan token, termasuk thinking pada Gemini. Tidak ada retry/fallback provider otomatis. Biaya dikendalikan pemilik melalui **AI Studio → Spend → project interviewcoder → Monthly spend cap**; cap Google bersifat eksperimental dan dapat terlampaui karena keterlambatan sekitar 10 menit. Kredit promosi bukan hard cap pengeluaran; kuota dan ketersediaan Google tetap berlaku.
 - Job tool menunggu maksimal 10 menit. Verifikasi hasil terikat akun, perangkat, ID job, ID tool dan nomor putaran. Setelah selesai/gagal/dibatalkan, konteks job dihapus segera. Record lama dibersihkan saat request berikutnya setelah satu hari; ini pembersihan oportunistik, bukan janji penghapusan terjadwal jika demo tidak dipakai.
 - Receipt lokal mencegah tindakan diulang saat retry. Jika aplikasi mati di tengah tindakan filesystem, statusnya dianggap belum pasti dan tidak diulang otomatis; pengguna diminta memeriksa hasil.
 - Tombol keluar menghentikan request aktif, menutup permukaan akun lama, menghapus sesi lokal dan kembali ke login. Koneksi internet diperlukan untuk memakai Gemini. Task/pengingat lokal tidak disinkronkan ke cloud dan diperiksa hanya ketika akun tersebut aktif di aplikasi.
 - Proyek Supabase Free dapat dijeda saat tidak aktif. Buka dashboard dan uji satu request sebelum presentasi. [Batas fungsi](https://supabase.com/docs/guides/functions/limits), [kuota Gemini](https://ai.google.dev/gemini-api/docs/rate-limits).
-- Web search, konversi PDF/DOCX, akses kalender dan pengaturan file massal belum tersedia; Bito diberi instruksi untuk tidak mengklaim sudah melakukan tindakan tersebut.
+- Pencarian internet dan pengiriman target ke Google Calendar dijelaskan di bawah. Konversi PDF/DOCX dan pengaturan file massal belum tersedia; Bito tidak boleh mengklaim sudah melakukannya.
 
 ### Pengujian backend
 
@@ -179,3 +197,42 @@ BITO_TEST_DATABASE_URL=postgresql://127.0.0.1:55439/bito_test_private_demo npx t
 ```
 
 Tes ini mengosongkan schema `public` **di database uji tersebut saja**. Ia menolak host non-lokal dan nama database selain `bito_test_*`. Mencakup RLS, izin RPC, revokasi, konkurensi kuota global/per akun, duplikasi, isolasi perangkat, pembatalan dan kedaluwarsa lease. Pada `npm test` biasa tes database ini dilewati jika variabel tidak diisi.
+
+### Pencarian internet otomatis (mode revisi)
+
+Pada koneksi bersama Gemini, Bito dapat memilih `search_web` untuk informasi terbaru, tidak pasti, atau permintaan mencari sumber. Chat biasa tetap satu request streaming. Pencarian memakai Gemini Google Search grounding dengan key server yang sama; tidak perlu key tambahan di desktop. Pada provider Groq, tool pencarian ini belum ditawarkan.
+
+Alur satu job: model memilih pencarian → indikator **Lagi cari…** → Google mencari kueri publik → Bito menyusun jawaban sesuai gaya pengguna → referensi bernomor dan daftar **Sumber**. Hanya kueri pencarian yang masuk ke tahap Google Search, bukan seluruh profil/riwayat/dokumen. Model diminta tidak memasukkan data pribadi ke kueri. Hasil web diperlakukan sebagai bukti, bukan instruksi. Tanpa metadata sumber yang valid, job mengembalikan kegagalan pencarian; tidak mengarang hasil atau retry otomatis.
+
+Tool server dibatasi satu pencarian per giliran; Google dapat mengeksekusi beberapa kueri dalam pencarian tersebut. Tidak ada kuota jumlah chat baru. Biaya model dan Google Search tetap mengikuti billing/spend cap proyek Google pemilik. Sumber dan widget Search Suggestions Google disimpan bersama pesan lokal per akun; HTML widget ditampilkan dalam iframe tanpa skrip/izin aplikasi, tautan HTTPS dibuka lewat jalur eksternal yang sudah ada. Tidak ada paket framework atau tabel database baru.
+
+Coba sendiri: **“Cari pengumuman terbaru PENS dan kasih sumbernya.”** Lanjutkan dengan pertanyaan biasa untuk membandingkan indikator. Stop membatalkan tahapan berikutnya; sumber tetap tersedia setelah aplikasi dibuka ulang. Akurasi dan keputusan kapan mencari tetap perlu dinilai melalui penggunaan nyata.
+
+### Google Calendar
+
+Hubungkan akun di **Settings → Aplikasi → Google Calendar**, lalu aktifkan **Sinkronisasi otomatis** sekali. Semua rencana yang sudah disetujui mengikuti perubahan dari halaman tugas maupun chat: target bertanggal dan tenggat menjadi acara sehari penuh di kalender utama, tanpa jam atau pengingat buatan. Draf belum dikirim. Acara yang sama diperbarui tanpa duplikat; menghapus tanggal/target menghapus acara terkait milik Bito. Target selesai tetap ada dengan tanda ✓. Arsip mempertahankan riwayat acara.
+
+Sinkronisasi saat ini satu arah: **Bito → Google Calendar**. Mengubah Google Calendar tidak mengubah tugas Bito. Menonaktifkan sinkronisasi atau memutuskan koneksi mempertahankan acara yang sudah ada. Identitas acara dan antrean perubahan disimpan per akun di perangkat; kegagalan jaringan dicoba ulang. Status pending, tersinkron, gagal, dan perlu menghubungkan ulang terlihat di Settings dan dialog Calendar. Sinkronisasi berjalan selama aplikasi Bito terbuka.
+
+Penyiapan sekali oleh pengembang:
+
+1. Di proyek Google Cloud **bito-app** (bukan proyek API Gemini interviewcoder), aktifkan **Google Calendar API**.
+2. Di **Google Auth Platform → Clients**, buat OAuth client jenis **Desktop app**. Login Bito/Supabase tetap memakai client Web yang sudah ada; jangan menggantinya.
+3. Jika aplikasi OAuth masih berstatus Testing, masukkan email penguji. Izin Calendar yang diminta adalah `calendar.events.owned`, ditambah `openid email` untuk memastikan akun yang terhubung sesuai akun Bito. Google dapat meminta peninjauan/verifikasi sebelum aplikasi dipublikasikan lebih luas.
+4. Unduh JSON client Desktop. Di Bito mode revisi, buka **Settings → Aplikasi → Google Calendar → Siapkan koneksi Calendar**, lalu pilih berkas tersebut. Jangan kirim JSON atau token ke chat dan jangan commit ke repository. Impor ini hanya tersedia di mode revisi.
+5. Untuk distribusi berikutnya, konfigurasi client Desktop dapat disertakan saat kompilasi melalui `BITO_GOOGLE_CALENDAR_CLIENT_ID` dan `BITO_GOOGLE_CALENDAR_CLIENT_SECRET` di lingkungan build. Client Desktop bersifat public client; PKCE dan izin pengguna tetap wajib, bukan mengandalkan kerahasiaan client secret.
+
+Izin dibuka melalui browser sistem dengan callback loopback `127.0.0.1` berport acak, pemeriksaan state sekali pakai, dan PKCE S256. Token hanya berada di proses desktop dan disimpan terenkripsi memakai penyimpanan aman OS, terpisah per akun Bito. Tidak ada token di renderer, snapshot, atau backend bersama. Keluar akun membatalkan proses yang sedang berjalan. **Putuskan koneksi di perangkat ini** menghapus token lokal, bukan mencabut izin di akun Google. Pada mode OAuth Testing, refresh token Google dapat kedaluwarsa setelah tujuh hari; Bito meminta hubungkan ulang.
+
+Tes otomatis memakai Google tiruan serta callback lokal untuk state/PKCE, penolakan izin dan akun yang salah; pengiriman duplikat, pergantian akun/rencana, tanggal, dan kegagalan sebagian juga diuji. Tes unit tidak membuat event sungguhan. Verifikasi integrasi nyata 5 November 2026 berhasil membuat, membaca kembali, dan menghapus event sintetis pada akun yang terhubung, dengan persetujuan pengguna. CI menerima konfigurasi OAuth Desktop melalui GitHub Actions Secrets; token akun tidak disertakan dalam build.
+
+Referensi: [OAuth aplikasi desktop](https://developers.google.com/identity/protocols/oauth2/native-app), [izin Calendar](https://developers.google.com/workspace/calendar/api/auth), [event Calendar](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert).
+
+
+### Draft attachments and compact companion (2026-11-05)
+
+Files dropped or picked in chat are validated and staged privately in memory. No PDF/image analysis occurs until Send. Local thumbnails identify images and screen crops; text/PDF cards identify documents. Failed analysis retains the draft. At most three files can be sent, with account/project scope and a one-hour expiry. Sent previews stay in process memory for the last 32 messages; original image bytes and thumbnails are not written to SQLite. After restart, historical cards fall back to filename/type.
+
+Default Bito size is 180 (the existing size setting; the transparent native window adds its normal 32px margin). Onboarding release interpolates the same native character window to this default over 460ms, preserving center/foot position and respecting reduced motion. The mini dock morphs between handle and toolbar without opacity fading, and contracts during drag while staying attached to Bito.
+
+Automatic chat width starts at 320px, with a 42px composer, 28px icon buttons, 13px input text and 11px project label. User resizing still works. Project/action menus use a separate overlay inside the chat window so the panel never grows to contain a menu.

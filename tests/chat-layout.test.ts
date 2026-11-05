@@ -46,7 +46,7 @@ test("compact chat keeps its composer near Bito's feet with the full pair inside
     height: 900,
   });
   assert.ok(roomy.chat.height <= Math.round(900 * 0.65));
-  assert.ok(roomy.chat.width >= 420 && roomy.chat.width <= 460);
+  assert.ok(roomy.chat.width >= 350 && roomy.chat.width <= 400);
   assert.equal(
     roomy.chat.y + roomy.chat.height - 12,
     roomy.pet.y + Math.round(282 * 0.92),
@@ -105,8 +105,8 @@ test("docking keeps its side through small pointer reversals and flips back when
   const area = { x: 0, y: 0, width: 1440, height: 900 };
   assert.equal(placeChat({ x: 550, y: 400 }, 282, area, "right").side, "right");
   assert.equal(placeChat({ x: 550, y: 400 }, 282, area, "left").side, "left");
-  assert.equal(placeChat({ x: 720, y: 400 }, 282, area, "right").side, "left");
-  for (const x of [715, 725, 710, 730])
+  assert.equal(placeChat({ x: 760, y: 400 }, 282, area, "right").side, "left");
+  for (const x of [755, 765, 750, 770])
     assert.equal(placeChat({ x, y: 400 }, 282, area, "left").side, "left");
   assert.equal(placeChat({ x: 250, y: 400 }, 282, area, "left").side, "right");
 });

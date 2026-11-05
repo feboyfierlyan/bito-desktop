@@ -1,8 +1,7 @@
 import {
   ApiError,
   sseData,
-  toolDeclarations,
-  toolNames,
+  declarationsForJob,
   type Content,
   type Part,
   type ToolCall,
@@ -89,7 +88,7 @@ export const generateGroq: typeof generateGemini = async (options) => {
     body: JSON.stringify({
       model: GROQ_MODEL,
       messages: groqMessages(job.contents, job.instructions),
-      tools: toolDeclarations.map((tool) => ({
+      tools: declarationsForJob(job).map((tool) => ({
         type: "function",
         function: { ...tool, parameters: schema(tool.parameters) },
       })),
@@ -179,7 +178,10 @@ export const generateGroq: typeof generateGemini = async (options) => {
   for (const [index, call] of [...pending.entries()].sort(
     ([a], [b]) => a - b,
   )) {
-    if (index !== calls.length || !toolNames.includes(call.name as any))
+    if (
+      index !== calls.length ||
+      !declarationsForJob(job).some((tool) => tool.name === call.name)
+    )
       throw new ApiError("invalid_tool", 502);
     let args: unknown;
     try {

@@ -1,3 +1,5 @@
+import { Card } from "@astryxdesign/core/Card";
+import { MotionBitoButton, BitoButton } from "./ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Check, LoaderCircle, WifiOff, CircleAlert } from "lucide-react";
@@ -136,7 +138,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
       )}
       <div className="auth-drag-area" aria-hidden="true" />
       <section className="auth-scene" aria-label="Masuk ke Bito">
-        <div className="auth-card">
+        <Card className="auth-card" padding={0}>
           <div className="auth-character-stage" aria-hidden="true">
             <div ref={slot} className="auth-character" data-setup-anchor>
               {!sharedScene && (
@@ -171,7 +173,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
               <p>Teman kecil untuk menemani harimu.</p>
             </header>
             <div className="auth-actions">
-              <motion.button
+              <MotionBitoButton
                 className="auth-google"
                 type="button"
                 disabled={pending || !!busy}
@@ -187,7 +189,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
                   alt=""
                 />
                 <span>{retry ? "Coba lagi" : "Lanjutkan dengan Google"}</span>
-              </motion.button>
+              </MotionBitoButton>
               <motion.div
                 className="auth-feedback"
                 aria-live="polite"
@@ -245,7 +247,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
                       </AnimatePresence>
                       {(waiting || alternate) && (
                         <div className="auth-secondary-slot">
-                          <button
+                          <BitoButton
                             className="auth-secondary"
                             type="button"
                             disabled={!!busy && !state.loginPreview}
@@ -258,7 +260,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
                             }
                           >
                             {waiting ? "Batal" : "Gunakan akun lain"}
-                          </button>
+                          </BitoButton>
                         </div>
                       )}
                     </motion.div>
@@ -267,7 +269,7 @@ export function AuthWindow({ state }: { state: Snapshot }) {
               </motion.div>
             </div>
           </motion.div>
-        </div>
+        </Card>
       </section>
     </main>
   );

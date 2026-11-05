@@ -124,4 +124,22 @@ export class SupabaseRepository implements Repository {
       p_id: id,
     });
   }
+  observeScreen(
+    job: Job,
+    callId: string,
+    question: string,
+    usage?: { input: number; output: number },
+  ): Promise<Job> {
+    return this.request("/rest/v1/rpc/bito_screen_observation", {
+      p_uid: job.user_id,
+      p_device: job.device_id,
+      p_id: job.id,
+      p_round: job.round,
+      p_call: callId,
+      p_question: question,
+      p_finish: usage !== undefined,
+      p_input: usage?.input || 0,
+      p_output: usage?.output || 0,
+    });
+  }
 }

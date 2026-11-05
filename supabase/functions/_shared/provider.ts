@@ -1,11 +1,12 @@
 import { generateGemini } from "./gemini.ts";
 import { generateGroq, GROQ_MODEL } from "./groq.ts";
 
-/** Owner configuration only. A Groq key opts in to Qwen; no silent model fallback
- * after an error or exhausted quota. Explicitly choose gemini to roll back. */
+export const GEMINI_MODEL = "gemini-3.8-flash";
+
+/** Owner configuration only. Gemini is the default; Qwen stays available by
+ * explicit opt-in. Never switch provider automatically after an error. */
 export function providerConfig(env: (name: string) => string | undefined) {
-  const provider =
-    env("BITO_AI_PROVIDER") || (env("GROQ_API_KEY") ? "groq" : "gemini");
+  const provider = env("BITO_AI_PROVIDER") || "gemini";
   if (provider === "groq")
     return {
       key: env("GROQ_API_KEY") || "",
@@ -15,7 +16,7 @@ export function providerConfig(env: (name: string) => string | undefined) {
   if (provider === "gemini")
     return {
       key: env("GEMINI_API_KEY") || "",
-      model: env("GEMINI_MODEL") || "gemini-3.5-flash-lite",
+      model: env("GEMINI_MODEL") || GEMINI_MODEL,
       generate: generateGemini,
     };
   return { key: "", model: "", generate: generateGemini };

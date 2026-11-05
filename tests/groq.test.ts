@@ -228,7 +228,11 @@ test("the final round forbids new actions, while provider config stays owner-con
     generateGemini,
   );
   const groq = providerConfig(
-    env({ GEMINI_API_KEY: "gemini", GROQ_API_KEY: "groq" }),
+    env({
+      BITO_AI_PROVIDER: "groq",
+      GEMINI_API_KEY: "gemini",
+      GROQ_API_KEY: "groq",
+    }),
   );
   assert.equal(groq.generate, generateGroq);
   assert.equal(groq.model, GROQ_MODEL);

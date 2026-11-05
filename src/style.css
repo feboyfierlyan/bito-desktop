@@ -25,7 +25,7 @@ textarea,
 select {
   font: inherit;
 }
-button {
+button:not([class*="astryx-"]) {
   cursor: pointer;
   border: 0;
   background: none;
@@ -43,14 +43,14 @@ textarea,
 select {
   -webkit-app-region: no-drag;
 }
-button {
+button:not([class*="astryx-"]) {
   transition:
     background 0.15s,
     color 0.15s,
     transform 0.18s var(--ease),
     box-shadow 0.18s;
 }
-button:active:not(:disabled) {
+button:not([class*="astryx-"]):active:not(:disabled) {
   transform: scale(0.97);
 }
 button:focus-visible,
@@ -58,7 +58,7 @@ a:focus-visible {
   outline: 3px solid #86b8f4;
   outline-offset: 3px;
 }
-input,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 textarea,
 select {
   color: #172334;
@@ -72,18 +72,17 @@ select {
     border-color 0.15s,
     box-shadow 0.15s;
 }
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
 textarea:focus,
 select:focus {
-  border-color: #77aef0;
-  box-shadow: 0 0 0 3px #0068d911;
+  box-shadow: none;
 }
 textarea {
   resize: vertical;
   min-height: 84px;
   line-height: 1.55;
 }
-input[type="range"] {
+.bito-native-input[type="range"] {
   accent-color: var(--blue);
   padding: 0;
   border: 0;
@@ -1353,3 +1352,28 @@ body[data-motion="reduced"] *:after {
   border-radius: 18px;
   --bubble-fill: var(--blue);
 }
+
+/* One persistent capsule morphs in both directions, with no opacity crossfade. */
+.pet { position:relative; }
+.pet-visual { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.pet:not(.presenting) .pet-visual { height:calc(100% - 30px); }
+.pet-tools { position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:34px; height:26px; cursor:default; transition:width .38s cubic-bezier(.22,1,.36,1); }
+.pet-idle-handle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:26px; height:5px; border-radius:16px; background:#25362ff2; border:1px solid #ffffff40; transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1); }
+.pet-tool-actions { position:relative; display:flex; align-items:center; justify-content:center; gap:2px; width:110px; height:26px; left:50%; transform:translateX(-50%); clip-path:inset(50% 40% round 16px); pointer-events:none; transition:clip-path .38s cubic-bezier(.22,1,.36,1); }
+.pet:hover .pet-tools,.pet:focus-visible .pet-tools { width:110px; }
+.pet:hover .pet-idle-handle,.pet:focus-visible .pet-idle-handle { width:110px; height:26px; }
+.pet:hover .pet-tool-actions,.pet:focus-visible .pet-tool-actions { clip-path:inset(0 round 16px); pointer-events:auto; }
+.pet-tool-actions button { display:grid; place-items:center; width:32px; height:24px; padding:0; border:0; border-radius:12px; color:#edf6ef; background:transparent; cursor:pointer; }
+.pet-tool-actions button:hover,.pet-tool-actions button:focus-visible { background:#ffffff24; outline:none; }
+.pet-tool-actions button:disabled { opacity:.4; cursor:default; }
+.pet-tool-actions svg { flex:none; }
+.pet.dragging .pet-tools { width:34px; pointer-events:none; }
+.pet.dragging .pet-idle-handle { width:26px; height:5px; }
+.pet.dragging .pet-tool-actions { clip-path:inset(50% 40% round 16px); pointer-events:none; }
+@media(prefers-reduced-motion:reduce) { .pet-tools,.pet-tool-actions,.pet-idle-handle { transition:none; } }
+
+.pet:has(.pet-tool-actions button:focus-visible) .pet-tools {width:110px;}
+.pet:has(.pet-tool-actions button:focus-visible) .pet-idle-handle {width:110px;height:26px;}
+.pet:has(.pet-tool-actions button:focus-visible) .pet-tool-actions {clip-path:inset(0 round 16px);pointer-events:auto;}
+
+.pet[data-reduced-motion="true"] :is(.pet-tools,.pet-idle-handle,.pet-tool-actions,.pet-sway) {transition:none;}

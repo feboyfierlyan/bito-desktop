@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Rive, Layout, Fit, Alignment } from "@rive-app/canvas";
 import type { Snapshot } from "./shared";
 import { api, isDesktop } from "./bridge";
+import { characterSpeaking, SpeechHold } from "./character-speech";
 import { canTrackGaze, neutralGaze } from "./gaze";
 import { createEyeRig } from "./eye-rig";
 import { warmCharacterAssets, characterPosterUrl } from "./character-assets";
@@ -21,6 +22,7 @@ export function Character({
 }) {
   const canvas = useRef<HTMLCanvasElement>(null),
     instance = useRef<Rive | null>(null);
+  const speech = useRef(new SpeechHold());
   const latest = useRef(state);
   const fixedResolution = useRef(stableResolution);
   fixedResolution.current = stableResolution;
@@ -37,25 +39,23 @@ export function Character({
     if (!vm) return;
     const s = latest.current;
     const presenting = !!s.presentation;
-    const talking =
-      (presenting
-        ? s.presentation!.talking
-        : s.greeting?.talking ||
-          (s.busy &&
-            (s.replyActivity
-              ? s.replyActivity.phase === "talking"
-              : !!s.messages.at(-1)?.text))) && !s.settings.reducedMotion;
+    if (s.settings.reducedMotion || s.dragging || (!presenting && s.sleeping)) speech.current.reset();
+    const talking = speech.current.update(characterSpeaking(s), performance.now());
     const set = (name: string, value: boolean) => {
       try {
         const p = vm.boolean(name);
-        if (p) p.value = value;
+        if (p && p.value !== value) p.value = value;
       } catch {}
     };
     set("isDragging", s.dragging);
     set("isSleeping", !presenting && s.sleeping && !s.dragging);
     set(
       "isThinking",
-      !presenting && s.busy && !talking && !s.sleeping && !s.dragging,
+      !presenting &&
+        (s.guideActivity ? s.guideActivity === "thinking" : s.busy) &&
+        !talking &&
+        !s.sleeping &&
+        !s.dragging,
     );
     set(
       "isFocusing",
@@ -71,6 +71,8 @@ export function Character({
     let r: Rive | undefined;
     let lastReadySize = "";
     let loadedAt = 0;
+    let verifiedPixels = false;
+    let surfaceSize = "";
     let densityQuery: MediaQueryList | undefined;
     const verifyPaint = () => {
       if (!alive || !loaded || !r || painting) return;
@@ -81,18 +83,17 @@ export function Character({
         painting = false;
         const target = canvas.current;
         if (!alive || !target || !r) return;
-        const context = target.getContext("2d");
-        if (!context || !target.width || !target.height) return;
-        const pixels = context.getImageData(
-          0,
-          0,
-          target.width,
-          target.height,
-        ).data;
-        if (!paintedCharacterFrame(pixels)) return;
         const frame = { width: innerWidth, height: innerHeight };
         const key = `${frame.width}:${frame.height}`;
         if (key === lastReadySize) return;
+        // A fixed canvas has already proved it contains the character. Resizing
+        // its transparent host doesn't require another synchronous pixel read.
+        if (!verifiedPixels || !fixedResolution.current) {
+          const context = target.getContext("2d");
+          if (!context || !target.width || !target.height) return;
+          if (!paintedCharacterFrame(context.getImageData(0, 0, target.width, target.height).data)) return;
+          verifiedPixels = true;
+        }
         lastReadySize = key;
         setReady(true);
         setError(false);
@@ -110,6 +111,11 @@ export function Character({
       if (!alive || !canvas.current) return;
       let density = window.devicePixelRatio || 1;
       if (fixedResolution.current) {
+        const key = `${canvas.current.offsetWidth}:${canvas.current.offsetHeight}:${density}`;
+        // Rive unconditionally assigns canvas.width/height, clearing its buffer
+        // even when the dimensions are unchanged. Avoid that end-of-morph flash.
+        if (key === surfaceSize) return;
+        surfaceSize = key;
         // Rive measures the transformed DOM bounds. Render at the unscaled
         // resolution so growing the same canvas never magnifies a small buffer.
         const width = canvas.current.getBoundingClientRect().width;
@@ -159,6 +165,7 @@ export function Character({
           },
           onLoadError: () => setError(true),
           onAdvance: (event: { data: number }) => {
+            apply();
             eyeRig.current?.advance(
               gaze.current,
               event.data,
@@ -222,6 +229,7 @@ export function Character({
     state.presentation?.talking,
     state.greeting?.talking,
     state.replyActivity?.phase,
+    state.guideActivity,
     !!state.presentation,
     state.settings.reducedMotion,
     !!state.messages.at(-1)?.text,

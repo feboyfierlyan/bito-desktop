@@ -2,11 +2,11 @@ import { RiveFile, RuntimeLoader } from "@rive-app/canvas";
 
 export const characterAssetUrl = new URL(
   "bito.riv?render=transparent-v1",
-  location.href,
+  document.baseURI,
 ).href;
-export const characterPosterUrl = new URL("bito-poster.png", location.href)
+export const characterPosterUrl = new URL("bito-poster.png", document.baseURI)
   .href;
-RuntimeLoader.setWasmUrl(new URL("rive.wasm", location.href).href);
+RuntimeLoader.setWasmUrl(new URL("rive.wasm", document.baseURI).href);
 
 // A cache belongs to one renderer. Never pass WASM objects between windows.
 let prepared: Promise<RiveFile> | undefined;

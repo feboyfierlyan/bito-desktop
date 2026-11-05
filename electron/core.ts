@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { AppState } from "../src/shared";
 import { bitoVoiceInstructions, normalizeBitoStyle } from "../src/bito-voice";
 export const defaultState = (): AppState => ({
+  projects: [],
+  activeProjectId: null,
   onboarded: false,
   onboardingStep: 0,
   profile: { name: "", project: "", style: "chill", proactive: "on-demand" },
@@ -9,11 +11,15 @@ export const defaultState = (): AppState => ({
     model: "gpt-4.1-mini",
     baseURL: "https://api.openai.com/v1",
     alwaysOnTop: true,
-    size: 190,
+    size: 180,
     reducedMotion: false,
     reducedTransparency: false,
     launchAtLogin: false,
     dnd: false,
+    projectNudges: true,
+    nudgeCadence: "gentle",
+    nudgeStartHour: 9,
+    nudgeEndHour: 21,
   },
   messages: [],
   reminders: [],
@@ -57,6 +63,10 @@ export const settingsSchema = z.object({
   reducedTransparency: z.boolean(),
   launchAtLogin: z.boolean(),
   dnd: z.boolean(),
+  projectNudges: z.boolean().default(true),
+  nudgeCadence: z.enum(["gentle", "balanced"]).default("gentle"),
+  nudgeStartHour: z.number().int().min(0).max(23).default(9),
+  nudgeEndHour: z.number().int().min(0).max(23).default(21),
 });
 export const reminderSchema = z.object({
   title: z.string().trim().min(1).max(240),
@@ -94,7 +104,7 @@ export function placeChat(
 ) {
   const idealWidth = requestedSize
     ? Math.max(320, Math.min(1000, requestedSize.width))
-    : Math.min(460, Math.max(440, Math.round(size * 1.5)));
+    : Math.min(400, Math.max(320, Math.round(size * 1.5)));
   const maxHeight = Math.min(
     requestedSize
       ? Math.max(220, requestedSize.height)

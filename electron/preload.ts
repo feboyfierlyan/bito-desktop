@@ -1,6 +1,16 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, webUtils } from "electron";
 import type { BitoAPI } from "../src/shared";
 const api: BitoAPI = {
+  prepareDroppedFiles: async (files, slots) => {
+    try {
+      if (!Array.isArray(files) || !files.length || files.length > 3) throw Error("Pilih maksimal tiga file.");
+      const paths = files.map((file) => webUtils.getPathForFile(file));
+      if (paths.some((path) => !path)) throw Error("Pilih file dari perangkatmu.");
+      return await ipcRenderer.invoke("bito:drop-files", paths, slots);
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "File tidak valid." };
+    }
+  },
   getState: () => ipcRenderer.invoke("bito:state"),
   command: (name, payload) => ipcRenderer.invoke("bito:command", name, payload),
   onState: (fn) => {

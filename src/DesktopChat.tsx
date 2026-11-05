@@ -1,3 +1,8 @@
+import {ChatPopover} from "./ui/ChatPopover";
+import { AttachmentCard } from "./ui/AttachmentCard";
+import type { AttachmentPreview } from "./shared";
+import { ChatComposer } from "@astryxdesign/core/Chat";
+import { MotionBitoButton, BitoButton } from "./ui/controls";
 import {
   memo,
   useCallback,
@@ -26,6 +31,8 @@ import {
   FileText,
   MoreVertical,
   Paperclip,
+  FolderOpen,
+  ScanLine,
   RefreshCw,
   Settings,
   Square,
@@ -34,7 +41,10 @@ import {
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Bubble } from "./Bubble";
+import { SearchSources } from "./SearchSources";
+import { withWebCitations } from "./web-search";
 import { ResponseCards } from "./ResponseCards";
+import { ChatProjectSelector } from "./ChatProjectSelector";
 import { api } from "./bridge";
 import {
   clipRegion,
@@ -109,10 +119,63 @@ export function DesktopChat({
   const panelMask = useRef("");
   const lastPanelHeight = useRef(0);
   const greetingHandoff = state.chatOpen && state.greeting?.phase === "opening";
-  const [attachment, setAttachment] = useState<{
-    name: string;
-    content: string;
-  }>();
+  const [files, setFiles] = useState<
+    {
+      id: string;
+      name: string;
+      kind: "text" | "pdf" | "image";
+      warnings?: string[];
+      preview?: AttachmentPreview;
+    }[]
+  >([]);
+  const [fileBusy, setFileBusy] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const [dropActive, setDropActive] = useState(false);
+  const dropDepth = useRef(0);
+  const readingFiles = useRef(false);
+  const fileRail = useRef<HTMLDivElement>(null);
+  const [fileRailHeight, setFileRailHeight] = useState(62);
+  const currentFileScope = `${state.auth?.userId || "preview"}:${state.activeProjectId || "general"}`;
+  const fileScope = useRef(currentFileScope);
+  useEffect(() => {
+    if (fileScope.current !== currentFileScope) {
+      setFiles([]);
+      setFileError("");
+    }
+    fileScope.current = currentFileScope;
+  }, [currentFileScope]);
+  async function prepareFiles(dropped?: File[]) {
+    if (readingFiles.current || state.busy || sending.current) return;
+    setFileError("");
+    if (files.length >= 3 || (dropped && dropped.length + files.length > 3)) {
+      setFileError("Maksimal tiga lampiran sekali kirim.");
+      return;
+    }
+    readingFiles.current = true;
+    const scope = fileScope.current;
+    setFileBusy(true);
+    try {
+      const result = dropped
+        ? await api.prepareDroppedFiles!(dropped, 3 - files.length)
+        : await act("chat-prepare-files", { slots: 3 - files.length });
+      if (scope !== fileScope.current) return;
+      if (!result.ok) throw Error(result.error || "File belum bisa dibaca.");
+      const added = result.value as typeof files;
+      if (added?.length) {
+        setFiles((previous) => [...previous, ...added].slice(0, 3));
+      }
+    } catch (error) {
+      if (scope === fileScope.current)
+        setFileError(
+          error instanceof Error
+            ? error.message
+            : "File belum bisa dibaca. Coba lagi.",
+        );
+    } finally {
+      readingFiles.current = false;
+      setFileBusy(false);
+    }
+  }
   const [menu, setMenu] = useState(false);
   const [panel, setPanel] = useState<"chat" | "focus" | "tasks">("chat");
   const [messageMenu, setMessageMenu] = useState<{
@@ -121,7 +184,19 @@ export function DesktopChat({
     y: number;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [composerHeight, setComposerHeight] = useState(48);
+  const [composerHeight, setComposerHeight] = useState(42);
+  const filesVisible = !!(files.length || fileBusy || fileError || state.selectedArea);
+  useEffect(() => {
+    const node = fileRail.current;
+    if (!node) return;
+    const observer = new ResizeObserver(() =>
+      setFileRailHeight(node.offsetHeight),
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [filesVisible]);
+  const attachmentHeight = filesVisible ? fileRailHeight : 0;
+  const contextSpace = attachmentHeight + 26;
   const [composerWidth, setComposerWidth] = useState(() => innerWidth - 32);
   const [transcriptHeight, setTranscriptHeight] = useState(0);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -245,7 +320,7 @@ export function DesktopChat({
             if (!clipped) return [];
             region = clipped;
           }
-          const contained = visiblePanel
+          const contained = visiblePanel && !el.closest("[data-chat-overlay]")
             ? clipToPanel(region, visiblePanel)
             : region;
           return contained && contained.width > 0 && contained.height > 0
@@ -296,6 +371,11 @@ export function DesktopChat({
     scrollFrame.current = requestAnimationFrame(frame);
   }, [reduced]);
   useLayoutEffect(() => {
+    following.current = true;
+    setShowLatest(false);
+    followBottom();
+  }, [state.activeProjectId, followBottom]);
+  useLayoutEffect(() => {
     const area = composerArea.current;
     if (!area) return;
     const measure = () => setComposerWidth(area.clientWidth);
@@ -310,7 +390,7 @@ export function DesktopChat({
       el.style.height = "0px";
       const height = Math.min(104, Math.max(24, el.scrollHeight));
       el.style.height = `${height}px`;
-      setComposerHeight(Math.max(48, height + 24));
+      setComposerHeight(Math.max(42, height + 18));
     }
   }, [text, panel, composerWidth]);
   useLayoutEffect(() => {
@@ -376,7 +456,11 @@ export function DesktopChat({
     const measure = () => {
       const available = Math.max(
         0,
-        (root.current?.clientHeight || innerHeight) - 48 - composerHeight - 18,
+        (root.current?.clientHeight || innerHeight) -
+          48 -
+          composerHeight -
+          contextSpace -
+          8,
       );
       const content =
         Math.ceil(stack.current?.getBoundingClientRect().height || 0) + 5;
@@ -409,6 +493,7 @@ export function DesktopChat({
   }, [
     panel,
     composerHeight,
+    contextSpace,
     !!state.chatSize,
     state.chatOpen,
     reportRegions,
@@ -424,6 +509,7 @@ export function DesktopChat({
     menu,
     messageMenu,
     composerHeight,
+    contextSpace,
     state.chatOpen,
     followBottom,
     reportRegions,
@@ -515,30 +601,68 @@ export function DesktopChat({
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [menu, messageMenu, panel, act, state.chatResizing]);
+  useEffect(() => {
+    if (!state.selectedArea || !state.chatOpen) return;
+    const frame = requestAnimationFrame(() => textarea.current?.focus({preventScroll:true}));
+    return () => cancelAnimationFrame(frame);
+  }, [state.selectedArea?.id, state.chatOpen]);
   async function send(value = text, retry = false) {
-    if (sending.current || state.busy || (!value.trim() && !attachment)) return;
+    if (
+      sending.current ||
+      readingFiles.current ||
+      state.busy ||
+      fileBusy ||
+      (!value.trim() && !files.length && !state.selectedArea)
+    )
+      return;
     sending.current = true;
     try {
       const result = await act("send", {
-        text: value,
-        attachment: retry ? undefined : attachment,
+        text: value || (state.selectedArea ? "Jelaskan area ini." : ""),
+        attachmentIds: retry ? undefined : files.map((f) => f.id),
       });
       if (result.ok) {
         following.current = true;
         if (!retry) {
           setText("");
-          setAttachment(undefined);
+          setFiles([]);
+          setFileError("");
         }
         followBottom();
-      }
+      } else setFileError(result.error || "Pesan belum terkirim. Coba lagi.");
+    } catch (error) {
+      setFileError(
+        error instanceof Error ? error.message : "Pesan belum terkirim.",
+      );
     } finally {
       sending.current = false;
     }
   }
-  const retryReply = (message: Message) => {
-    const value = retryText(state.messages, message.id);
-    if (value) void send(value, true);
-  };
+  async function retryReply(message: Message) {
+    if (state.busy || sending.current || readingFiles.current) return;
+    sending.current = true;
+    try {
+      const result = await act("send", {
+        text: "",
+        retryMessageId: message.id,
+      });
+      if (!result.ok)
+        setFileError(result.error || "Pesan belum bisa dicoba ulang.");
+      else {
+        following.current = true;
+        followBottom();
+      }
+    } catch (error) {
+      setFileError(
+        error instanceof Error
+          ? error.message
+          : "Pesan belum bisa dicoba ulang.",
+      );
+    } finally {
+      sending.current = false;
+    }
+  }
+
   const action = (callback: () => void) => {
     setMenu(false);
     setMessageMenu(null);
@@ -571,7 +695,7 @@ export function DesktopChat({
   const panelHeight =
     state.chatSize || panel !== "chat"
       ? innerHeight - 24
-      : transcriptHeight + composerHeight + 18 + 24;
+      : transcriptHeight + composerHeight + contextSpace + 8 + 24;
   if (state.chatOpen || !lastPanelHeight.current)
     lastPanelHeight.current = panelHeight;
   const frameHeight = lastPanelHeight.current;
@@ -595,6 +719,36 @@ export function DesktopChat({
     <main
       ref={root}
       className="desktop-chat"
+      onDragEnter={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        dropDepth.current++;
+        setDropActive(true);
+      }}
+      onDragOver={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = state.busy ? "none" : "copy";
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        if (--dropDepth.current <= 0) {
+          dropDepth.current = 0;
+          setDropActive(false);
+        }
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        dropDepth.current = 0;
+        setDropActive(false);
+        const dropped = Array.from(event.dataTransfer.files);
+        if (!dropped.length) return;
+        if (!api.prepareDroppedFiles) {
+          setFileError("Pakai menu Lampirkan dokumen untuk menambahkan file.");
+          return;
+        }
+        void prepareFiles(dropped);
+      }}
       data-dock={state.chatSide || "right"}
       data-resizing={!!state.chatResizing}
       data-manual={!!state.chatSize}
@@ -640,8 +794,26 @@ export function DesktopChat({
         }}
       >
         <div className="desktop-chat-surface" aria-hidden="true" />
+        <AnimatePresence>
+          {dropActive && (
+            <motion.div
+              className="desktop-file-drop"
+              data-chat-hit
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduced ? 0 : 0.16 }}
+            >
+              <FileText size={28} />
+              <strong>
+                {state.busy ? "Tunggu proses selesai" : "Lepaskan file di sini"}
+              </strong>
+              <span>PDF, gambar, atau teks · maksimal 6 MB</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div className="desktop-chat-resize-bar">
-          <motion.button
+          <MotionBitoButton
             ref={resizeGrip}
             type="button"
             className="desktop-chat-resize-grip"
@@ -816,7 +988,7 @@ export function DesktopChat({
                 strokeLinecap="round"
               />
             </motion.svg>
-          </motion.button>
+          </MotionBitoButton>
         </div>
         {panel === "chat" ? (
           <motion.div
@@ -872,7 +1044,7 @@ export function DesktopChat({
                   const betweenBubbles =
                     state.busy &&
                     state.replyActivity?.messageId === m.id &&
-                    state.replyActivity.phase === "thinking" &&
+                    state.replyActivity.phase !== "talking" &&
                     !!(m.text || m.cards?.length);
                   const displayedBubbles = betweenBubbles
                     ? [...bubbles, ""]
@@ -924,6 +1096,11 @@ export function DesktopChat({
                         </div>
                       )}
                       <div className="desktop-message-content">
+                        {m.role === "user" && (m.attachments?.length || m.selectedArea) ? (
+                          <div className="desktop-history-files">
+                            {(state.messagePreviews?.[m.id] || m.attachments || [{name:"Area pilihan",kind:"area" as const}]).map((file,i) => <AttachmentCard key={i} file={file} />)}
+                          </div>
+                        ) : null}
                         <div
                           className={`desktop-message-hit ${m.cards?.length ? "has-cards" : ""}`}
                           data-chat-hit
@@ -960,23 +1137,40 @@ export function DesktopChat({
                                 >
                                   {body ? (
                                     <MessageText
-                                      text={body}
+                                      text={withWebCitations(body, m.webSearch)}
                                       openLink={openLink}
                                     />
                                   ) : (
                                     <span
                                       className="typing"
-                                      aria-label="Bito sedang mengetik"
+                                      aria-label={
+                                        state.replyActivity?.phase ===
+                                        "searching"
+                                          ? "Bito sedang mencari di internet"
+                                          : "Bito sedang mengetik"
+                                      }
                                     >
                                       <i />
                                       <i />
                                       <i />
+                                      {state.replyActivity?.phase ===
+                                        "searching" && (
+                                        <span className="desktop-search-label">
+                                          Lagi cari…
+                                        </span>
+                                      )}
                                     </span>
                                   )}
                                 </Bubble>
                               ))}
                             </AnimatePresence>
                           </div>
+                          {m.webSearch && (
+                            <SearchSources
+                              search={m.webSearch}
+                              openLink={openLink}
+                            />
+                          )}
                           {!!m.cards?.length && (
                             <ResponseCards
                               message={m}
@@ -1005,7 +1199,7 @@ export function DesktopChat({
                                       : "Jawaban gagal"}
                                 </span>
                                 {!m.cards?.length && (
-                                  <button
+                                  <BitoButton
                                     type="button"
                                     disabled={
                                       state.busy ||
@@ -1015,7 +1209,7 @@ export function DesktopChat({
                                   >
                                     <RefreshCw size={11} />
                                     Coba lagi
-                                  </button>
+                                  </BitoButton>
                                 )}
                               </div>
                             )}
@@ -1041,13 +1235,13 @@ export function DesktopChat({
             data-chat-hit
             initial={false}
           >
-            <button
+            <BitoButton
               className="desktop-tool-back"
               aria-label="Kembali ke percakapan"
               onClick={() => setPanel("chat")}
             >
               <ArrowLeft size={19} />
-            </button>
+            </BitoButton>
             {panels[panel]}
           </motion.section>
         )}
@@ -1056,13 +1250,14 @@ export function DesktopChat({
           ref={composerArea}
           inert={!contentVisible}
           initial={false}
+          style={{ paddingTop: contextSpace }}
         >
           <AnimatePresence>
             {showLatest &&
               panel === "chat" &&
               state.chatOpen &&
               contentVisible && (
-                <motion.button
+                <MotionBitoButton
                   type="button"
                   className="desktop-jump-latest"
                   data-chat-hit
@@ -1086,24 +1281,87 @@ export function DesktopChat({
                   }}
                 >
                   <ArrowDown size={18} />
-                </motion.button>
+                </MotionBitoButton>
               )}
           </AnimatePresence>
+          <ChatProjectSelector
+            state={state}
+            act={act}
+            top={attachmentHeight}
+            reduced={!!reduced}
+            disabled={
+              state.busy ||
+              fileBusy ||
+              !!files.length ||
+              !!state.selectedArea
+            }
+            onGeometry={reportRegions}
+          />
           <AnimatePresence>
-            {attachment && (
+            {filesVisible && (
               <motion.div
-                className="desktop-attachment"
+                ref={fileRail}
+                key="files"
+                layout
+                className="desktop-files"
                 data-chat-hit
                 {...popoverMotion}
               >
-                <FileText size={14} />
-                <span>{attachment.name}</span>
-                <button
-                  aria-label="Lepas dokumen"
-                  onClick={() => setAttachment(undefined)}
-                >
-                  <X size={14} />
-                </button>
+                {state.selectedArea && <motion.div key="area" className="desktop-file-chip" layout>
+                  <AttachmentCard file={{name:"Area pilihan",kind:"area",thumbnail:state.selectedArea.thumbnail}} />
+                  <BitoButton type="button" aria-label="Lepas area pilihan" disabled={state.busy} onClick={()=>void act("clear-selected-area")}><X size={13}/></BitoButton>
+                </motion.div>}
+                {fileBusy ? (
+                  <span role="status" className="desktop-file-status">
+                    Menambahkan lampiran…
+                  </span>
+                ) : null}
+                {files.map((file) => (
+                  <motion.div
+                    layout
+                    key={file.id}
+                    initial={{ opacity: 0, scale: 0.94 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.94 }}
+                    className="desktop-file-chip"
+                    title={file.warnings?.join(" ")}
+                  >
+                    <AttachmentCard file={file.preview || {name:file.name,kind:file.kind}} />
+                    <BitoButton
+                      type="button"
+                      disabled={state.busy}
+                      aria-label={`Lepas ${file.name}`}
+                      onClick={() => {
+                        setFiles((prev) =>
+                          prev.filter((item) => item.id !== file.id),
+                        );
+                        void act("chat-release-files", { ids: [file.id] });
+                      }}
+                    >
+                      <X size={13} />
+                    </BitoButton>
+                  </motion.div>
+                ))}
+                {state.busy && files.length > 0 && <span className="desktop-file-status" role="status">Membaca lampiran…</span>}
+                {fileError && (
+                  <span className="desktop-file-error" role="alert">
+                    {fileError}
+                    <BitoButton
+                      type="button"
+                      aria-label="Tutup pesan"
+                      onClick={() => setFileError("")}
+                    >
+                      <X size={12} />
+                    </BitoButton>
+                  </span>
+                )}
+                {files
+                  .flatMap((file) => file.warnings || [])
+                  .map((warning, index) => (
+                    <small key={index} className="desktop-file-warning">
+                      {warning}
+                    </small>
+                  ))}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1130,85 +1388,101 @@ export function DesktopChat({
                 void send();
               }}
             >
-              <motion.button
-                ref={dots}
-                type="button"
-                className="desktop-more"
-                data-chat-menu
-                aria-label="Pilihan percakapan"
-                aria-haspopup="menu"
-                aria-expanded={menu}
-                whileTap={reduced ? undefined : { scale: 0.88 }}
-                onClick={() => {
-                  setMessageMenu(null);
-                  setMenu((value) => !value);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    setMenu(true);
-                    requestAnimationFrame(() =>
-                      root.current
-                        ?.querySelector<HTMLButtonElement>(
-                          ".desktop-options [role=menuitem]",
-                        )
-                        ?.focus(),
-                    );
-                  }
-                }}
-              >
-                <MoreVertical size={23} strokeWidth={3} />
-              </motion.button>
-              <textarea
-                ref={textarea}
-                aria-label="Pesan untuk Bito"
-                rows={1}
+              <ChatComposer
+                className="bito-chat-composer"
+                density="compact"
+                elevation="none"
                 value={text}
-                onChange={(event) => setText(event.target.value)}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !event.shiftKey &&
-                    !event.nativeEvent.isComposing
-                  ) {
-                    event.preventDefault();
-                    void send();
-                  }
-                }}
-              />
-              <motion.button
-                type={state.busy ? "button" : "submit"}
-                className="desktop-send"
-                aria-label={state.busy ? "Hentikan jawaban" : "Kirim pesan"}
-                disabled={
-                  !state.busy &&
-                  ((!text.trim() && !attachment) ||
-                    (!state.hasKey && !state.demoMode))
+                onChange={setText}
+                onSubmit={() => void send()}
+                input={
+                  <textarea
+                    ref={textarea}
+                    aria-label="Pesan untuk Bito"
+                    placeholder="Tulis pesan…"
+                    rows={1}
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === "Enter" &&
+                        !event.shiftKey &&
+                        !event.nativeEvent.isComposing
+                      ) {
+                        event.preventDefault();
+                        void send();
+                      }
+                    }}
+                  />
                 }
-                whileTap={reduced ? undefined : { scale: 0.88 }}
-                onClick={state.busy ? () => void act("stop") : undefined}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={state.busy ? "stop" : "send"}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ duration: reduced ? 0 : 0.1 }}
+                footerActions={
+                  <MotionBitoButton
+                    ref={dots}
+                    type="button"
+                    className="desktop-more"
+                    data-chat-menu
+                    aria-label="Pilihan percakapan"
+                    aria-haspopup="menu"
+                    aria-expanded={menu}
+                    whileTap={reduced ? undefined : { scale: 0.88 }}
+                    onClick={() => {
+                      setMessageMenu(null);
+                      setMenu((value) => !value);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        setMenu(true);
+                        requestAnimationFrame(() =>
+                          root.current
+                            ?.querySelector<HTMLButtonElement>(
+                              ".desktop-options [role=menuitem]",
+                            )
+                            ?.focus(),
+                        );
+                      }
+                    }}
                   >
-                    {state.busy ? (
-                      <Square size={15} fill="currentColor" />
-                    ) : (
-                      <ArrowUp size={25} strokeWidth={2.6} />
-                    )}
-                  </motion.span>
-                </AnimatePresence>
-              </motion.button>
+                    <MoreVertical size={23} strokeWidth={3} />
+                  </MotionBitoButton>
+                }
+                sendButton={
+                  <MotionBitoButton
+                    type={state.busy ? "button" : "submit"}
+                    className="desktop-send"
+                    aria-label={state.busy ? "Hentikan jawaban" : "Kirim pesan"}
+                    disabled={
+                      !state.busy &&
+                      ((!text.trim() && !files.length && !state.selectedArea) ||
+                        fileBusy ||
+                        (!state.hasKey && !state.demoMode))
+                    }
+                    whileTap={reduced ? undefined : { scale: 0.88 }}
+                    onClick={state.busy ? () => void act("stop") : undefined}
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={state.busy ? "stop" : "send"}
+                        initial={{ opacity: 0, scale: 0.7 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.7 }}
+                        transition={{ duration: reduced ? 0 : 0.1 }}
+                      >
+                        {state.busy ? (
+                          <Square size={15} fill="currentColor" />
+                        ) : (
+                          <ArrowUp size={25} strokeWidth={2.6} />
+                        )}
+                      </motion.span>
+                    </AnimatePresence>
+                  </MotionBitoButton>
+                }
+              />
             </motion.form>
           </motion.div>
           <AnimatePresence>
             {menu && (
-              <motion.div
+              <ChatPopover anchor={dots} onGeometry={reportRegions}><motion.div
                 className="desktop-options desktop-popover"
                 role="menu"
                 aria-label="Pilihan percakapan"
@@ -1217,24 +1491,43 @@ export function DesktopChat({
                 {...popoverMotion}
                 onKeyDown={menuKeys}
               >
-                <button
+                <BitoButton
                   role="menuitem"
                   disabled={state.busy}
                   onClick={() =>
                     action(() => {
-                      void act("read-document").then((result) => {
-                        if (result.value)
-                          setAttachment(
-                            result.value as { name: string; content: string },
-                          );
-                      });
+                      void prepareFiles();
                     })
                   }
                 >
                   <Paperclip size={15} />
                   Lampirkan dokumen
-                </button>
-                <button
+                </BitoButton>
+                <BitoButton
+                  role="menuitem"
+                  disabled={state.busy}
+                  onClick={() =>
+                    action(() => {
+                      void act("select-area");
+                    })
+                  }
+                >
+                  <ScanLine size={15} />
+                  Tanya area layar
+                </BitoButton>
+                <BitoButton
+                  role="menuitem"
+                  disabled={state.busy}
+                  onClick={() =>
+                    action(() => {
+                      void act("project-open");
+                    })
+                  }
+                >
+                  <FolderOpen size={15} />
+                  {state.activeProjectId ? "Buka proyek" : "Semua proyek"}
+                </BitoButton>
+                <BitoButton
                   role="menuitem"
                   onClick={() =>
                     action(() => {
@@ -1243,9 +1536,9 @@ export function DesktopChat({
                   }
                 >
                   <Settings size={15} />
-                  Settings
-                </button>
-              </motion.div>
+                  Pengaturan
+                </BitoButton>
+              </motion.div></ChatPopover>
             )}
           </AnimatePresence>
         </motion.div>
@@ -1268,7 +1561,7 @@ export function DesktopChat({
                 {messageDayLabel(messageMenu.message.createdAt, today)} ·{" "}
                 {messageTime(messageMenu.message.createdAt)}
               </time>
-              <button
+              <BitoButton
                 role="menuitem"
                 onClick={() => {
                   void navigator.clipboard
@@ -1277,9 +1570,9 @@ export function DesktopChat({
                 }}
               >
                 {copied ? <Check size={15} /> : <Copy size={15} />}Salin
-              </button>
+              </BitoButton>
               {messageMenu.message.role === "assistant" && (
-                <button
+                <BitoButton
                   role="menuitem"
                   onClick={() =>
                     action(() => {
@@ -1289,11 +1582,11 @@ export function DesktopChat({
                 >
                   <Bookmark size={15} />
                   Simpan catatan
-                </button>
+                </BitoButton>
               )}
               {(messageMenu.message.status === "error" ||
                 messageMenu.message.status === "interrupted") && (
-                <button
+                <BitoButton
                   role="menuitem"
                   disabled={
                     state.busy ||
@@ -1307,7 +1600,7 @@ export function DesktopChat({
                 >
                   <RefreshCw size={15} />
                   Coba lagi
-                </button>
+                </BitoButton>
               )}
             </motion.div>
           )}
