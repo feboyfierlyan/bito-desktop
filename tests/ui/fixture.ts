@@ -46,6 +46,12 @@ if (import.meta.env.DEV) {
       },
     ],
   };
+  // Exercise the real workspace's scroll containment without touching user data.
+  if (new URLSearchParams(location.search).has("long")) {
+    project.plan.milestones[1].tasks.push(
+      ...Array.from({ length: 30 }, (_, index) => task(`Tugas verifikasi scroll ${index + 1}`)),
+    );
+  }
   recordProjectProgress(project);
   const other = newProject({
     name: "Belajar untuk kuis",

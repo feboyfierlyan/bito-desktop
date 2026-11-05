@@ -1366,9 +1366,15 @@
 
 /* Audit: context belongs beside its action, with one creation entry per level. */
 .project-board-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
 }
 .project-archive-banner {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
