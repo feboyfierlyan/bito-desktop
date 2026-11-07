@@ -13,6 +13,16 @@ export function nativePresentationVisible(
   );
 }
 
+// Once the native pet owns a gesture, a DPI resize/repaint must not bring the
+// stationary setup copy back. Readiness gates the initial transfer only.
+export function nativeOwnsSetupCharacter(
+  view: { purpose?: "login"; step: number; phase: string; nativeReady?: boolean } | undefined,
+  hostActive: boolean,
+): boolean {
+  return nativePresentationVisible(view, hostActive) &&
+    (!!view?.nativeReady || ["dragging", "returning", "departing"].includes(view!.phase));
+}
+
 // Electron content bounds and pointer coordinates use device-independent pixels.
 export function anchorBounds(slot: Rect, content: Rect, zoom = 1): Rect {
   return {

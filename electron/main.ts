@@ -162,7 +162,7 @@ let busy = false,
   dragging = false,
   quitting = false,
   chatOpen = false,
-  dragOrigin: { x: number; y: number } | null = null,
+  dragOrigin: Rect | null = null,
   abort: AbortController | null = null;
 let storageError: string | undefined;
 let storageRetryAt = 0;
@@ -200,10 +200,13 @@ let dragSenderId: number | undefined;
 function followOnboardingCursor() {
   if (!dragging || !onboarding || !onboardingDragCursor || !dragOrigin || !pet || pet.isDestroyed()) return;
   const point = screen.getCursorScreenPoint();
-  pet.setPosition(
-    Math.round(dragOrigin.x + point.x - onboardingDragCursor.x),
-    Math.round(dragOrigin.y + point.y - onboardingDragCursor.y),
-  );
+  // Always supply the intended size. Windows fractional-DPI setPosition()
+  // round-trips the current bounds and can enlarge them on every mouse move.
+  pet.setBounds({
+    ...dragOrigin,
+    x: Math.round(dragOrigin.x + point.x - onboardingDragCursor.x) || 0,
+    y: Math.round(dragOrigin.y + point.y - onboardingDragCursor.y) || 0,
+  });
 }
 function sendDragMotion(motion: DragMotion) {
   if (pet && !pet.isDestroyed())
@@ -1419,7 +1422,7 @@ function tweenPet(target: Rect, done: () => void) {
       const p = easePosition(from, target, progress);
       if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
         try {
-          pet.setBounds({ x: p.x || 0, y: p.y || 0 });
+          pet.setBounds({ ...p, width: target.width, height: target.height });
         } catch (error) {
           clearInterval(movement);
           console.error("Unable to position Bito", error);
@@ -1603,16 +1606,18 @@ function showStudio(route: string) {
   studioRevealRequested = true;
   if (studio) {
     if (login && studio.isMaximized()) studio.unmaximize();
-    studio.setResizable(!login);
-    studio.setMaximizable(!login);
-    studio.setFullScreenable(!login);
+    // Login and onboarding share one native viewport. Changing frame styles
+    // here can resize the Windows client area mid-morph.
+    studio.setResizable(!login && !welcome);
+    studio.setMaximizable(!login && !welcome);
+    studio.setFullScreenable(!login && !welcome);
     studio.setMinimumSize(
       projects ? 960 : welcome || login ? 820 : 680,
       projects ? 620 : welcome || login ? 620 : 500,
     );
     if (projects) studio.setSize(1120, 760);
     else if (login) studio.setContentSize(1040, 740);
-    else if (welcome && !fromLogin) studio.setSize(1040, 740);
+    else if (welcome && !fromLogin) studio.setContentSize(1040, 740);
     else if (!welcome && (fromLogin || studio.getBounds().width === 1040))
       studio.setSize(780, 580);
     studio.setOpacity(1);
@@ -1631,10 +1636,10 @@ function showStudio(route: string) {
     height: projects ? 760 : welcome || login ? 740 : 580,
     minWidth: projects ? 960 : welcome || login ? 820 : 680,
     minHeight: projects || welcome || login ? 620 : 500,
-    useContentSize: login,
-    resizable: !login,
-    maximizable: !login,
-    fullscreenable: !login,
+    useContentSize: login || welcome,
+    resizable: !login && !welcome,
+    maximizable: !login && !welcome,
+    fullscreenable: !login && !welcome,
     acceptFirstMouse: true,
     backgroundColor: "#ffffff",
     title: "Bito",
@@ -3199,8 +3204,9 @@ function recoverPosition(animateChat = false) {
   }
   const b = pet.getBounds();
   const area = screen.getDisplayMatching(b).workArea;
-  const p = clampPosition(b.x, b.y, b.width, area);
-  pet.setPosition(p.x, p.y);
+  const size = petSize();
+  const p = clampPosition(b.x, b.y, size, area);
+  pet.setBounds({ ...p, width: size, height: size });
   state.position = p;
   if (chatSurfaceVisible()) alignChat(animateChat);
   persist();
@@ -3355,7 +3361,12 @@ function registerIPC() {
       // The setup window keeps pointer capture while the native visual moves.
     }
     const b = pet.getBounds();
-    dragOrigin = { x: b.x, y: b.y };
+    const size = onboarding?.slot && studio
+      ? anchorBounds(onboarding.slot, studio.getContentBounds(), studio.webContents.getZoomFactor()).width
+      : petSize();
+    // Use the authored DIP size, not a rounded getBounds() size from the last
+    // gesture. Repeated drags and monitor changes must not accumulate growth.
+    dragOrigin = { x: b.x, y: b.y, width: size, height: size };
     dragging = true;
     startDragMotion();
     dragSenderId = event.sender.id;
@@ -3379,10 +3390,11 @@ function registerIPC() {
       followOnboardingCursor();
       return;
     }
-    pet.setPosition(
-      Math.round(dragOrigin.x + dx) || 0,
-      Math.round(dragOrigin.y + dy) || 0,
-    );
+    pet.setBounds({
+      ...dragOrigin,
+      x: Math.round(dragOrigin.x + dx) || 0,
+      y: Math.round(dragOrigin.y + dy) || 0,
+    });
     if (chatSurfaceVisible() && chat) alignChat(true);
   });
   ipcMain.on("bito:drag-end", (event) => {

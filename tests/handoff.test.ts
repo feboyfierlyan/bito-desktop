@@ -7,6 +7,7 @@ import {
   easeBounds,
   easePosition,
   nativePresentationVisible,
+  nativeOwnsSetupCharacter,
   wordDelay,
 } from "../src/handoff";
 
@@ -120,4 +121,20 @@ test("onboarding clicks wave only in the first two ready scenes, leaving desktop
   for (const phase of ["ready", "dragging", "returning", "departing"])
     assert.equal(canWave({ ...scene, phase }), false);
   assert.equal(canWave(undefined), false);
+});
+
+
+test("setup never resurrects its stationary mascot during native DPI repaint", () => {
+  const view = {step:2,phase:"ready",nativeReady:false};
+  assert.equal(nativeOwnsSetupCharacter(view,true),false);
+  assert.equal(nativeOwnsSetupCharacter({...view,nativeReady:true},true),true);
+  for(const phase of ["dragging","departing"]) {
+    for(const hostActive of [true,false]) {
+      for(const nativeReady of [true,false,true,false])
+        assert.equal(nativeOwnsSetupCharacter({...view,phase,nativeReady},hostActive),true);
+    }
+  }
+  assert.equal(nativeOwnsSetupCharacter({...view,phase:"returning"},true),true);
+  assert.equal(nativeOwnsSetupCharacter({...view,phase:"returning"},false),false);
+  assert.equal(nativeOwnsSetupCharacter({...view,purpose:"login",phase:"dragging"},true),false);
 });

@@ -6,7 +6,7 @@ import { Character } from "./Character";
 import { SetupContext } from "./setup-context";
 import { isDesktop } from "./bridge";
 import type { Reply, Snapshot } from "./shared";
-import { nativePresentationVisible, type Rect } from "./handoff";
+import { nativeOwnsSetupCharacter, type Rect } from "./handoff";
 import "./SetupFlow.css";
 
 type Geometry = { panel: Rect; mascot: Rect };
@@ -36,23 +36,20 @@ export function SetupFlow({
   const nativeOwnsCharacter =
     isDesktop &&
     !login &&
-    !!state.presentation?.nativeReady &&
-    nativePresentationVisible(
+    nativeOwnsSetupCharacter(
       state.presentation,
       state.presentation?.hostActive !== false,
     );
 
   useLayoutEffect(() => {
-    const changed = previousRoute.current !== route;
+    const changed = (previousRoute.current === "auth") !== login;
     previousRoute.current = route;
     if (!changed || reduced) {
       setTransitioning(false);
       return;
     }
     setTransitioning(true);
-    const timer = setTimeout(() => setTransitioning(false), 560);
-    return () => clearTimeout(timer);
-  }, [route, reduced]);
+  }, [route, login, reduced]);
 
   useLayoutEffect(() => {
     const page = root.current?.querySelector<HTMLElement>(
@@ -99,7 +96,7 @@ export function SetupFlow({
     };
   }, [route, login]);
 
-  const duration = reduced ? 0 : transitioning ? 0.52 : 0.26;
+  const duration = reduced ? 0 : transitioning ? 0.6 : 0.26;
   const ease = [0.22, 1, 0.36, 1] as const;
   const ready =
     characterReady && (!isDesktop || !!state.presentation?.characterReady);
@@ -129,14 +126,7 @@ export function SetupFlow({
               height: geometry.panel.height,
               borderRadius: login ? 19 : 14,
             }}
-            transition={{
-              default: { type: "tween", duration, ease },
-              height: {
-                type: "tween",
-                duration: login && !transitioning ? 0 : duration,
-                ease,
-              },
-            }}
+            transition={{ type: "tween", duration, ease }}
           />
         )}
         <AnimatePresence initial={false} mode="sync">
@@ -187,6 +177,7 @@ export function SetupFlow({
             }}
             style={{ visibility: nativeOwnsCharacter ? "hidden" : "visible" }}
             transition={{ type: "tween", duration, ease }}
+            onAnimationComplete={() => setTransitioning(false)}
           >
             <Character
               stableResolution

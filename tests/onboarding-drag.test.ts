@@ -29,10 +29,12 @@ test("onboarding waits for the visible native frame, then one setup gesture foll
         build.onLoad({ filter: /electron[\\/]main\.ts$/ }, async ({path}) => ({
           contents: (await readFile(path, "utf8")) + `
             export const dragTest={ipcMain,screen,command,published:[],
+              snapshot,
+              desktop(){onboarding=null;state.settings.size=180;},
               fixture(p,s){state=defaultState();pet=p;studio=s;quitting=false;switchingAccount=false;
                 onboarding={view:{step:2,phase:'anchored',talking:false,characterReady:true},originalVisible:false};
                 characterReady=true;characterFrame={width:104,height:104};cloud={view:{status:'ready',userId:'test'}};activeAccount='test';cloudConfigError=undefined;
-                screenGuide.cancel=()=>{};publish=()=>{dragTest.published.push({phase:onboarding.view.phase,nativeReady:petFrameReady()&&pet.isVisible()})};endChatResize=()=>{};
+                screenGuide.cancel=()=>{};publish=()=>{dragTest.published.push({phase:onboarding?.view.phase,nativeReady:petFrameReady()&&pet.isVisible()})};endChatResize=()=>{};
                 finishPresentation=()=>{onboarding.view.phase='departing'};
                 returnToAnchor=()=>{onboarding.view.phase='ready'};registerIPC();},
               anchor(phase){onboarding.view.phase=phase;onboarding.slot={x:200,y:100,width:282,height:282};positionAnchor();},
@@ -52,8 +54,8 @@ test("onboarding waits for the visible native frame, then one setup gesture foll
     const pet = {
       webContents: { id: 11, send() {} }, isDestroyed: () => false,
       getBounds: () => ({...bounds}), getContentBounds: () => ({...bounds}),
-      setPosition(x: number, y: number) { bounds = {...bounds, x, y}; moves++; },
-      setBounds(next: typeof bounds) {stable();bounds={...next};}, setParentWindow: stable, setVisibleOnAllWorkspaces: stable,
+      setPosition(x: number, y: number) { bounds = {...bounds, x, y, width:bounds.width+1,height:bounds.height+1}; moves++; },
+      setBounds(next: typeof bounds) {bounds={...bounds,...next};moves++;}, setParentWindow: stable, setVisibleOnAllWorkspaces: stable,
       setFocusable:stable,
       setAlwaysOnTop: stable, showInactive() {stable();visible=true;}, hide() {stable();visible=false;},
       getParentWindow:()=>null, isVisible:()=>visible,
@@ -97,6 +99,13 @@ test("onboarding waits for the visible native frame, then one setup gesture foll
     h.screen.cursor = {x:-150,y:150};
     await new Promise(resolve => setTimeout(resolve, 40));
     assert.deepEqual(bounds, {x:-200,y:100,width:282,height:282}, "native sampling moves Bito outside setup, including negative display coordinates");
+    for (let i=0;i<1000;i++) {
+      h.screen.cursor={x:-150+i%100,y:150+i%50};
+      h.ipcMain.emit("bito:drag-move",event,i,i);
+      assert.equal(bounds.width,282,"onboarding movement cannot accumulate DPI rounding");
+      assert.equal(bounds.height,282);
+    }
+    h.screen.cursor={x:-150,y:150};
     h.ipcMain.emit("bito:drag-move", event, 9999, 9999);
     assert.equal(bounds.x, -200, "DOM coordinates cannot fight native coordinates");
     h.screen.cursor = {x:-250,y:200};
@@ -108,6 +117,18 @@ test("onboarding waits for the visible native frame, then one setup gesture foll
     h.ipcMain.emit("bito:drag-move", event, 100, 100);
     await new Promise(resolve => setTimeout(resolve, 30));
     assert.equal(moves, stoppedMoves, "late movement cannot continue after release");
+    h.desktop(); preparing=true;
+    // Simulate a fractional-DPI readback that is one DIP larger at each grab.
+    for(let gesture=0;gesture<20;gesture++) {
+      bounds.width=213; bounds.height=213;
+      h.ipcMain.emit("bito:drag-start",other);
+      for(let move=0;move<100;move++) {
+        h.ipcMain.emit("bito:drag-move",other,move,-move);
+        assert.equal(bounds.width,212,"desktop size comes from settings, not prior OS rounding");
+        assert.equal(bounds.height,212);
+      }
+      h.cleanup();
+    }
   } finally {
     h?.cleanup();
     await rm(folder, {recursive:true,force:true});

@@ -2,6 +2,15 @@
 
 Perubahan Bito per versi. Setiap rilis ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
 
+## [0.6.1](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.1) — 7 November 2026
+
+- Artwork login dan onboarding tampil penuh; kartu login tetap ringkas.
+- Transisi login ke onboarding menyambung dengan satu canvas Bito dan animasi panel yang selaras.
+- Handoff drag mempertahankan satu pemilik karakter agar Bito inline tidak muncul kembali saat karakter native diseret.
+- Ukuran jendela karakter dikunci selama drag untuk menghindari pertumbuhan akibat pembulatan DPI Windows.
+- Tes regresi mencakup 1.000 gerakan onboarding dan 20 sesi drag desktop; pengujian interaksi pada laptop Windows masih diperlukan.
+- Detail verifikasi dan batasan tersedia di [catatan rilis](docs/releases/v0.6.1.md).
+
 ## [0.6.0](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.0) — 5 November 2026
 
 - Rilis Latest untuk macOS Apple Silicon, macOS Intel, dan Windows x64.

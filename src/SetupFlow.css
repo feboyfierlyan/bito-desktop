@@ -43,7 +43,7 @@
 .setup-flow .auth-window {
   background: transparent;
 }
-.setup-flow .auth-card {
+.setup-flow .auth-window .auth-card {
   background: transparent;
   border-color: transparent;
   box-shadow: none;

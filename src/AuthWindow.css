@@ -39,14 +39,17 @@
   position: relative;
   z-index: 1;
   width: min(360px, calc(100% - 64px));
+  max-width: 360px;
+  flex: none;
   /* The invisible scene anchors the header. Feedback expands only downward. */
   height: 312px;
   margin-top: -16px;
 }
-.auth-card {
+.auth-window .auth-card {
   position: relative;
   width: 100%;
   height: auto;
+  min-height: 0;
   padding: 32px 27px;
   border: 1.5px solid #255b3f;
   border-radius: 19px;
@@ -197,7 +200,7 @@
   .auth-scene {
     width: calc(100% - 40px);
   }
-  .auth-card {
+  .auth-window .auth-card {
     padding-inline: 20px;
   }
   .auth-heading p {
