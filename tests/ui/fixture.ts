@@ -49,7 +49,9 @@ if (import.meta.env.DEV) {
   // Exercise the real workspace's scroll containment without touching user data.
   if (new URLSearchParams(location.search).has("long")) {
     project.plan.milestones[1].tasks.push(
-      ...Array.from({ length: 30 }, (_, index) => task(`Tugas verifikasi scroll ${index + 1}`)),
+      ...Array.from({ length: 30 }, (_, index) =>
+        task(`Tugas verifikasi scroll ${index + 1}`),
+      ),
     );
   }
   recordProjectProgress(project);
@@ -93,6 +95,29 @@ if (import.meta.env.DEV) {
       projectId: project.id,
     },
   ];
+  const fixtureParams = new URLSearchParams(location.search);
+  if (fixtureParams.has("large-text"))
+    document.documentElement.style.fontSize = "200%";
+  if (fixtureParams.has("blocked")) {
+    state.projects = [project];
+    for (const milestone of project.plan!.milestones)
+      for (const task of milestone.tasks) task.status = "blocked";
+  }
+  if (fixtureParams.has("complete")) {
+    state.projects = [project];
+    project.status = "completed";
+    for (const milestone of project.plan!.milestones)
+      for (const task of milestone.tasks) task.status = "done";
+  }
+  if (fixtureParams.has("empty")) {
+    state.projects = [];
+    state.activeProjectId = null;
+  }
+  if (fixtureParams.has("longname")) {
+    state.profile.name = "Raka dengan nama panggilan yang panjang";
+    project.name =
+      "Riset komparatif dan persiapan presentasi akhir semester untuk kelompok studi sistem tertanam";
+  }
   localStorage.setItem("bito-preview", JSON.stringify(state));
   await import("../../src/main");
 }

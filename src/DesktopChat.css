@@ -9,9 +9,9 @@
   justify-content: flex-end;
   gap: 0;
   background: transparent;
-  color: #242426;
+  color: var(--bito-ink);
   transform-origin: left 60%;
-  --desktop-blue: #2b8cff;
+  --desktop-blue: var(--bito-ink);
 }
 .desktop-chat-panel {
   position: absolute;
@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  border-radius: 30px;
+  border-radius: 16px;
   overflow: hidden;
   overflow: clip;
   will-change: clip-path, opacity;
@@ -36,13 +36,13 @@
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.98);
   border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: inset 0 0 0 1px #ffffff65;
+  box-shadow: inset 0 1px 0 #ffffff80;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   pointer-events: none;
 }
 body[data-solid="true"] .desktop-chat-surface {
-  background: #fff;
+  background: var(--bito-surface);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -108,7 +108,7 @@ body[data-solid="true"] .desktop-chat-surface {
   width: 40px;
   height: 32px;
   padding: 0;
-  color: #909094;
+  color: var(--bito-secondary);
   opacity: 0.65;
   cursor: ne-resize;
   touch-action: none;
@@ -117,7 +117,7 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 .desktop-chat-resize-grip:hover,
 .desktop-chat-resize-grip:active {
-  color: #66666b;
+  color: var(--bito-ink-soft);
 }
 .desktop-chat[data-dock="left"] .desktop-chat-resize-bar {
   justify-content: flex-start;
@@ -144,11 +144,11 @@ body[data-solid="true"] .desktop-chat-surface {
 .desktop-chat-messages::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 8px;
-  background: #c7c7cc;
+  background: var(--bito-surface-muted);
   background-clip: padding-box;
 }
 .desktop-chat-messages::-webkit-scrollbar-thumb:hover {
-  background-color: #aaaab2;
+  background-color: var(--bito-secondary);
 }
 .desktop-chat-messages::-webkit-scrollbar-track {
   background: transparent;
@@ -188,7 +188,7 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 .desktop-day-separator {
   padding: 8px 0 2px;
-  color: #818188;
+  color: var(--bito-secondary);
   font-size: 11px;
   font-weight: 500;
   line-height: 16px;
@@ -198,7 +198,7 @@ body[data-solid="true"] .desktop-chat-surface {
   position: absolute;
   bottom: -14px;
   left: 3px;
-  color: #85858d;
+  color: var(--bito-secondary);
   font-size: 10px;
   line-height: 12px;
   font-variant-numeric: tabular-nums;
@@ -225,7 +225,7 @@ body[data-solid="true"] .desktop-chat-surface {
   align-items: center;
   gap: 4px 10px;
   margin: 6px 3px 0;
-  color: #818188;
+  color: var(--bito-secondary);
   font-size: 11px;
   line-height: 16px;
 }
@@ -236,11 +236,11 @@ body[data-solid="true"] .desktop-chat-surface {
   gap: 4px;
 }
 .desktop-message-status.error > span {
-  color: #b95750;
+  color: var(--bito-error);
 }
 .desktop-message-status button {
   padding: 0;
-  color: #3680cf;
+  color: var(--bito-ink);
   font-size: inherit;
   line-height: inherit;
 }
@@ -250,7 +250,7 @@ body[data-solid="true"] .desktop-chat-surface {
 .desktop-message-menu-time {
   display: block;
   padding: 6px 9px;
-  color: #818188;
+  color: var(--bito-secondary);
   font-size: 11px;
   line-height: 16px;
 }
@@ -261,14 +261,14 @@ body[data-solid="true"] .desktop-chat-surface {
   padding: 13px 18px;
   border-radius: 22px;
   background: transparent;
-  color: #252527;
+  color: var(--bito-ink);
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.15px;
-  --bubble-fill: #e9e9eb;
+  --bubble-fill: var(--bito-surface-muted);
 }
 .desktop-message.user .desktop-bubble {
-  color: #fff;
+  color: var(--bito-surface);
   --bubble-fill: var(--desktop-blue);
 }
 .desktop-chat .bubble-tail {
@@ -287,7 +287,7 @@ body[data-solid="true"] .desktop-chat-surface {
   margin-bottom: 0;
 }
 .desktop-chat .desktop-bubble pre {
-  background: #0000000a;
+  background: #0a0a0a0a;
   font-size: 11px;
 }
 .desktop-chat .desktop-bubble h1,
@@ -349,9 +349,9 @@ body[data-solid="true"] .desktop-chat-surface {
   max-width: none;
 }
 .desktop-greeting-hit:focus-visible {
-  outline: 2px solid #8ebcf5;
+  outline: 2px solid var(--bito-focus);
   outline-offset: 5px;
-  border-radius: 24px;
+  border-radius: 16px;
 }
 .greeting-open-text {
   display: block;
@@ -377,31 +377,31 @@ body[data-solid="true"] .desktop-chat-surface {
 .greeting-coach-actions button {
   min-height: 30px;
   padding: 6px 10px;
-  border: 1px solid #e5e8ee;
+  border: 1px solid var(--bito-hairline);
   border-radius: 16px;
   background: #fffffff5;
-  color: #48566b;
+  color: var(--bito-ink-soft);
   font: inherit;
   font-size: 11px;
-  box-shadow: 0 2px 8px #172a4412;
+  box-shadow: none;
   cursor: pointer;
   transition:
     transform 160ms ease,
     background 160ms ease;
 }
 .greeting-coach-actions button:hover {
-  background: #edf4ff;
+  background: var(--bito-surface-muted);
 }
 .greeting-coach-actions button:active {
   transform: scale(0.96);
 }
 .greeting-coach-actions .greeting-coach-start {
-  background: #007aff;
-  color: #fff;
-  border-color: #007aff;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
+  border-color: var(--bito-hairline);
 }
 .greeting-coach-actions .greeting-coach-start:hover {
-  background: #0068e0;
+  background: var(--bito-ink);
 }
 .greeting-coach-actions button:disabled {
   opacity: 0.55;
@@ -409,7 +409,7 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 .greeting-open-text:focus-visible,
 .greeting-coach-actions button:focus-visible {
-  outline: 2px solid #8ebcf5;
+  outline: 2px solid var(--bito-focus);
   outline-offset: 3px;
 }
 .greeting-coach-error {
@@ -417,8 +417,8 @@ body[data-solid="true"] .desktop-chat-surface {
   margin-top: 6px;
   padding: 6px 10px;
   border-radius: 12px;
-  color: #a94335;
-  background: #fff;
+  color: var(--bito-error);
+  background: var(--bito-surface);
   font-size: 11px;
 }
 .desktop-greeting[data-transferring="true"] .greeting-coach-controls {
@@ -441,7 +441,7 @@ body[data-solid="true"] .desktop-chat-surface {
   padding: 7px 2px;
 }
 .desktop-chat .typing i {
-  background: #949499;
+  background: var(--bito-muted);
 }
 .desktop-composer-area {
   position: relative;
@@ -458,15 +458,15 @@ body[data-solid="true"] .desktop-chat-surface {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid #e4e4e9;
+  border: 1px solid var(--bito-hairline);
   border-radius: 50%;
   background: #fffffffa;
-  color: #3680cf;
-  box-shadow: 0 2px 8px #00000012;
+  color: var(--bito-ink);
+  box-shadow: none;
   transition: background 120ms ease;
 }
 .desktop-jump-latest:hover {
-  background: #f5f8fc;
+  background: var(--bito-surface-muted);
 }
 .desktop-composer {
   width: 100%;
@@ -485,8 +485,8 @@ body[data-solid="true"] .desktop-chat-surface {
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 27px;
-  background: #e7e7e9;
-  box-shadow: inset 0 0 0 1px #ffffff50;
+  background: var(--bito-surface-muted);
+  box-shadow: inset 0 1px 0 #ffffff80;
   width: 100%;
   will-change: height;
 }
@@ -507,12 +507,12 @@ body[data-solid="true"] .desktop-chat-surface {
   border-radius: 50%;
 }
 .desktop-more {
-  color: #939395;
+  color: var(--bito-secondary);
 }
 .desktop-more:hover,
 .desktop-more[aria-expanded="true"] {
-  background: #00000006;
-  color: #737377;
+  background: #0a0a0a06;
+  color: var(--bito-secondary);
 }
 .desktop-composer textarea {
   flex: 1;
@@ -528,7 +528,7 @@ body[data-solid="true"] .desktop-chat-surface {
   box-shadow: none;
   resize: none;
   background: transparent;
-  color: #242426;
+  color: var(--bito-ink);
   font-size: 14px;
   line-height: 22px;
   overflow-y: auto;
@@ -539,14 +539,14 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 .desktop-send {
   background: var(--desktop-blue);
-  color: #fff;
+  color: var(--bito-surface);
 }
 .desktop-send:hover:not(:disabled) {
-  background: #1680fa;
+  background: var(--bito-ink);
 }
 .desktop-send:disabled {
   opacity: 1;
-  background: #c3daf6;
+  background: var(--bito-surface-muted);
   color: #ffffffeb;
 }
 .desktop-send .bito-button-content > span {
@@ -560,8 +560,8 @@ body[data-solid="true"] .desktop-chat-surface {
   padding: 5px;
   border: 1px solid #ffffffd9;
   border-radius: 16px;
-  background: #f9f9fb;
-  box-shadow: 0 5px 16px #00000019;
+  background: var(--bito-surface-warm);
+  box-shadow: var(--bito-shadow-floating);
   transform-origin: bottom left;
 }
 .desktop-options {
@@ -575,19 +575,19 @@ body[data-solid="true"] .desktop-chat-surface {
   width: 100%;
   min-height: 34px;
   padding: 8px 9px;
-  border-radius: 10px;
+  border-radius: 8px;
   text-align: left;
   font-size: 12px;
-  color: #37373b;
+  color: var(--bito-ink-soft);
 }
 .desktop-popover button:hover,
 .desktop-popover button:focus-visible {
-  background: #e9eef7;
+  background: var(--bito-surface-muted);
   outline: none;
 }
 .desktop-popover button svg {
   flex-shrink: 0;
-  color: #8c8c93;
+  color: var(--bito-secondary);
 }
 .desktop-attachment {
   position: absolute;
@@ -599,8 +599,8 @@ body[data-solid="true"] .desktop-chat-surface {
   gap: 8px;
   border-radius: 16px;
   padding: 8px 10px;
-  background: #e9e9eb;
-  color: #55555a;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink-soft);
   font-size: 12px;
 }
 .desktop-attachment span {
@@ -618,8 +618,8 @@ body[data-solid="true"] .desktop-chat-surface {
   flex: 1;
   min-height: 0;
   padding: 14px 18px;
-  border-radius: 24px;
-  background: #f9f9fb;
+  border-radius: 16px;
+  background: var(--bito-surface-warm);
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -633,7 +633,7 @@ body[data-solid="true"] .desktop-chat-surface {
   height: 28px;
   padding: 0;
   border-radius: 50%;
-  background: #f9f9fb;
+  background: var(--bito-surface-warm);
 }
 .desktop-tool-panel .focus-view .timer-ring {
   width: 115px;
@@ -675,8 +675,8 @@ body[data-solid="true"] .desktop-chat-surface {
   top: 0;
   bottom: auto;
   max-height: 36px;
-  background: #eef4fc;
-  color: #4e637d;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
 }
 .desktop-context-attachment button {
   width: 24px;
@@ -686,7 +686,7 @@ body[data-solid="true"] .desktop-chat-surface {
   cursor: pointer;
 }
 .desktop-context-attachment button:hover {
-  background: #dbe7f8;
+  background: var(--bito-surface-muted);
 }
 
 .desktop-area-message {
@@ -694,7 +694,7 @@ body[data-solid="true"] .desktop-chat-surface {
   gap: 5px;
   align-items: center;
   justify-content: flex-end;
-  color: #858c98;
+  color: var(--bito-secondary);
   font-size: 11px;
   margin: 0 10px 5px;
 }
@@ -703,7 +703,7 @@ body[data-solid="true"] .desktop-chat-surface {
 .desktop-search-label {
   margin-left: 8px;
   font-size: 12px;
-  color: #737881;
+  color: var(--bito-secondary);
   font-weight: 400;
   white-space: nowrap;
 }
@@ -711,7 +711,7 @@ body[data-solid="true"] .desktop-chat-surface {
   width: 100%;
   max-width: 100%;
   margin-top: 10px;
-  color: #737881;
+  color: var(--bito-secondary);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -722,7 +722,7 @@ body[data-solid="true"] .desktop-chat-surface {
   border-radius: 6px;
 }
 .desktop-search-sources .astryx-collapsible-trigger:hover {
-  color: #007aff;
+  color: var(--bito-ink);
 }
 .desktop-search-sources ol {
   margin: 5px 0 8px;
@@ -735,9 +735,9 @@ body[data-solid="true"] .desktop-chat-surface {
   justify-content: space-between;
   gap: 8px;
   padding: 7px 9px;
-  border-radius: 9px;
+  border-radius: 8px;
   text-decoration: none;
-  color: #49617c;
+  color: var(--bito-ink);
   transition:
     background 0.16s ease,
     color 0.16s ease;
@@ -746,8 +746,8 @@ body[data-solid="true"] .desktop-chat-surface {
   overflow-wrap: anywhere;
 }
 .desktop-search-sources li a:hover {
-  background: #eaf2ff;
-  color: #007aff;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 .desktop-search-sources li svg {
   flex: 0 0 auto;
@@ -770,14 +770,11 @@ body[data-solid="true"] .desktop-chat-surface {
   align-items: center;
   gap: 5px;
   border: 0;
-  background: #e8f1ff;
-  color: #5684bb;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
   border-radius: 8px;
   padding: 4px 9px;
-  font:
-    11px -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font: 11px var(--bito-font);
   cursor: pointer;
 }
 .desktop-project-context span {
@@ -806,10 +803,10 @@ body[data-solid="true"] .desktop-chat-surface {
   left: 0;
   width: min(300px, 100%);
   padding: 6px;
-  border: 1px solid #e7eaf0;
+  border: 1px solid var(--bito-hairline);
   border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 12px 32px #24385b1f;
+  background: var(--bito-surface);
+  box-shadow: var(--bito-shadow-floating);
   transform-origin: left bottom;
   overflow: hidden;
 }
@@ -826,9 +823,9 @@ body[data-solid="true"] .desktop-chat-surface {
   width: 100%;
   min-height: 36px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
-  color: #364152;
+  color: var(--bito-ink-soft);
   padding: 8px 10px;
   font: inherit;
   font-size: 12px;
@@ -848,26 +845,26 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 .desktop-project-menu button:hover,
 .desktop-project-menu button:focus-visible {
-  background: #f1f5fc;
+  background: var(--bito-surface-muted);
 }
 .desktop-project-menu button[aria-checked="true"] {
-  background: #eaf2ff;
-  color: #087bff;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
 }
 .desktop-project-menu button:disabled {
   opacity: 0.5;
   cursor: default;
 }
 .desktop-project-menu .desktop-project-create {
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid var(--bito-hairline);
   border-radius: 0 0 10px 10px;
   margin-top: 5px;
-  color: #087bff;
+  color: var(--bito-ink);
 }
 .desktop-project-menu p {
   margin: 6px 10px;
   font-size: 12px;
-  color: #b44334;
+  color: var(--bito-ink);
 }
 
 /* Files share the composer and panel animation; no separate overlay window. */
@@ -890,8 +887,8 @@ body[data-solid="true"] .desktop-chat-surface {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #eaf2ff;
-  color: #376cba;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
   border-radius: 12px;
   padding: 6px 8px;
   max-width: 190px;
@@ -915,7 +912,7 @@ body[data-solid="true"] .desktop-chat-surface {
 .desktop-plan-files {
   border: 0;
   border-radius: 12px;
-  background: #007aff;
+  background: var(--bito-ink);
   color: white;
   padding: 7px 11px;
   cursor: pointer;
@@ -931,7 +928,7 @@ body[data-solid="true"] .desktop-chat-surface {
   cursor: default;
 }
 .desktop-file-status {
-  color: #718096;
+  color: var(--bito-secondary);
   display: flex;
   gap: 6px;
   align-items: center;
@@ -946,14 +943,14 @@ body[data-solid="true"] .desktop-chat-surface {
   }
 }
 .desktop-file-error {
-  color: #b94739;
+  color: var(--bito-error);
   display: flex;
   align-items: center;
   gap: 6px;
   flex-basis: 100%;
 }
 .desktop-file-warning {
-  color: #916b38;
+  color: var(--bito-warning);
   flex-basis: 100%;
 }
 .desktop-file-drop {
@@ -961,15 +958,15 @@ body[data-solid="true"] .desktop-chat-surface {
   inset: 10px;
   z-index: 80;
   pointer-events: none;
-  border: 1.5px dashed #62a1fa;
-  border-radius: 24px;
-  background: rgba(242, 247, 255, 0.96);
+  border: 1.5px dashed var(--bito-hairline);
+  border-radius: 16px;
+  background: #f9f8f6f5;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: #377ac8;
+  color: var(--bito-ink);
   font-size: 13px;
 }
 .desktop-file-drop strong {
@@ -987,8 +984,8 @@ body[data-solid="true"] .desktop-chat-surface {
   align-items: center;
   gap: 4px;
   border-radius: 8px;
-  background: #e9f1ff;
-  color: #567aa9;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
   padding: 4px 7px;
   font-size: 11px;
   max-width: 100%;
@@ -1001,42 +998,199 @@ body[data-solid="true"] .desktop-chat-surface {
 }
 
 /* Draft and sent attachments share the same small, recognisable preview. */
-.attachment-card { display:flex; align-items:center; gap:10px; min-width:0; color:#333b45; }
-.attachment-thumbnail,.attachment-document { width:66px; height:54px; flex:none; border-radius:8px; border:1px solid #e3e7ec; background:#fff; object-fit:contain; }
-.attachment-document { display:flex; align-items:center; justify-content:center; flex-direction:column; gap:3px; overflow:hidden; padding:6px; color:#738396; }
-.attachment-document span { font-size:7px; line-height:1.2; width:100%; max-height:20px; overflow:hidden; }
-.attachment-caption { display:flex; flex-direction:column; gap:3px; min-width:0; }
-.attachment-caption strong { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.attachment-caption small { font-size:10px; color:#828b98; }
-.desktop-chat .desktop-file-chip { min-width:180px; max-width:100%; padding:7px; gap:8px; border-radius:12px; }
-.desktop-chat .desktop-context-attachment { height:72px; padding:8px; gap:8px; border-radius:12px; }
-.desktop-context-attachment .attachment-card { flex:1; }
-.desktop-history-files { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
-.desktop-history-files .attachment-card { max-width:260px; padding:8px; border:1px solid #e7ebef; background:#f8fafc; border-radius:12px; margin-bottom:6px; }
+.attachment-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--bito-ink-soft);
+}
+.attachment-thumbnail,
+.attachment-document {
+  width: 66px;
+  height: 54px;
+  flex: none;
+  border-radius: 8px;
+  border: 1px solid var(--bito-hairline);
+  background: var(--bito-surface);
+  object-fit: contain;
+}
+.attachment-document {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+  padding: 6px;
+  color: var(--bito-secondary);
+}
+.attachment-document span {
+  font-size: 7px;
+  line-height: 1.2;
+  width: 100%;
+  max-height: 20px;
+  overflow: hidden;
+}
+.attachment-caption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.attachment-caption strong {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.attachment-caption small {
+  font-size: 10px;
+  color: var(--bito-secondary);
+}
+.desktop-chat .desktop-file-chip {
+  min-width: 180px;
+  max-width: 100%;
+  padding: 7px;
+  gap: 8px;
+  border-radius: 12px;
+}
+.desktop-chat .desktop-context-attachment {
+  height: 72px;
+  padding: 8px;
+  gap: 8px;
+  border-radius: 12px;
+}
+.desktop-context-attachment .attachment-card {
+  flex: 1;
+}
+.desktop-history-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.desktop-history-files .attachment-card {
+  max-width: 260px;
+  padding: 8px;
+  border: 1px solid var(--bito-hairline);
+  background: var(--bito-surface-warm);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
 
-.desktop-file-chip .attachment-document span { white-space:normal; }
+.desktop-file-chip .attachment-document span {
+  white-space: normal;
+}
 
 /* The empty composer stays proportional to the mini companion. */
-.desktop-composer-area { margin-top:8px; }
-.desktop-composer { min-height:42px; border-radius:22px; }
-.desktop-composer-reveal { border-radius:22px; }
-.desktop-composer textarea { margin:3px 0; font-size:13px; }
-.desktop-more,.desktop-send { width:30px; height:30px; }
-.desktop-more svg,.desktop-send svg { width:19px; height:19px; }
-.desktop-chat-panel { border-radius:24px; }
-.desktop-chat-resize-grip { opacity:0; }
-.desktop-chat-panel:hover .desktop-chat-resize-grip,.desktop-chat-resize-grip:focus-visible { opacity:.55; }
-.desktop-project-context { font-size:11px; height:22px; }
+.desktop-composer-area {
+  margin-top: 8px;
+}
+.desktop-composer {
+  min-height: 42px;
+  border-radius: 22px;
+}
+.desktop-composer-reveal {
+  border-radius: 22px;
+}
+.desktop-composer textarea {
+  margin: 3px 0;
+  font-size: 13px;
+}
+.desktop-more,
+.desktop-send {
+  width: 30px;
+  height: 30px;
+}
+.desktop-more svg,
+.desktop-send svg {
+  width: 19px;
+  height: 19px;
+}
+.desktop-chat-panel {
+  border-radius: 16px;
+}
+.desktop-chat-resize-grip {
+  opacity: 0;
+}
+.desktop-chat-panel:hover .desktop-chat-resize-grip,
+.desktop-chat-resize-grip:focus-visible {
+  opacity: 0.55;
+}
+.desktop-project-context {
+  font-size: 11px;
+  height: 22px;
+}
 
-.desktop-chat .desktop-more,.desktop-chat .desktop-send { width:30px; height:30px; min-width:30px; min-height:30px; }
+.desktop-chat .desktop-more,
+.desktop-chat .desktop-send {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+}
 
-.desktop-chat { font-size:13px; }
-.desktop-chat .desktop-project-context.bito-button { font-size:11px; font-weight:450; height:22px; min-height:22px; padding:3px 7px; gap:4px; background:#f0f3f6; color:#667587; }
-.desktop-chat .desktop-popover .bito-button { font-size:12px; font-weight:400; padding:6px 8px; min-height:30px; gap:8px; border-radius:6px; }
-.desktop-chat .desktop-popover .bito-button svg { width:14px; height:14px; }
-.desktop-chat .desktop-more.bito-button,.desktop-chat .desktop-send.bito-button { width:28px; height:28px; min-width:28px; min-height:28px; max-width:28px; max-height:28px; }
-.desktop-chat .desktop-composer > .bito-chat-composer { grid-template-columns:28px minmax(0,1fr) 28px; }
-.desktop-chat-overlay { position:fixed; z-index:90; overflow:auto; scrollbar-width:thin; border-radius:10px; box-shadow:0 5px 20px #18292f20; }
-.desktop-chat-overlay .desktop-popover { position:relative; left:auto; bottom:auto; width:100%; max-width:none; margin:0; border-radius:10px; box-shadow:none; }
-.desktop-chat-overlay .desktop-project-choices { max-height:180px; }
-.desktop-chat-overlay .desktop-project-create { margin-top:4px; padding-top:7px; }
+.desktop-chat {
+  font-size: 13px;
+}
+.desktop-chat .desktop-project-context.bito-button {
+  font-size: 11px;
+  font-weight: 450;
+  height: 22px;
+  min-height: 22px;
+  padding: 3px 7px;
+  gap: 4px;
+  background: var(--bito-surface-warm);
+  color: var(--bito-secondary);
+}
+.desktop-chat .desktop-popover .bito-button {
+  font-size: 12px;
+  font-weight: 400;
+  padding: 6px 8px;
+  min-height: 30px;
+  gap: 8px;
+  border-radius: 6px;
+}
+.desktop-chat .desktop-popover .bito-button svg {
+  width: 14px;
+  height: 14px;
+}
+.desktop-chat .desktop-more.bito-button,
+.desktop-chat .desktop-send.bito-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+}
+.desktop-chat .desktop-composer > .bito-chat-composer {
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
+}
+.desktop-chat-overlay {
+  position: fixed;
+  z-index: 90;
+  overflow: auto;
+  scrollbar-width: thin;
+  border-radius: 8px;
+  box-shadow: var(--bito-shadow-floating);
+}
+.desktop-chat-overlay .desktop-popover {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.desktop-chat-overlay .desktop-project-choices {
+  max-height: 180px;
+}
+.desktop-chat-overlay .desktop-project-create {
+  margin-top: 4px;
+  padding-top: 7px;
+}

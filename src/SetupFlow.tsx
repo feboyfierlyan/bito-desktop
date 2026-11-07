@@ -124,7 +124,7 @@ export function SetupFlow({
               top: geometry.panel.y,
               width: geometry.panel.width,
               height: geometry.panel.height,
-              borderRadius: login ? 19 : 14,
+              borderRadius: login ? 16 : 12,
             }}
             transition={{ type: "tween", duration, ease }}
           />

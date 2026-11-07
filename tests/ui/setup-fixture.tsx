@@ -8,6 +8,7 @@ import type { Snapshot } from "../../src/shared";
 import "../../src/style.css";
 import "../../src/ui/astryx-bito.css";
 import "../../src/ui/workspace.css";
+import "../../src/ui/product.css";
 
 if (import.meta.env.DEV) {
   function Fixture() {

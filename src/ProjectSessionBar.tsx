@@ -1,3 +1,4 @@
+import { BitoMascot } from "./ui/BitoMascot";
 import { BitoButton, BitoTextArea, BitoInput } from "./ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
@@ -68,6 +69,7 @@ export function ProjectSessionBar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduced ? 0 : 0.2 }}
     >
+      <BitoMascot className="session-mascot" />
       <div className="board-session-copy">
         <small>
           {session?.phase === "running"

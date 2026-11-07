@@ -1,3 +1,4 @@
+import { BitoMascot } from "./ui/BitoMascot";
 import {ChatPopover} from "./ui/ChatPopover";
 import { AttachmentCard } from "./ui/AttachmentCard";
 import type { AttachmentPreview } from "./shared";
@@ -969,10 +970,10 @@ export function DesktopChat({
                       : "M4.5 6C18 3.5 24.5 10 22 23.5",
                   strokeWidth: gripHeld ? 5 : gripHovered ? 4.8 : 4.5,
                   stroke: gripHeld
-                    ? "#2b8cff"
+                    ? "var(--bito-ink)"
                     : gripHovered
-                      ? "#737378"
-                      : "#909094",
+                      ? "var(--bito-secondary)"
+                      : "var(--bito-muted)",
                 }}
                 transition={
                   reduced
@@ -1038,6 +1039,10 @@ export function DesktopChat({
             }}
           >
             <div className="desktop-chat-stack" ref={stack}>
+              {visibleMessages.length === 0 && !state.busy && <section className="desktop-chat-welcome" data-chat-hit aria-label="Mulai percakapan">
+                <div className="desktop-welcome-heading"><BitoMascot /><div><h2>Aku di sini.</h2><p>Mau mulai dari mana?</p></div></div>
+                <div className="desktop-starters">{["Bantu aku mulai", "Aku mau cerita"].map(prompt => <BitoButton key={prompt} type="button" disabled={!!text.trim()} onClick={() => { setText(prompt); textarea.current?.focus(); }}>{prompt}</BitoButton>)}</div>
+              </section>}
               <AnimatePresence initial={false}>
                 {visibleMessages.map((m, index) => {
                   const bubbles = messageBubbleTexts(m);

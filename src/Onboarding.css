@@ -4,8 +4,8 @@
   height: 100dvh;
   min-height: 520px;
   overflow: hidden;
-  background: #fff;
-  color: #1d1d1f;
+  background: var(--bito-surface);
+  color: var(--bito-ink);
   --setup-width: 620px;
 }
 .setup-titlebar {
@@ -33,12 +33,12 @@
   height: 28px;
   padding: 0;
   flex-shrink: 0;
-  border-radius: 9px;
-  color: #9da1a8;
+  border-radius: 8px;
+  color: var(--bito-secondary);
 }
 .setup-navigation button:hover:not(:disabled) {
-  background: #f4f5f7;
-  color: #616771;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink-soft);
 }
 .setup-navigation button:disabled {
   opacity: 0.3;
@@ -52,11 +52,11 @@
   flex: 1;
   height: 3px;
   border-radius: 4px;
-  background: #e5e5e8;
+  background: var(--bito-surface-muted);
   transition: background 240ms ease;
 }
 .setup-progress span.complete {
-  background: #8d9198;
+  background: var(--bito-muted);
 }
 .setup-layout {
   position: relative;
@@ -77,13 +77,13 @@
 }
 .setup h1 {
   font-size: 29px;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -1px;
   line-height: 1.2;
 }
 .setup-description {
   margin-top: 12px;
-  color: #96989f;
+  color: var(--bito-secondary);
   font-size: 14px;
   line-height: 1.6;
   letter-spacing: -0.15px;
@@ -119,8 +119,8 @@
   width: 100%;
   padding: 18px 21px;
   text-align: left;
-  color: #27272b;
-  background: #e9e9eb;
+  color: var(--bito-ink);
+  background: var(--bito-surface-muted);
   border-radius: 25px;
   font-size: 15px;
   line-height: 1.5;
@@ -141,7 +141,7 @@
   bottom: -1px;
   width: 36px;
   height: 30px;
-  fill: #e9e9eb;
+  fill: var(--bito-hairline);
 }
 .setup-word {
   opacity: 0;
@@ -167,15 +167,15 @@
   align-items: center;
   gap: 6px;
   padding: 4px;
-  border: 1px solid #dedee3;
+  border: 1px solid var(--bito-hairline);
   border-radius: 24px;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 .setup-composer:focus-within {
-  border-color: #a8cfff;
-  box-shadow: 0 0 0 3px #007aff09;
+  border-color: var(--bito-focus);
+  box-shadow: 0 0 0 2px var(--bito-focus-soft);
 }
 .setup-composer input {
   min-width: 0;
@@ -192,7 +192,7 @@
   box-shadow: none;
 }
 .setup-composer input::placeholder {
-  color: #b4b5bc;
+  color: var(--bito-muted);
 }
 .setup-send {
   flex-shrink: 0;
@@ -202,14 +202,14 @@
   display: grid;
   place-items: center;
   color: white;
-  background: #007aff;
+  background: var(--bito-ink);
   border-radius: 50%;
   transition:
     background 160ms ease,
     opacity 160ms ease;
 }
 .setup-send:hover:not(:disabled) {
-  background: #006de5;
+  background: var(--bito-ink);
 }
 .setup-send:disabled {
   opacity: 0.24;
@@ -233,9 +233,9 @@
   min-width: 0;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid #e3e4e8;
+  border: 1px solid var(--bito-hairline);
   border-radius: 20px;
-  color: #7e838c;
+  color: var(--bito-secondary);
   font-size: 12px;
   white-space: nowrap;
   transition:
@@ -243,18 +243,18 @@
     border-color 160ms ease;
 }
 .setup-choices button:hover {
-  border-color: #b8d6ff;
-  color: #007aff;
+  border-color: var(--bito-hairline);
+  color: var(--bito-ink);
 }
 .setup-choices button.selected {
-  color: #007aff;
-  border-color: #b8d8ff;
+  color: var(--bito-ink);
+  border-color: var(--bito-hairline);
 }
 .setup-choice-selection {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: #edf5ff;
+  background: var(--bito-surface-warm);
   z-index: -1;
 }
 .setup-leaving .setup-navigation {
@@ -320,7 +320,7 @@ body[data-motion="reduced"] .setup-word {
 }
 .setup-speech {
   background: transparent;
-  --bubble-fill: #e9e9eb;
+  --bubble-fill: var(--bito-surface-muted);
 }
 .setup-speech > .bubble-surface {
   position: absolute;
@@ -331,12 +331,12 @@ body[data-motion="reduced"] .setup-word {
   max-width: 100%;
   margin-left: auto;
   padding: 10px 16px;
-  border-radius: 21px;
-  color: #fff;
+  border-radius: 16px;
+  color: var(--bito-surface);
   font-size: 14px;
   line-height: 1.5;
   overflow-wrap: anywhere;
-  --bubble-fill: #007aff;
+  --bubble-fill: var(--bito-ink);
 }
 
 /* The transcript keeps its DOM/history; only its viewport scrolls upward. */

@@ -2,6 +2,16 @@
 
 Perubahan Bito per versi. Setiap rilis ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
 
+## [0.6.2](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.2) — 8 November 2026
+
+- Font lokal baru dan tampilan konsisten untuk seluruh antarmuka Bito.
+- Workspace menampilkan langkah berikutnya, pencarian, filter status, progres, dan panduan proyek pertama.
+- Proyek terhambat diarahkan ke tinjauan rencana; kelanjutan sesi mengikuti catatan progres terbaru.
+- Pengaturan, chat, dan onboarding diperhalus; saran pembuka chat mengisi draf tanpa mengirim otomatis.
+- Teks pendukung lebih terbaca, fokus pencarian tetap terjaga, dan feedback tombol lebih jelas; mendukung preferensi kontras dan transparansi.
+- Mempertahankan perbaikan login, morph onboarding, dan drag Windows dari v0.6.1.
+- 400 tes lokal lulus tanpa skip. Detail dan batasan tersedia di [catatan rilis](docs/releases/v0.6.2.md).
+
 ## [0.6.1](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.1) — 7 November 2026
 
 - Artwork login dan onboarding tampil penuh; kartu login tetap ringkas.

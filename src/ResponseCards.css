@@ -9,12 +9,12 @@
   min-width: 0;
   width: 100%;
   padding: 18px;
-  border: 1px solid #e7ebf1;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 2px 7px #182e4b05;
+  border: 1px solid var(--bito-hairline);
+  background: var(--bito-surface);
+  border-radius: 16px;
+  box-shadow: none;
   overflow-wrap: anywhere;
-  color: #262a30;
+  color: var(--bito-ink);
   font-size: 14px;
   line-height: 1.45;
   transform-origin: left top;
@@ -23,10 +23,10 @@
   font-size: 16px;
   line-height: 1.4;
   letter-spacing: -0.25px;
-  font-weight: 600;
+  font-weight: 500;
   margin: 7px 0 3px;
   overflow-wrap: anywhere;
-  color: #24272d;
+  color: var(--bito-ink);
 }
 .result-eyebrow {
   display: flex;
@@ -34,12 +34,12 @@
   gap: 7px;
   min-width: 0;
   font-size: 11px;
-  color: #7e838d;
+  color: var(--bito-secondary);
   line-height: 18px;
 }
 .result-eyebrow > svg {
   flex-shrink: 0;
-  color: #7d94b0;
+  color: var(--bito-ink);
 }
 .result-status {
   margin-left: auto;
@@ -47,7 +47,7 @@
   font-size: 10px;
   line-height: 15px;
   letter-spacing: 0;
-  color: #87909c;
+  color: var(--bito-secondary);
 }
 .result-timer {
   font-size: 46px;
@@ -59,7 +59,7 @@
 }
 .result-progress {
   height: 4px;
-  background: #eef2f7;
+  background: var(--bito-surface-warm);
   border-radius: 8px;
   overflow: hidden;
   margin: 13px 0 1px;
@@ -68,7 +68,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #2b8cff;
+  background: var(--bito-ink);
   transition: width 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .result-actions {
@@ -85,10 +85,10 @@
   gap: 5px;
   min-height: 34px;
   padding: 8px 12px;
-  background: #f0f3f7;
-  color: #5a636e;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
   line-height: 18px;
@@ -100,17 +100,17 @@
   white-space: normal;
 }
 .response-card .result-actions button:hover {
-  background: #e8edf4;
+  background: var(--bito-surface-muted);
 }
 .response-card .result-actions button:active {
   transform: scale(0.965);
 }
 .response-card .result-actions button.result-primary {
-  background: #2b8cff;
-  color: #fff;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
 }
 .response-card .result-actions button.result-primary:hover {
-  background: #197cf1;
+  background: var(--bito-ink);
 }
 .response-card .result-actions button:disabled {
   opacity: 0.48;
@@ -125,12 +125,12 @@
 .response-card .result-actions button.result-preview-toggle {
   margin-left: auto;
   background: transparent;
-  color: #75849a;
+  color: var(--bito-secondary);
   padding-inline: 3px;
 }
 .response-card button:focus-visible,
 .response-card input:focus-visible {
-  outline: 3px solid #2b8cff60;
+  outline: 3px solid var(--bito-focus);
   outline-offset: 3px;
 }
 .result-task-list {
@@ -144,18 +144,28 @@
   min-height: 38px;
   padding: 10px 0;
   cursor: pointer;
-  border-bottom: 1px solid #f0f2f6;
+  border-bottom: 1px solid var(--bito-hairline);
 }
 .result-task:last-child {
   border-bottom: 0;
 }
-.result-task .astryx-checkbox-input { width: 100%; }
-.result-task .astryx-checkbox-label { font-size: 13px; line-height: 20px; }
-.result-task[data-done="true"] .astryx-checkbox-label { color: #8b939e; text-decoration: line-through; }
-.bito-result-progress { margin: 13px 0 1px; }
+.result-task .astryx-checkbox-input {
+  width: 100%;
+}
+.result-task .astryx-checkbox-label {
+  font-size: 13px;
+  line-height: 20px;
+}
+.result-task[data-done="true"] .astryx-checkbox-label {
+  color: var(--bito-secondary);
+  text-decoration: line-through;
+}
+.bito-result-progress {
+  margin: 13px 0 1px;
+}
 .response-card .result-detail {
   font-size: 12px;
-  color: #8b929c;
+  color: var(--bito-secondary);
   margin: 6px 0 0;
   line-height: 18px;
 }
@@ -166,18 +176,18 @@
 .result-editor label {
   display: block;
   font-size: 11px;
-  color: #7c8490;
+  color: var(--bito-secondary);
   margin-top: 9px;
 }
 .response-card .result-editor input {
   display: block;
   width: 100%;
   margin-top: 5px;
-  border: 1px solid #e1e7ef;
-  border-radius: 9px;
-  background: #f8faff;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
+  background: var(--bito-surface-warm);
   padding: 9px 10px;
-  color: #333a43;
+  color: var(--bito-ink-soft);
   font-size: 13px;
   line-height: 18px;
   min-width: 0;
@@ -192,14 +202,10 @@
   max-height: 230px;
   overflow: auto;
   padding: 12px;
-  border-radius: 11px;
-  background: #f5f8fc;
-  color: #3b4a5e;
-  font:
-    12px/1.7 ui-monospace,
-    SFMono-Regular,
-    Consolas,
-    monospace;
+  border-radius: 12px;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
+  font: 12px/1.7 var(--bito-font);
   white-space: pre-wrap;
   word-break: break-word;
   overscroll-behavior: contain;
@@ -207,7 +213,7 @@
 }
 .response-card .result-error {
   margin: 12px 0 0;
-  color: #ac554e;
+  color: var(--bito-error);
   font-size: 11px;
   line-height: 17px;
 }
@@ -222,7 +228,7 @@
 @media (max-width: 350px) {
   .response-card {
     padding: 14px;
-    border-radius: 17px;
+    border-radius: 16px;
   }
   .response-card .result-actions button {
     padding-inline: 9px;
@@ -243,10 +249,31 @@ body[data-motion="reduced"] .response-card * {
   }
 }
 
-.result-task-review { font-size:14px; line-height:1.6; min-width:0; }
-.result-task-review p { margin:10px 0; }
-.result-task-review ul { padding-left:20px; margin:8px 0; }
-.result-task-review li { margin:6px 0; overflow-wrap:anywhere; }
-.result-task-review small { color:#758091; font-size:12px; }
-.result-task-review .bito-disclosure { margin:10px 0; }
-.result-task-review .astryx-collapsible-trigger { cursor:pointer; color:#377ac7; padding:4px 0; }
+.result-task-review {
+  font-size: 14px;
+  line-height: 1.6;
+  min-width: 0;
+}
+.result-task-review p {
+  margin: 10px 0;
+}
+.result-task-review ul {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.result-task-review li {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.result-task-review small {
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.result-task-review .bito-disclosure {
+  margin: 10px 0;
+}
+.result-task-review .astryx-collapsible-trigger {
+  cursor: pointer;
+  color: var(--bito-ink);
+  padding: 4px 0;
+}

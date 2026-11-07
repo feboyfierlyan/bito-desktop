@@ -3,7 +3,6 @@ import { BitoButton, BitoInput } from "./ui/controls";
 import { Popover } from "@astryxdesign/core/Popover";
 import { Card } from "@astryxdesign/core/Card";
 import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
 import { useEffect, useState, type FormEvent } from "react";
 import { AnimatePresence } from "motion/react";
@@ -18,8 +17,6 @@ import {
   Check,
   Clock3,
   CalendarDays,
-  Search,
-  FolderOpen,
   Flag,
 } from "lucide-react";
 import type { Project } from "./projects";
@@ -50,103 +47,6 @@ const shortDate = (value: string | null) =>
         month: "short",
       })
     : "—";
-
-export function ProjectGallery({
-  projects,
-  onOpen,
-  busy,
-  archives,
-}: {
-  projects: Project[];
-  onOpen: (p: Project) => void;
-  busy: boolean;
-  archives: boolean;
-}) {
-  const [query, setQuery] = useState("");
-  const visible = projects.filter(
-    (p) =>
-      (archives ? p.status === "archived" : p.status !== "archived") &&
-      p.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
-  );
-  return (
-    <div className="board-gallery">
-      <div className="gallery-toolbar">
-        <div className="gallery-search">
-          <Search size={16} />
-          <BitoInput
-            label="Cari proyek"
-            placeholder="Cari proyek…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <span>{visible.length} proyek</span>
-      </div>
-      {visible.map((p) => {
-        const counts = projectProgress(p);
-        const progress = {
-          ...counts,
-          percent: counts.total
-            ? Math.round((counts.done / counts.total) * 100)
-            : 0,
-        };
-        return (
-          <BitoButton
-            className="board-project-card"
-            key={p.id}
-            disabled={busy}
-            onClick={() => onOpen(p)}
-          >
-            <FolderOpen className="project-list-icon" size={19} />
-            <div className="board-project-caption">
-              <strong>{p.name}</strong>
-              <span>
-                {archives
-                  ? "Buka dari arsip"
-                  : p.status === "completed"
-                    ? "Selesai"
-                    : progress.total
-                      ? `${progress.done}/${progress.total} selesai`
-                      : "Belum ada rencana"}
-                {p.deadline && ` · ${shortDate(p.deadline)}`}
-              </span>
-              {progress.total > 0 && (
-                <ProgressBar
-                  className="bito-gallery-progress"
-                  label={`Progres ${p.name}`}
-                  value={progress.percent}
-                  isLabelHidden
-                />
-              )}
-            </div>
-            <ChevronRight className="project-list-chevron" size={16} />
-          </BitoButton>
-        );
-      })}
-      {!visible.length && (
-        <EmptyState
-          className="bito-empty-state"
-          title={
-            query
-              ? "Proyek tidak ditemukan"
-              : archives
-                ? "Belum ada proyek di arsip"
-                : "Belum ada proyek"
-          }
-          description={
-            query
-              ? "Coba kata lain atau hapus pencarian."
-              : archives
-                ? "Proyek yang diarsipkan tetap bisa dilihat dan dipulihkan."
-                : "Pilih Tambah proyek di sidebar untuk mulai."
-          }
-          icon={<FolderOpen size={24} />}
-          isCompact
-        />
-      )}
-    </div>
-  );
-}
 
 export function ProjectBoard({
   project,
@@ -932,20 +832,27 @@ function ProgressChart({ project }: { project: Project }) {
             }
           >
             {[20, 65, 110].map((y) => (
-              <line key={y} x1="12" x2="288" y1={y} y2={y} stroke="#edf0f4" />
+              <line
+                key={y}
+                x1="12"
+                x2="288"
+                y1={y}
+                y2={y}
+                stroke="var(--bito-hairline)"
+              />
             ))}
             {path && (
               <>
                 {history.length > 1 && (
                   <path
                     d={`${path} L${point(history.at(-1)!)[0]},110 L12,110 Z`}
-                    fill="#e8efff"
+                    fill="var(--bito-surface-muted)"
                   />
                 )}
                 <path
                   d={path}
                   fill="none"
-                  stroke="#007aff"
+                  stroke="var(--bito-ink)"
                   strokeWidth="2.5"
                   strokeLinejoin="round"
                 />
@@ -955,7 +862,7 @@ function ProgressChart({ project }: { project: Project }) {
                     cx={point(row)[0]}
                     cy={point(row)[1]}
                     r="3"
-                    fill="#007aff"
+                    fill="var(--bito-ink)"
                   >
                     <title>
                       {date(row.at)} · {row.done}/{row.total} selesai
@@ -969,7 +876,7 @@ function ProgressChart({ project }: { project: Project }) {
                 x="150"
                 y="70"
                 textAnchor="middle"
-                fill="#8c929d"
+                fill="var(--bito-muted)"
                 fontSize="11"
               >
                 Progres dicatat saat langkah berubah.

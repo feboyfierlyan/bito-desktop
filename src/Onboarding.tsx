@@ -224,7 +224,8 @@ export function Onboarding({
       : localReady;
   const phase = state.presentation?.phase || "anchored";
   const leaving = ["dragging", "returning", "departing"].includes(phase);
-  const armed = phase === "ready" && (!isDesktop || !!state.presentation?.nativeReady);
+  const armed =
+    phase === "ready" && (!isDesktop || !!state.presentation?.nativeReady);
   useEffect(() => {
     if (step === 2 && ready && phase === "anchored")
       void api.command("onboarding-arm");
@@ -399,7 +400,9 @@ export function Onboarding({
           aria-label={`Langkah ${step + 1} dari 3`}
         >
           {[0, 1, 2].map((i) => (
-            <span key={i} className={i <= step ? "complete" : ""} />
+            <span key={i} className={i <= step ? "complete" : ""}>
+              <small>{["Kenalan", "Gaya bicara", "Ke desktop"][i]}</small>
+            </span>
           ))}
         </div>
         <BitoButton

@@ -120,7 +120,7 @@ function Spotlight() {
               ease: [0.2, 0.7, 0.2, 1],
             }}
             fill="none"
-            stroke="#0a84ff"
+            stroke="var(--bito-focus)"
             strokeWidth="2.5"
           />
         )}

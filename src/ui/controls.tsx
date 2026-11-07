@@ -70,6 +70,7 @@ export function BitoButton({
         "Bito"
       }
       variant={treatment}
+      data-bito-variant={treatment}
       isDisabled={disabled}
       isLoading={isLoading}
       className={`bito-button ${className}`}

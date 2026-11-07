@@ -380,7 +380,8 @@ test("workspace dialog supports back, close and native Escape cancellation", asy
 });
 
 // Workspace regressions mount the production components, including Astryx inputs.
-const { ProjectGallery, ProjectBoard } = await import("../src/ProjectBoard");
+const { ProjectBoard } = await import("../src/ProjectBoard");
+const { ProjectGallery } = await import("../src/ProjectGallery");
 const { newProject } = await import("../src/projects");
 const { defaultState } = await import("../electron/core");
 const { projectCommand } = await import("../electron/projects");
@@ -450,6 +451,8 @@ test("project directory searches, opens the matching project and explains an unp
   let opened = "";
   await mounted(
     h(ProjectGallery, {
+      name: "Raka",
+      onCreate: () => {},
       projects: [planned, empty],
       onOpen: (p) => {
         opened = p.id;
@@ -460,11 +463,147 @@ test("project directory searches, opens the matching project and explains an unp
     async (host) => {
       assert.match(host.textContent!, /Belum ada rencana/);
       await typeInto(host.querySelector("input")!, "kuis");
-      assert.doesNotMatch(host.textContent!, /Essay/);
-      await act(async () => button(host, "KuisBelum ada rencana").click());
+      assert.doesNotMatch(
+        host.querySelector(".workspace-project-results")!.textContent!,
+        /Essay/,
+      );
+      await act(async () => button(host, "Buka proyek Kuis").click());
       assert.equal(opened, empty.id);
       await typeInto(host.querySelector("input")!, "absent");
-      assert.match(host.textContent!, /Proyek tidak ditemukan/);
+      assert.match(host.textContent!, /Belum ada yang cocok/);
+    },
+  );
+});
+test("an empty workspace explains the flow and exposes a direct create action", async () => {
+  let created = 0;
+  await mounted(
+    h(ProjectGallery, {
+      projects: [],
+      name: "",
+      busy: false,
+      archives: false,
+      onOpen: () => assert.fail("No project exists"),
+      onCreate: () => {
+        created++;
+      },
+    }),
+    async (host) => {
+      assert.equal(host.querySelector("input"), null);
+      assert.match(host.textContent!, /Ceritakan tugasmu/);
+      await act(async () => button(host, "Tambah proyek").click());
+      assert.equal(created, 1);
+    },
+  );
+});
+test("directory filters recover from an empty result and next-step action opens the real project", async () => {
+  const planned = workspaceProject();
+  const done = workspaceProject();
+  done.name = "Finished";
+  done.status = "completed";
+  let opened = "";
+  await mounted(
+    h(ProjectGallery, {
+      projects: [planned, done],
+      activeId: planned.id,
+      name: "Raka",
+      busy: false,
+      archives: false,
+      onOpen: (p) => {
+        opened = p.id;
+      },
+      onCreate: () => assert.fail("An existing work item should open"),
+    }),
+    async (host) => {
+      await act(async () => button(host, "Lihat langkah").click());
+      assert.equal(opened, planned.id);
+      await act(async () => button(host, "Selesai").click());
+      const results = host.querySelector(".workspace-project-results")!;
+      assert.match(results.textContent!, /Finished/);
+      assert.doesNotMatch(results.textContent!, /Essay/);
+      await typeInto(host.querySelector("input")!, "absent");
+      assert.match(results.textContent!, /Belum ada yang cocok/);
+      await act(async () => button(host, "Tampilkan semua").click());
+      assert.equal(host.querySelector("input")!.value, "");
+      assert.equal(document.activeElement, host.querySelector("input"));
+      assert.match(results.textContent!, /Essay/);
+      assert.match(results.textContent!, /Finished/);
+      assert.equal(
+        host.querySelector('.workspace-result-status[role="status"]')
+          ?.textContent,
+        "2 proyek",
+      );
+      const card = button(host, "Buka proyek Finished");
+      const descriptions = card.getAttribute("aria-describedby")!.split(" ");
+      assert.ok(descriptions.every((id) => document.getElementById(id)));
+      await typeInto(host.querySelector("input")!, "Essay");
+      await act(async () => button(host, "Hapus pencarian").click());
+      assert.equal(document.activeElement, host.querySelector("input"));
+    },
+  );
+});
+test("workspace continuation displays the latest checkpoint instead of an obsolete session objective", async () => {
+  const p = workspaceProject();
+  const task = p.plan!.milestones[0].tasks[0];
+  task.status = "doing";
+  p.sessions = [
+    {
+      id: "session",
+      taskId: task.id,
+      taskTitle: task.title,
+      objective: "Tujuan lama",
+      minutes: 15,
+      phase: "paused",
+      startedAt: 1,
+      resumedAt: null,
+      elapsedMs: 1000,
+      endedAt: null,
+    },
+  ];
+  p.checkpoint = {
+    taskId: task.id,
+    lastStop: "Bagian pertama",
+    nextStep: "Periksa bagian kedua",
+    blocker: "",
+    updatedAt: 2,
+  };
+  await mounted(
+    h(ProjectGallery, {
+      projects: [p],
+      name: "Raka",
+      busy: false,
+      archives: false,
+      onCreate: () => {},
+      onOpen: () => {},
+    }),
+    async (host) => {
+      assert.equal(
+        host.querySelector(".workspace-next h3")?.textContent,
+        "Periksa bagian kedua",
+      );
+      assert.ok(button(host, "Kembali ke sesi"));
+    },
+  );
+});
+test("a blocked workspace opens its existing plan for review instead of asking for another project", async () => {
+  const p = workspaceProject();
+  for (const milestone of p.plan!.milestones)
+    for (const task of milestone.tasks) task.status = "blocked";
+  let opened = "";
+  await mounted(
+    h(ProjectGallery, {
+      projects: [p],
+      name: "Raka",
+      busy: false,
+      archives: false,
+      onCreate: () => assert.fail("Blocked work still needs a review path"),
+      onOpen: (project) => {
+        opened = project.id;
+      },
+    }),
+    async (host) => {
+      assert.match(host.textContent!, /Belum ada langkah yang siap dikerjakan/);
+      await act(async () => button(host, "Tinjau proyek").click());
+      assert.equal(opened, p.id);
     },
   );
 });
@@ -837,26 +976,65 @@ test("project board exposes one group creation entry and contextual capture cann
   );
 });
 
-test("first area drag stages immediately; a fresh capture resets the previous gesture", async()=>{
-  const {AreaSelect}=await import("../src/AreaSelectView");
-  let frame: (v:any)=>void=()=>{};const submitted:any[]=[];
-  (win as any).bitoArea={ready(){},painted(){},cancel(){},onFrame(fn:any){frame=fn;return()=>{}},onClose(){return()=>{}},async submit(payload:any){submitted.push(payload);return {ok:true}}};
-  const proto=win.HTMLElement.prototype as any;
-  proto.setPointerCapture=()=>{};proto.hasPointerCapture=()=>false;
-  await mounted(h(AreaSelect),async host=>{
-    const display={session:"first",width:800,height:600,image:"data:image/png;base64,fixture",reducedMotion:true};
-    await act(async()=>frame(display));
-    const drag=async(type:string,x:number,y:number)=>{
-      const event=new win.MouseEvent(type,{bubbles:true,button:0,clientX:x,clientY:y});
-      Object.defineProperty(event,"pointerId",{value:1});
-      await act(async()=>host.querySelector(".area-drag-surface")!.dispatchEvent(event));
+test("first area drag stages immediately; a fresh capture resets the previous gesture", async () => {
+  const { AreaSelect } = await import("../src/AreaSelectView");
+  let frame: (v: any) => void = () => {};
+  const submitted: any[] = [];
+  (win as any).bitoArea = {
+    ready() {},
+    painted() {},
+    cancel() {},
+    onFrame(fn: any) {
+      frame = fn;
+      return () => {};
+    },
+    onClose() {
+      return () => {};
+    },
+    async submit(payload: any) {
+      submitted.push(payload);
+      return { ok: true };
+    },
+  };
+  const proto = win.HTMLElement.prototype as any;
+  proto.setPointerCapture = () => {};
+  proto.hasPointerCapture = () => false;
+  await mounted(h(AreaSelect), async (host) => {
+    const display = {
+      session: "first",
+      width: 800,
+      height: 600,
+      image: "data:image/png;base64,fixture",
+      reducedMotion: true,
     };
-    await drag("pointerdown",40,40);await drag("pointerup",240,140);
-    assert.equal(submitted.length,1);assert.deepEqual(submitted[0].rect,{x:40,y:40,width:200,height:100});
-    assert.equal(submitted[0].question,"");
-    await act(async()=>frame({...display,session:"second"}));
-    await drag("pointerup",300,300);assert.equal(submitted.length,1);
-    await drag("pointerdown",100,100);await drag("pointerup",280,240);
-    assert.equal(submitted[1].session,"second");
+    await act(async () => frame(display));
+    const drag = async (type: string, x: number, y: number) => {
+      const event = new win.MouseEvent(type, {
+        bubbles: true,
+        button: 0,
+        clientX: x,
+        clientY: y,
+      });
+      Object.defineProperty(event, "pointerId", { value: 1 });
+      await act(async () =>
+        host.querySelector(".area-drag-surface")!.dispatchEvent(event),
+      );
+    };
+    await drag("pointerdown", 40, 40);
+    await drag("pointerup", 240, 140);
+    assert.equal(submitted.length, 1);
+    assert.deepEqual(submitted[0].rect, {
+      x: 40,
+      y: 40,
+      width: 200,
+      height: 100,
+    });
+    assert.equal(submitted[0].question, "");
+    await act(async () => frame({ ...display, session: "second" }));
+    await drag("pointerup", 300, 300);
+    assert.equal(submitted.length, 1);
+    await drag("pointerdown", 100, 100);
+    await drag("pointerup", 280, 240);
+    assert.equal(submitted[1].session, "second");
   });
 });

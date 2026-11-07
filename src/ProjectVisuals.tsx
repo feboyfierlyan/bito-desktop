@@ -212,13 +212,13 @@ export function ProjectHistory({ project }: { project: Project }) {
             aria-label={`Progres ${rows.length} hari, terakhir ${rows.at(-1)!.done} langkah selesai`}
           >
             {[16, 51, 86].map((y) => (
-              <line key={y} x1="10" x2="390" y1={y} y2={y} stroke="#edf0f5" />
+              <line key={y} x1="10" x2="390" y1={y} y2={y} stroke="var(--bito-hairline)" />
             ))}
             {points.length > 1 && (
               <path
                 d={path}
                 fill="none"
-                stroke="#087bff"
+                stroke="var(--bito-ink)"
                 strokeWidth="2.5"
                 strokeLinejoin="round"
               />
@@ -229,7 +229,7 @@ export function ProjectHistory({ project }: { project: Project }) {
                 cx={p.x}
                 cy={p.y}
                 r={i === points.length - 1 ? 4 : 2.5}
-                fill="#087bff"
+                fill="var(--bito-ink)"
               >
                 <title>
                   {new Date(p.at).toLocaleString("id-ID")}: {p.done}/{p.total}{" "}

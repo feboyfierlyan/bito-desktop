@@ -1,0 +1,46 @@
+/* Bito application design system, adapted from the supplied DESIGN.md.
+   Bundle the supplied xVf font: no network request or OS-font dependency. */
+@font-face {
+  font-family: "Bito Sans";
+  src: url("/fonts/bito-sans-variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+:root {
+  --bito-font: "Bito Sans", "Segoe UI", sans-serif;
+  --bito-ink: #0a0a0a;
+  --bito-ink-soft: #2e3033;
+  --bito-secondary: #6c6c6c;
+  --bito-muted: #686c72;
+  --bito-hairline: #e1e1e1;
+  --bito-surface: #ffffff;
+  --bito-surface-warm: #f9f8f6;
+  --bito-surface-muted: #efefed;
+  --bito-stone: #d7d1c9;
+  --bito-focus: #005cc5;
+  --bito-focus-soft: #005cc533;
+  --bito-error: #b42318;
+  --bito-error-surface: #fff1f0;
+  --bito-warning: #875b17;
+  --bito-warning-surface: #fff8eb;
+  --bito-success: #287242;
+  --bito-success-surface: #eef6ef;
+  --bito-shadow-floating: 0 16px 48px -8px #00000038;
+  font-family: var(--bito-font);
+  font-synthesis: none;
+  font-optical-sizing: auto;
+}
+/* These also reach portalled menus and the separate area/guide renderers. */
+:root,
+[data-astryx-theme="neutral"] {
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
+  --font-family-code: var(--bito-font);
+}
+strong,
+b {
+  font-weight: 500;
+}

@@ -1,6 +1,6 @@
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1d1d1f;
+  font-family: var(--bito-font);
+  color: var(--bito-ink);
   font-synthesis: none;
   color-scheme: light;
 }
@@ -50,11 +50,9 @@ body,
   align-items: flex-end;
   gap: 10px;
   border-radius: 26px;
-  background: #fafafd;
+  background: var(--bito-surface-warm);
   padding: 7px 7px 7px 18px;
-  box-shadow:
-    0 8px 32px #09172a30,
-    0 1px 3px #09172a19;
+  box-shadow: var(--bito-shadow-floating);
   border: 1px solid #ffffffbd;
 }
 .area-composer textarea {
@@ -65,19 +63,15 @@ body,
   min-width: 0;
   flex: 1;
   padding: 7px 0;
-  color: #1d1d1f;
-  font:
-    15px/1.5 -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  color: var(--bito-ink);
+  font: 15px/1.5 var(--bito-font);
   height: 38px;
   max-height: 96px;
   user-select: text;
   field-sizing: content;
 }
 .area-composer textarea::placeholder {
-  color: #8b8c94;
+  color: var(--bito-muted);
 }
 .area-composer button {
   flex: none;
@@ -85,7 +79,7 @@ body,
   border-radius: 50%;
   width: 36px;
   height: 36px;
-  background: #007aff;
+  background: var(--bito-ink);
   color: white;
   display: grid;
   place-items: center;
@@ -95,25 +89,25 @@ body,
     opacity 0.15s;
 }
 .area-composer button:disabled {
-  background: #b6d6fc;
+  background: var(--bito-surface-muted);
   cursor: default;
 }
 .area-question p {
   margin: 8px 6px;
   padding: 7px 11px;
-  background: #fff;
+  background: var(--bito-surface);
   border-radius: 12px;
-  color: #b13a36;
+  color: var(--bito-ink);
   font-size: 12px;
-  box-shadow: 0 2px 10px #0001;
+  box-shadow: none;
 }
 .area-cancel {
   position: absolute;
   right: 18px;
   top: 18px;
   border: 1px solid #ffffff80;
-  background: #fffefa;
-  color: #626673;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -123,13 +117,13 @@ body,
 }
 .area-cancel:focus-visible,
 .area-composer button:focus-visible {
-  outline: 3px solid #7cb7ff;
+  outline: 3px solid var(--bito-focus);
   outline-offset: 3px;
 }
 .area-sending {
   width: 15px;
   height: 15px;
-  border: 2px solid #fff6;
+  border: 2px solid #ffffff66;
   border-top-color: white;
   border-radius: 50%;
   animation: area-spin 0.7s linear infinite;
@@ -145,5 +139,21 @@ body,
     animation: none !important;
   }
 }
-.area-instruction { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:4; border-radius:20px; padding:10px 16px; background:#20242be8; color:#fff; font-size:13px; pointer-events:none; white-space:nowrap; }
-.area-instruction button { pointer-events:auto; margin-left:10px; }
+.area-instruction {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  border-radius: 16px;
+  padding: 10px 16px;
+  background: #0a0a0ae8;
+  color: var(--bito-surface);
+  font-size: 13px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.area-instruction button {
+  pointer-events: auto;
+  margin-left: 10px;
+}

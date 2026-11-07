@@ -3,21 +3,26 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export type CompletionAssets = { artwork?: string; character?: string };
+export type CompletionAssets = {
+  artwork?: string;
+  character?: string;
+  font?: string;
+};
 export type CompletionStatus = "success" | "error";
 
 export async function readCompletionAssets(
   root: string,
 ): Promise<CompletionAssets> {
-  const [artwork, icon] = await Promise.all([
+  const [artwork, icon, font] = await Promise.all([
     readFile(join(root, "artwork/bito-login-background.svg"), "utf8"),
     readFile(join(root, "icon.svg"), "utf8"),
+    readFile(join(root, "fonts/bito-sans-variable.woff2")),
   ]);
   // Use the existing Bito vector, without its app-icon tile or backing plate.
   const character = icon
     .replace(/<rect\b[^>]*fill="#(?:f5f9ff|e2eeff)"[^>]*\/>/g, "")
     .replace('viewBox="0 0 1024 1024"', 'viewBox="165 100 694 790"');
-  return { artwork, character };
+  return { artwork, character, font: font.toString("base64") };
 }
 
 const svgData = (svg: string) =>
@@ -45,21 +50,27 @@ export function renderCompletionPage(
     throw Error("Invalid completion action");
   if (scriptNonce && !/^[a-zA-Z0-9+/=]+$/.test(scriptNonce))
     throw Error("Invalid completion nonce");
+  if (assets.font && !/^[a-zA-Z0-9+/=]+$/.test(assets.font))
+    throw Error("Invalid completion font");
+  const fontFace = assets.font
+    ? `@font-face{font-family:"Bito Sans";src:url(data:font/woff2;base64,${assets.font}) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}`
+    : "";
   return `<!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="referrer" content="no-referrer"><title>${success ? "Sudah masuk" : "Coba lagi"} — Bito</title>
 <style>
-:root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1d1d1f;background:#f5f9ff;font-synthesis:none}
+${fontFace}
+:root{color-scheme:light;font-family:"Bito Sans","Segoe UI",sans-serif;color:#0a0a0a;background:#f9f8f6;font-synthesis:none}
 *{box-sizing:border-box}body{margin:0;min-width:280px;min-height:100svh;display:grid;place-items:center;padding:36px 22px;isolation:isolate;overflow-x:hidden}
 .artwork{position:fixed;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none}
-.card{width:min(388px,100%);padding:34px 30px 30px;border:1.5px solid #255b3f;border-radius:23px;background:#fff;box-shadow:0 14px 48px #163e2826;text-align:center;animation:card-in .56s cubic-bezier(.22,1,.36,1) both}
+.card{width:min(388px,100%);padding:34px 30px 30px;border:1px solid #e1e1e1;border-radius:16px;background:#fff;box-shadow:none;text-align:center;animation:card-in .56s cubic-bezier(.22,1,.36,1) both}
 .mascot-stage{position:relative;width:120px;height:136px;margin:0 auto 20px;animation:mascot-in .7s cubic-bezier(.22,1,.36,1) both;user-select:none}
-.mascot{display:block;width:120px;height:136px;object-fit:contain}.brand-name{display:grid;height:100%;place-items:center;font-size:36px;font-weight:750;color:#246b41}
+.mascot{display:block;width:120px;height:136px;object-fit:contain}.brand-name{display:grid;height:100%;place-items:center;font-size:36px;font-weight:500;color:#0a0a0a}
 .badge{position:absolute;right:-5px;bottom:5px;display:grid;place-items:center;width:30px;height:30px;border:4px solid #fff;border-radius:50%;background:${success ? "#e5f4e9" : "#fff0e6"};color:${success ? "#246b41" : "#a35228"};animation:badge-in .4s .24s cubic-bezier(.22,1,.36,1) both}
 .badge svg{width:16px;height:16px}.check{stroke-dasharray:24;stroke-dashoffset:24;animation:draw-check .4s .42s ease forwards}
-h1{margin:0;font-size:30px;font-weight:720;line-height:1.2;letter-spacing:-1.05px}p{margin:10px 0 0;color:#73757d;font-size:14px;line-height:1.6;letter-spacing:-.1px}
+h1{margin:0;font-size:30px;font-weight:500;line-height:1.2;letter-spacing:-1.05px}p{margin:10px 0 0;color:#6c6c6c;font-size:14px;line-height:1.6;letter-spacing:-.1px}
 .copy{animation:copy-in .42s .1s cubic-bezier(.22,1,.36,1) both}form{margin:26px 0 0;animation:copy-in .42s .16s cubic-bezier(.22,1,.36,1) both}
-button{appearance:none;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:12px 18px;border:0;border-radius:13px;background:#007aff;color:white;font:600 14px/20px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;transition:background .16s ease,transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s ease;-webkit-tap-highlight-color:transparent}
-button svg{width:17px;height:17px;transition:transform .2s cubic-bezier(.22,1,.36,1)}button:hover{background:#006fe9;box-shadow:0 4px 14px #007aff25}button:hover svg{transform:translateX(2px)}button:active{transform:scale(.977);box-shadow:none}button:focus-visible{outline:3px solid #007aff55;outline-offset:4px}button:disabled{cursor:wait;opacity:.78}button[data-opened]{background:#006fe9}
+button{appearance:none;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:46px;padding:12px 18px;border:0;border-radius:9999px;background:#0a0a0a;color:white;font:500 14px/20px "Bito Sans","Segoe UI",sans-serif;cursor:pointer;transition:background .16s ease,transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s ease;-webkit-tap-highlight-color:transparent}
+button svg{width:17px;height:17px;transition:transform .2s cubic-bezier(.22,1,.36,1)}button:hover{background:#2e3033;box-shadow:none}button:hover svg{transform:translateX(2px)}button:active{transform:scale(.977);box-shadow:none}button:focus-visible{outline:2px solid #005cc5;outline-offset:4px}button:disabled{cursor:wait;opacity:.78}button[data-opened]{background:#2e3033}
 .fallback{font-size:12px;margin-top:13px}.fallback[hidden]{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @keyframes card-in{from{opacity:0;transform:translateY(14px) scale(.975)}to{opacity:1;transform:none}}@keyframes mascot-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:none}}@keyframes copy-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes badge-in{from{opacity:0;transform:scale(.65)}to{opacity:1;transform:scale(1)}}@keyframes draw-check{to{stroke-dashoffset:0}}
 @media(max-width:420px){body{padding:24px 18px}.card{padding:30px 24px 26px}h1{font-size:28px}}
@@ -103,7 +114,7 @@ export class AuthCompletionHost {
         "Cache-Control": "no-store",
         "Referrer-Policy": "no-referrer",
         "X-Content-Type-Options": "nosniff",
-        "Content-Security-Policy": `default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
+        "Content-Security-Policy": `default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
       };
       if (request.headers.host !== new URL(origin).host || url.search) {
         response.writeHead(404, headers).end();

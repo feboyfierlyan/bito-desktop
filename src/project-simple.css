@@ -1,7 +1,7 @@
 /* The task workspace has one reading column. Details remain available on demand. */
 .projects-simple {
-  --task-ink: #232830;
-  --task-muted: #727b88;
+  --task-ink: var(--bito-ink);
+  --task-muted: var(--bito-muted);
   color: var(--task-ink);
   font-size: 14px;
 }
@@ -9,7 +9,7 @@
   width: 206px;
   padding: 48px 16px 22px;
   gap: 16px;
-  background: #f7f8fa;
+  background: var(--bito-surface-warm);
 }
 .projects-simple .project-list {
   flex: 1;
@@ -29,7 +29,7 @@
 .projects-simple .project-local {
   margin-top: auto;
   font-size: 13px;
-  color: #596270;
+  color: var(--bito-ink-soft);
   line-height: 1.8;
 }
 .projects-simple .project-local small {
@@ -89,7 +89,7 @@
   padding: 26px 44px 48px;
 }
 .projects-simple .project-intro {
-  color: #66717e;
+  color: var(--bito-secondary);
   font-size: 15px;
   margin-bottom: 24px;
 }
@@ -97,7 +97,7 @@
   gap: 16px;
 }
 .projects-simple .project-form label {
-  color: #535e6c;
+  color: var(--bito-ink-soft);
   font-size: 13px;
 }
 .projects-simple .project-form textarea {
@@ -105,31 +105,31 @@
 }
 .projects-simple input::placeholder,
 .projects-simple textarea::placeholder {
-  color: #9299a4;
+  color: var(--bito-muted);
 }
 .projects-simple .project-primary {
   min-height: 42px;
   padding: 11px 18px;
-  border-radius: 11px;
-  background: #087bff;
-  color: #fff;
-  font-weight: 550;
+  border-radius: 12px;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
+  font-weight: 500;
 }
 .projects-simple .project-primary:hover:not(:disabled) {
-  background: #006deb;
+  background: var(--bito-ink);
 }
 .projects-simple .project-secondary {
   min-height: 40px;
   padding: 10px 14px;
-  border-radius: 10px;
-  background: #f4f6f9;
-  color: #485361;
+  border-radius: 8px;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
 }
 .projects-simple .project-secondary:hover:not(:disabled) {
-  background: #eaf0f7;
+  background: var(--bito-surface-muted);
 }
 .projects-simple .project-link {
-  color: #087bff;
+  color: var(--bito-ink);
   padding: 7px 0;
   font-size: 13px;
 }
@@ -139,11 +139,11 @@
 }
 .projects-simple .project-form-actions > button:not(.project-primary) {
   border: 0;
-  background: #f4f6f9;
-  color: #485361;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
 }
 .project-back {
-  color: #6b7582 !important;
+  color: var(--bito-secondary) !important;
   font-size: 13px !important;
   margin-bottom: 22px;
   padding: 0;
@@ -152,27 +152,27 @@
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-  border-top: 1px solid #ecedf1;
+  border-top: 1px solid var(--bito-hairline);
   margin-top: 30px;
   padding-top: 20px;
 }
 .projects-simple .project-utilities button {
-  color: #66717e;
+  color: var(--bito-secondary);
   padding: 4px 0;
   font-size: 13px;
 }
 .projects-simple .project-utilities button:hover {
-  color: #087bff;
+  color: var(--bito-ink);
 }
 .project-disclosure {
-  border-top: 1px solid #edf0f3;
+  border-top: 1px solid var(--bito-hairline);
   padding: 18px 0;
-  color: #66717e;
+  color: var(--bito-secondary);
   font-size: 13px;
 }
 .project-disclosure > .astryx-collapsible-trigger {
   cursor: pointer;
-  color: #596574;
+  color: var(--bito-ink-soft);
   line-height: 1.6;
   padding: 2px 0;
 }
@@ -183,7 +183,7 @@
   margin-top: 14px;
 }
 .project-disclosure > .astryx-collapsible-trigger:focus-visible {
-  outline: 3px solid #acd0ff;
+  outline: 3px solid var(--bito-focus);
   outline-offset: 4px;
   border-radius: 4px;
 }
@@ -207,7 +207,7 @@
   font-size: 15px;
   line-height: 1.8;
   margin: 0 0 20px;
-  color: #4c5867;
+  color: var(--bito-ink-soft);
 }
 .task-deliverables {
   list-style: none;
@@ -224,7 +224,7 @@
 }
 .task-deliverables svg {
   flex-shrink: 0;
-  color: #4c965f;
+  color: var(--bito-ink);
   margin-top: 4px;
 }
 .projects-simple .project-understanding .project-disclosure {
@@ -242,7 +242,7 @@
   flex-wrap: wrap;
   gap: 12px;
   font-size: 13px;
-  color: #677585;
+  color: var(--bito-secondary);
   margin: 24px 0;
   min-height: 30px;
 }
@@ -257,7 +257,7 @@
 .task-typing i {
   width: 5px;
   height: 5px;
-  background: #8eaccc;
+  background: var(--bito-hairline);
   border-radius: 50%;
   animation: task-think 1.2s infinite ease-in-out;
 }
@@ -281,11 +281,11 @@
 }
 .task-setup-reply {
   margin-top: 28px;
-  border-top: 1px solid #edf0f3;
+  border-top: 1px solid var(--bito-hairline);
   padding-top: 24px;
 }
 .task-setup-answer {
-  color: #536071;
+  color: var(--bito-ink-soft);
   font-size: 14px;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -322,7 +322,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  color: #727e8e;
+  color: var(--bito-secondary);
   font-size: 12px;
   margin-bottom: 26px;
 }
@@ -332,7 +332,7 @@
 .task-progress-summary > div {
   width: 100%;
   height: 5px;
-  background: #ecf0f6;
+  background: var(--bito-surface-warm);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -340,14 +340,14 @@
   height: 100%;
   display: block;
   border-radius: 4px;
-  background: #79b6ff;
+  background: var(--bito-hairline);
   transition: width 0.28s ease;
 }
 .projects-simple .pw-session {
   padding: 30px;
-  border: 1px solid #e3eaf5;
-  background: #f8fbff;
-  border-radius: 18px;
+  border: 1px solid var(--bito-hairline);
+  background: var(--bito-surface-warm);
+  border-radius: 16px;
 }
 .projects-simple .pw-session h2 {
   font-size: 24px;
@@ -361,24 +361,24 @@
   margin-top: 22px;
 }
 .projects-simple .pw-muted {
-  color: #6f7b89;
+  color: var(--bito-secondary);
   font-size: 13px;
   line-height: 1.75;
 }
 .task-action-description {
   font-size: 14px;
-  color: #58697d;
+  color: var(--bito-ink-soft);
   line-height: 1.75;
   margin: 0 0 20px;
 }
 .task-last-stop {
-  color: #718099;
+  color: var(--bito-secondary);
   font-size: 12px;
   line-height: 1.7;
 }
 .projects-simple .pw-session .project-disclosure {
   margin-top: 24px;
-  border-color: #e5edf8;
+  border-color: var(--bito-hairline);
   padding-bottom: 0;
 }
 .projects-simple .pw-timer-option input {
@@ -391,7 +391,7 @@
   gap: 12px;
   padding: 18px 0;
   font-size: 13px;
-  color: #97713e;
+  color: var(--bito-ink);
 }
 .projects-simple .project-overview {
   display: flex;
@@ -411,7 +411,7 @@
   margin: 8px 0 14px;
 }
 .projects-simple .project-draft > p {
-  color: #657183;
+  color: var(--bito-secondary);
   line-height: 1.7;
 }
 .projects-simple .project-draft-actions {
@@ -420,7 +420,7 @@
   margin-top: 24px;
 }
 .projects-simple .project-draft-actions > button:not(.project-primary) {
-  color: #718095;
+  color: var(--bito-secondary);
   padding: 10px 0;
 }
 .projects-simple .project-task {
@@ -437,13 +437,13 @@
   height: 17px;
   margin: 4px 0 0;
   padding: 0;
-  accent-color: #087bff;
+  accent-color: var(--bito-ink);
   flex-shrink: 0;
 }
 .task-step-detail > .astryx-collapsible-trigger {
-  font-weight: 550;
+  font-weight: 500;
   line-height: 1.65;
-  color: #374557;
+  color: var(--bito-ink-soft);
   cursor: pointer;
   list-style: none;
 }
@@ -453,7 +453,7 @@
 .task-step-detail > .astryx-collapsible-trigger::after {
   content: "＋";
   float: right;
-  color: #98a2af;
+  color: var(--bito-secondary);
   margin-left: 12px;
   font-size: 12px;
 }
@@ -462,10 +462,10 @@
 }
 .project-task.done .task-step-detail > .astryx-collapsible-trigger {
   text-decoration: line-through;
-  color: #8c9d94;
+  color: var(--bito-secondary);
 }
 .task-step-detail p {
-  color: #718094;
+  color: var(--bito-secondary);
   font-size: 13px;
   line-height: 1.7;
 }
@@ -476,7 +476,7 @@
   max-width: 100%;
 }
 .projects-simple .project-task small {
-  color: #7d8998;
+  color: var(--bito-secondary);
   line-height: 1.65;
 }
 .projects-simple .project-section-title {
@@ -488,7 +488,7 @@
   margin: 0 0 8px;
 }
 .projects-simple .project-materials > p {
-  color: #748092;
+  color: var(--bito-secondary);
   font-size: 14px;
   line-height: 1.7;
 }
@@ -496,7 +496,7 @@
   margin-top: 24px;
 }
 .projects-simple .project-material-form > .astryx-collapsible-trigger {
-  color: #617187;
+  color: var(--bito-secondary);
 }
 @media (max-width: 900px) {
   .projects-simple .projects-sidebar {
@@ -557,13 +557,13 @@
   margin-left: 10px;
   font-size: 11px;
   font-weight: 400;
-  color: #7b8a9e;
+  color: var(--bito-secondary);
 }
 .task-status-field {
   display: block;
   margin-top: 14px;
   font-size: 12px;
-  color: #7b8a9e;
+  color: var(--bito-secondary);
 }
 @supports (interpolate-size: allow-keywords) {
   .project-disclosure::details-content,
@@ -592,7 +592,7 @@
   font-size: 12px;
 }
 .projects-simple .task-step-detail p {
-  color: #718094;
+  color: var(--bito-secondary);
   font-size: 13px;
 }
 
@@ -604,9 +604,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #38784d;
-  background: #eff8f0;
-  border-radius: 10px;
+  color: var(--bito-ink);
+  background: var(--bito-surface-warm);
+  border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;
   font-size: 13px;
@@ -618,7 +618,7 @@
   gap: 20px;
   padding: 0 0 24px;
   margin: 0;
-  color: #87909c;
+  color: var(--bito-secondary);
   font-size: 12px;
 }
 .task-setup-progress li {
@@ -631,26 +631,26 @@
   height: 21px;
   display: grid;
   place-items: center;
-  border: 1px solid #e1e6ee;
+  border: 1px solid var(--bito-hairline);
   border-radius: 50%;
   font-size: 10px;
 }
 .task-setup-progress [aria-current="step"] {
-  color: #087bff;
+  color: var(--bito-ink);
 }
 .task-setup-progress [aria-current="step"] > span {
-  background: #eaf3ff;
-  border-color: #c5dfff;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .task-setup-progress .is-complete {
-  color: #4f875b;
+  color: var(--bito-ink);
 }
 .task-roadmap {
   padding: 24px;
   margin-top: 26px;
-  background: #fff;
-  border: 1px solid #e7ebf1;
-  border-radius: 18px;
+  background: var(--bito-surface);
+  border: 1px solid var(--bito-hairline);
+  border-radius: 16px;
 }
 .task-roadmap-heading {
   display: flex;
@@ -663,19 +663,19 @@
 .task-relevant-materials h3 {
   margin: 0;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.3px;
 }
 .task-date-button {
   font-size: 12px !important;
   padding: 6px 8px;
-  border-radius: 7px;
+  border-radius: 8px;
   white-space: nowrap;
-  color: #697586 !important;
+  color: var(--bito-secondary) !important;
 }
 .task-date-button:hover:not(:disabled) {
-  background: #edf5ff;
-  color: #087bff !important;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink) !important;
 }
 .task-date-button:disabled {
   opacity: 1 !important;
@@ -685,7 +685,7 @@
   justify-content: space-between;
   padding-left: 36px;
   font-size: 10px;
-  color: #939daa;
+  color: var(--bito-secondary);
   margin-bottom: 12px;
 }
 .task-roadmap-row {
@@ -703,7 +703,7 @@
   top: 24px;
   bottom: -18px;
   width: 1px;
-  background: #e5eaf1;
+  background: var(--bito-surface-muted);
 }
 .task-roadmap-row:last-child::before {
   display: none;
@@ -714,23 +714,23 @@
   flex: 0 0 24px;
   display: grid;
   place-items: center;
-  border: 1px solid #dae1e9;
-  color: #86919e;
-  background: #fff;
+  border: 1px solid var(--bito-hairline);
+  color: var(--bito-secondary);
+  background: var(--bito-surface);
   border-radius: 50%;
   font-size: 10px;
   z-index: 1;
   margin-top: 4px;
 }
 .is-current .task-roadmap-node {
-  border-color: #a5ceff;
-  background: #eef6ff;
-  color: #087bff;
+  border-color: var(--bito-hairline);
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
 }
 .is-done .task-roadmap-node {
-  background: #eef7f0;
-  color: #47845b;
-  border-color: #d7e8da;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
+  border-color: var(--bito-hairline);
 }
 .task-roadmap-main {
   flex: 1;
@@ -748,12 +748,12 @@
   text-align: left;
   padding: 7px 0;
   font-size: 13px !important;
-  font-weight: 550 !important;
+  font-weight: 500 !important;
   line-height: 1.5;
 }
 .task-roadmap-title svg {
   flex-shrink: 0;
-  color: #99a3b1;
+  color: var(--bito-secondary);
   transition: transform 0.22s ease;
 }
 .task-roadmap-title[aria-expanded="true"] svg {
@@ -771,7 +771,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #f0f3f7;
+  background: var(--bito-surface-warm);
 }
 .task-roadmap-duration {
   position: absolute;
@@ -779,7 +779,7 @@
   top: 3px;
   height: 8px;
   border-radius: 8px;
-  background: #e5f0ff;
+  background: var(--bito-surface-warm);
   min-width: 4px;
   transition: width 0.36s cubic-bezier(0.22, 1, 0.36, 1);
   overflow: hidden;
@@ -788,27 +788,27 @@
   height: 100%;
   display: block;
   border-radius: inherit;
-  background: #84b8ff;
+  background: var(--bito-hairline);
   transition: width 0.36s ease;
 }
 .is-done .task-roadmap-duration {
-  background: #e0eee3;
+  background: var(--bito-surface-muted);
 }
 .is-done .task-roadmap-duration > span {
-  background: #92bf9b;
+  background: var(--bito-hairline);
 }
 .task-roadmap-today {
   position: absolute;
   top: -1px;
   height: 17px;
   width: 1px;
-  background: #087bff;
+  background: var(--bito-ink);
   z-index: 1;
 }
 .task-roadmap-main > small {
   display: block;
   margin-top: 5px;
-  color: #8793a1;
+  color: var(--bito-secondary);
   font-size: 10px;
 }
 .task-roadmap-expansion {
@@ -818,7 +818,7 @@
   padding: 6px 0;
   margin: 12px 0 4px;
   list-style: none;
-  border-top: 1px solid #edf0f5;
+  border-top: 1px solid var(--bito-hairline);
 }
 .task-roadmap-tasks > li {
   display: flex;
@@ -827,7 +827,7 @@
   padding: 12px 0;
 }
 .task-roadmap-tasks > li + li {
-  border-top: 1px solid #f0f3f6;
+  border-top: 1px solid var(--bito-hairline);
 }
 .projects-app .task-roadmap-tasks input[type="checkbox"] {
   appearance: auto;
@@ -836,7 +836,7 @@
   min-height: 0;
   margin: 3px 0 0;
   padding: 0;
-  accent-color: #087bff;
+  accent-color: var(--bito-ink);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -851,18 +851,18 @@
   cursor: pointer;
 }
 .task-finished-title {
-  color: #8b9c90;
+  color: var(--bito-secondary);
   text-decoration: line-through;
 }
 .task-step-detail p {
-  color: #788390;
+  color: var(--bito-secondary);
   font-size: 12px;
   line-height: 1.7;
   margin: 8px 0;
 }
 .task-step-detail small {
   display: block;
-  color: #909aa7;
+  color: var(--bito-secondary);
   font-size: 11px;
   line-height: 1.6;
   margin-top: 5px;
@@ -876,8 +876,8 @@
   gap: 10px;
   flex-wrap: wrap;
   align-items: end;
-  background: #f5f9ff;
-  border: 1px solid #dfeafb;
+  background: var(--bito-surface-warm);
+  border: 1px solid var(--bito-hairline);
   border-radius: 12px;
   padding: 15px;
   margin-top: 20px;
@@ -886,7 +886,7 @@
   display: grid;
   gap: 8px;
   font-size: 12px;
-  color: #687687;
+  color: var(--bito-secondary);
   flex: 1;
 }
 .task-date-editor input {
@@ -900,7 +900,7 @@
   align-items: center;
   gap: 14px;
   font-size: 12px;
-  color: #4d845b;
+  color: var(--bito-ink);
   margin-top: 14px;
 }
 .task-roadmap-feedback:empty {
@@ -919,9 +919,9 @@
   font-size: 12px;
 }
 .task-source-preview {
-  border: 1px solid #e8edf3;
-  border-radius: 11px;
-  background: #fff;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 12px;
+  background: var(--bito-surface);
   margin: 7px 0 !important;
   padding: 0 !important;
 }
@@ -938,7 +938,7 @@
   overflow-wrap: anywhere;
 }
 .task-source-preview .astryx-collapsible-trigger > svg {
-  color: #8b98a7;
+  color: var(--bito-secondary);
   flex-shrink: 0;
 }
 .task-source-preview[data-open="true"] .astryx-collapsible-trigger > svg:last-child {
@@ -955,7 +955,7 @@
   max-height: 250px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  color: #717d89;
+  color: var(--bito-secondary);
 }
 .task-source-preview > p {
   padding: 0 14px;

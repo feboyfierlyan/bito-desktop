@@ -39,7 +39,9 @@ import { planDateChanges } from "./project-work";
 import { NewTask, SetupReply } from "./ProjectIntake";
 import "./projects.css";
 import "./project-simple.css";
-import { ProjectBoard, ProjectGallery } from "./ProjectBoard";
+import { ProjectBoard } from "./ProjectBoard";
+import { ProjectGallery } from "./ProjectGallery";
+import { BitoMascot } from "./ui/BitoMascot";
 import { WorkspaceDialog } from "./WorkspaceDialog";
 import "./project-board.css";
 type Act = (name: string, payload?: unknown) => Promise<Reply>;
@@ -244,20 +246,30 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
       sideNav={
         <aside className="board-rail" aria-label="Navigasi Bito">
           <div className="workspace-brand">
-            <Sprout size={21} />
+            <BitoMascot />
             <strong>bito.</strong>
+            <span className="workspace-brand-caption">teman kerjamu</span>
           </div>
           <BitoButton
             className="sidebar-create"
+            variant="secondary"
             disabled={locked || dirty}
             onClick={() => change(() => setCreating(true))}
           >
             <Plus size={18} />
             Tambah proyek
           </BitoButton>
-          <nav>
+          <nav aria-label="Halaman workspace">
             <BitoButton
               className={`board-rail-button ${gallery && !archives && !quickView && workspaceView === "projects" ? "selected" : ""}`}
+              aria-current={
+                gallery &&
+                !archives &&
+                !quickView &&
+                workspaceView === "projects"
+                  ? "page"
+                  : undefined
+              }
               aria-label="Semua proyek"
               title="Semua proyek"
               disabled={locked}
@@ -278,6 +290,7 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             <BitoButton
               disabled={locked}
               className={`board-rail-button ${workspaceView === "priority" ? "selected" : ""}`}
+              aria-current={workspaceView === "priority" ? "page" : undefined}
               onClick={() =>
                 change(() => {
                   setWorkspaceView("priority");
@@ -291,6 +304,7 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             <BitoButton
               disabled={locked}
               className={`board-rail-button ${workspaceView === "schedule" ? "selected" : ""}`}
+              aria-current={workspaceView === "schedule" ? "page" : undefined}
               onClick={() =>
                 change(() => {
                   setWorkspaceView("schedule");
@@ -303,6 +317,7 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             </BitoButton>
             <BitoButton
               className={`board-rail-button ${quickView ? "selected" : ""}`}
+              aria-current={quickView ? "page" : undefined}
               aria-label="Tugas singkat"
               title="Tugas singkat"
               disabled={locked}
@@ -321,6 +336,11 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             </BitoButton>
             <BitoButton
               className={`board-rail-button ${gallery && archives && workspaceView === "projects" ? "selected" : ""}`}
+              aria-current={
+                gallery && archives && workspaceView === "projects"
+                  ? "page"
+                  : undefined
+              }
               aria-label="Arsip proyek"
               title="Arsip proyek"
               disabled={locked}
@@ -378,7 +398,20 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
         </aside>
       }
     >
-      <div className="project-workspace">
+      <div
+        className="project-workspace"
+        data-view={
+          workspaceView !== "projects"
+            ? workspaceView
+            : quickView
+              ? "quick"
+              : gallery
+                ? archives
+                  ? "archives"
+                  : "home"
+                : "detail"
+        }
+      >
         <header className="project-topbar">
           {workspaceView === "projects" &&
             !gallery &&
@@ -446,6 +479,10 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
           </div>
         ) : gallery || !project ? (
           <ProjectGallery
+            key={archives ? "archives" : "projects"}
+            name={state.profile.name}
+            activeId={state.activeProjectId}
+            onCreate={() => change(() => setCreating(true))}
             projects={state.projects}
             busy={locked}
             archives={archives}

@@ -1,9 +1,9 @@
 /* Quiet Bito surfaces. Astryx owns controls, keyboard behaviour and dialogs;
    these owned classes define the shared reading width and visual hierarchy. */
 [data-astryx-theme="neutral"] {
-  --color-text-secondary: #626b77;
-  --color-text-tertiary: #737c89;
-  --radius-element: 7px;
+  --color-text-secondary: var(--bito-secondary);
+  --color-text-tertiary: var(--bito-muted);
+  --radius-element: 8px;
   --radius-container: 12px;
   --radius-page: 12px;
   --size-element-md: 36px;
@@ -15,7 +15,7 @@
   flex-shrink: 0;
 }
 .bito-field-control {
-  border-radius: 7px;
+  border-radius: 8px;
   min-height: 36px;
   padding: 8px 10px;
   box-shadow: none;
@@ -30,7 +30,7 @@
 }
 .projects-app.projects-board {
   padding: 0;
-  background: #fafafa;
+  background: var(--bito-surface-warm);
   font-size: 13px;
 }
 .projects-board .board-rail {
@@ -38,33 +38,33 @@
   align-items: stretch;
   padding: 44px 12px 16px;
   gap: 16px;
-  background: #fafafa;
-  border-right: 1px solid #eceef0;
+  background: var(--bito-surface-warm);
+  border-right: 1px solid var(--bito-hairline);
 }
 .workspace-brand {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #32804d;
+  color: var(--bito-ink);
   padding: 0 12px;
   height: 32px;
 }
 .workspace-brand strong {
-  color: #242930;
+  color: var(--bito-ink);
   font-size: 23px;
   letter-spacing: -1px;
 }
 .projects-board .sidebar-create {
   justify-content: flex-start;
   gap: 9px;
-  color: #007aff;
+  color: var(--bito-ink);
   padding: 8px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 13px;
   min-height: 36px;
 }
 .projects-board .sidebar-create:hover {
-  background: #edf4ff;
+  background: var(--bito-surface-muted);
 }
 .board-rail nav {
   gap: 3px;
@@ -80,9 +80,9 @@
   height: 36px;
   min-height: 36px;
   padding: 0 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
-  color: #535c67;
+  color: var(--bito-ink-soft);
   font-size: 13px;
 }
 .projects-board .board-rail-button svg {
@@ -95,12 +95,12 @@
   line-height: 20px;
 }
 .projects-board .board-rail-button:hover {
-  background: #f0f1f3;
+  background: var(--bito-surface-muted);
 }
 .projects-board .board-rail-button.selected,
 .projects-board .sidebar-project.selected {
-  background: #eaf3ff;
-  color: #006bdc;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
   box-shadow: none;
 }
 .projects-board .board-rail-profile {
@@ -116,9 +116,9 @@
 }
 .sidebar-section-label {
   padding: 12px 12px 8px;
-  color: #7a818a;
+  color: var(--bito-secondary);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .sidebar-project.bito-button {
   display: flex;
@@ -128,8 +128,8 @@
   padding: 8px 12px;
   justify-content: flex-start;
   text-align: left;
-  border-radius: 7px;
-  color: #515965;
+  border-radius: 8px;
+  color: var(--bito-ink-soft);
   font-size: 12px;
 }
 .sidebar-project .bito-button-content > span:not(.sidebar-project-dot) {
@@ -144,10 +144,10 @@
   height: 7px;
   flex: none;
   border-radius: 50%;
-  background: #87a7ce;
+  background: var(--bito-hairline);
 }
 .sidebar-project small {
-  color: #7c8692;
+  color: var(--bito-secondary);
   font-size: 11px;
 }
 .projects-board .project-workspace {
@@ -165,11 +165,11 @@
   font-size: 23px;
   letter-spacing: -0.6px;
   line-height: 1.35;
-  font-weight: 650;
+  font-weight: 500;
 }
 .projects-board .project-topbar .project-icon {
   opacity: 1;
-  color: #79818a;
+  color: var(--bito-secondary);
   width: 30px;
   height: 30px;
   border-radius: 6px;
@@ -188,7 +188,7 @@
   align-items: center;
   gap: 16px;
   padding: 0 0 20px;
-  color: #737c89;
+  color: var(--bito-secondary);
   font-size: 12px;
 }
 .gallery-search {
@@ -198,8 +198,8 @@
   width: min(340px, 75%);
 }
 .gallery-search .bito-field-control {
-  background: #fafafa;
-  border-color: #edf0f2;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .projects-board .board-project-card {
   display: flex;
@@ -208,7 +208,7 @@
   gap: 14px;
   background: white;
   border: 0;
-  border-bottom: 1px solid #edf0f2;
+  border-bottom: 1px solid var(--bito-hairline);
   border-radius: 0;
   box-shadow: none;
   padding: 17px 10px;
@@ -218,9 +218,9 @@
 }
 .projects-board .board-project-card:hover:not(:disabled) {
   transform: none;
-  background: #f8fafc;
+  background: var(--bito-surface-muted);
   box-shadow: none;
-  border-color: #edf0f2;
+  border-color: var(--bito-hairline);
 }
 .board-project-caption {
   padding: 0;
@@ -229,17 +229,17 @@
 }
 .board-project-caption strong {
   font-size: 14px;
-  font-weight: 550;
+  font-weight: 500;
 }
 .board-project-caption > span {
   font-size: 12px;
-  color: #737c89;
+  color: var(--bito-secondary);
 }
 .project-list-icon {
-  color: #7c99ba;
+  color: var(--bito-ink);
 }
 .project-list-chevron {
-  color: #929ba7;
+  color: var(--bito-secondary);
 }
 .bito-gallery-progress {
   max-width: 120px;
@@ -255,7 +255,7 @@
   gap: 10px;
   border: 0;
   background: none;
-  color: #007aff;
+  color: var(--bito-ink);
   border-radius: 6px;
 }
 .projects-board .project-board-layout {
@@ -270,7 +270,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #edf0f2;
+  border-bottom: 1px solid var(--bito-hairline);
   padding-bottom: 14px;
 }
 .board-view-actions {
@@ -280,7 +280,7 @@
 }
 .board-view-actions .bito-button {
   gap: 6px;
-  color: #687280;
+  color: var(--bito-secondary);
   padding: 6px 8px;
   border-radius: 6px;
   font-size: 12px;
@@ -291,7 +291,7 @@
   gap: 12px 24px;
   padding: 18px 0;
   font-size: 12px;
-  color: #737c89;
+  color: var(--bito-secondary);
 }
 .board-project-summary > span {
   display: inline-flex;
@@ -302,21 +302,21 @@
   margin-top: 22px;
 }
 .projects-board .board-task-group > header {
-  border-bottom: 1px solid #e9edf1;
+  border-bottom: 1px solid var(--bito-hairline);
   padding-bottom: 9px;
 }
 .projects-board .board-task-group > header button {
   padding: 0;
   font-size: 14px;
-  font-weight: 600;
-  color: #353d47;
+  font-weight: 500;
+  color: var(--bito-ink-soft);
   text-align: left;
   justify-content: flex-start;
   gap: 10px;
 }
 .board-task-group > header small {
   font-size: 11px;
-  color: #89929f;
+  color: var(--bito-secondary);
   font-weight: 400;
 }
 .projects-board .board-task-row {
@@ -325,7 +325,7 @@
   gap: 10px;
   min-height: 49px;
   padding: 4px 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--bito-hairline);
 }
 .projects-board .board-task-title {
   flex: 1;
@@ -336,14 +336,14 @@
   font-size: 13px;
   font-weight: 400;
   line-height: 1.5;
-  color: #323b47;
+  color: var(--bito-ink-soft);
 }
 .projects-board .board-task-title .bito-button-content > span {
   overflow-wrap: anywhere;
 }
 .projects-board .board-task-date {
   font-size: 11px;
-  color: #748092;
+  color: var(--bito-secondary);
   padding: 6px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -365,17 +365,17 @@
   padding: 6px 8px;
   background: none;
   border-radius: 6px;
-  color: #007aff;
+  color: var(--bito-ink);
   font-size: 13px;
 }
 .completed-toggle.bito-button {
-  color: #737c89;
+  color: var(--bito-secondary);
   font-size: 12px;
   padding: 5px 0;
   align-self: flex-start;
 }
 .completed-toggle.bito-button:hover {
-  color: #007aff;
+  color: var(--bito-ink);
   background: transparent;
 }
 .board-all-done {
@@ -386,17 +386,17 @@
   gap: 10px;
   padding: 42px 20px;
   text-align: center;
-  color: #3c8855;
+  color: var(--bito-ink);
 }
 .board-all-done h2 {
   font-size: 17px;
-  font-weight: 550;
-  color: #374151;
+  font-weight: 500;
+  color: var(--bito-ink-soft);
   margin: 0;
 }
 .board-all-done p {
   font-size: 13px;
-  color: #737c89;
+  color: var(--bito-secondary);
   margin: 0;
   line-height: 1.5;
 }
@@ -408,8 +408,8 @@
 .project-board-layout .board-calendar,
 .project-board-layout .board-progress-chart,
 .project-board-layout .board-milestones {
-  border: 1px solid #e7ebef;
-  border-radius: 9px;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
   box-shadow: none;
   background: white;
 }
@@ -444,14 +444,14 @@
   margin-bottom: 12px;
 }
 .quick-task-composer > svg {
-  color: #007aff;
+  color: var(--bito-ink);
 }
 .quick-task-composer .bito-field {
   flex: 1;
 }
 .quick-task-composer > button {
   padding: 8px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 12px;
 }
 .saved-work-task {
@@ -460,7 +460,7 @@
 }
 .saved-work-row {
   padding: 13px 10px;
-  border-radius: 7px;
+  border-radius: 8px;
   box-shadow: none;
 }
 .saved-work-row strong {
@@ -472,10 +472,10 @@
 .workspace-dialog.bito-dialog {
   --dialog-width: 520px;
   border-radius: 12px;
-  box-shadow: 0 18px 64px #16233424;
+  box-shadow: var(--bito-shadow-floating);
 }
 .workspace-dialog.bito-dialog::backdrop {
-  background: #15233438;
+  background: #0a0a0a38;
   backdrop-filter: none;
 }
 .bito-dialog .astryx-dialog-header {
@@ -504,7 +504,7 @@
 .bito-dialog .project-form > label,
 .bito-dialog .bito-form-field {
   font-size: 12px;
-  color: #626b77;
+  color: var(--bito-ink-soft);
 }
 .bito-dialog .project-form-actions {
   margin-top: 16px;
@@ -515,7 +515,7 @@
 .bito-dialog .project-form-actions .bito-button {
   min-height: 34px;
   padding: 7px 12px;
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 12px;
 }
 .bito-dialog .project-form-actions .project-primary {
@@ -527,7 +527,7 @@
 }
 .bito-dialog .project-disclosure {
   margin: 4px 0;
-  border-top: 1px solid #edf0f2;
+  border-top: 1px solid var(--bito-hairline);
   padding-top: 8px;
 }
 .bito-dialog .project-columns {
@@ -541,18 +541,18 @@
 }
 /* Preferences and onboarding use the same rhythm without touching native drag geometry. */
 .pref-sidebar {
-  background: #fafafa;
+  background: var(--bito-surface-warm);
   flex-basis: 190px;
   padding-inline: 12px;
-  border-color: #eceef0;
+  border-color: var(--bito-hairline);
 }
 .pref-nav-item {
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 13px;
   height: 36px;
 }
 .pref-nav-selection {
-  border-radius: 7px;
+  border-radius: 8px;
 }
 .pref-window-title {
   font-size: 16px;
@@ -569,14 +569,14 @@
 }
 .pref-group h2 {
   font-size: 12px;
-  font-weight: 600;
-  color: #555f6c;
+  font-weight: 500;
+  color: var(--bito-ink-soft);
   margin-bottom: 12px;
 }
 .pref-group-body {
   border-radius: 8px;
   box-shadow: none;
-  border-color: #e9edf1;
+  border-color: var(--bito-hairline);
 }
 .pref-group-body > p.pref-secondary,
 .pref-group-body > p.board-error {
@@ -589,17 +589,17 @@
   padding: 14px;
 }
 .setup-flow {
-  background: #f4f8f4;
+  background: var(--bito-surface-warm);
 }
 .setup-flow-artwork {
   opacity: 1;
 }
 .setup-flow-panel {
-  border: 1px solid #e0e9e2;
-  box-shadow: 0 8px 32px #173d2010;
+  border: 1px solid var(--bito-hairline);
+  box-shadow: none;
 }
 .setup-description {
-  color: #737c89;
+  color: var(--bito-secondary);
   font-size: 13px;
 }
 .setup h1 {
@@ -608,8 +608,8 @@
 }
 .setup-composer {
   border-radius: 12px;
-  background: #fafbfd;
-  border-color: #dfe5eb;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .setup-speech {
   font-size: 14px;
@@ -622,7 +622,7 @@
 }
 .auth-card {
   border-radius: 16px;
-  box-shadow: 0 10px 36px #173d2010;
+  box-shadow: none;
 }
 .auth-google.bito-button {
   border-radius: 8px;
@@ -630,22 +630,22 @@
 }
 /* Companion remains warm; controls stay compact and stable while menus overlay. */
 .desktop-chat-panel {
-  border-radius: 20px;
+  border-radius: 16px;
 }
 .desktop-chat .desktop-composer {
-  border-radius: 14px;
-  background: #f8f9fb;
+  border-radius: 12px;
+  background: var(--bito-surface-warm);
 }
 .desktop-chat .desktop-bubble {
   font-size: 14px;
   line-height: 1.6;
 }
 .desktop-chat .response-card {
-  border-radius: 9px;
+  border-radius: 8px;
   box-shadow: none;
 }
 .desktop-popover {
-  border-radius: 10px;
+  border-radius: 8px;
 }
 .desktop-popover .bito-button {
   font-size: 13px;
@@ -653,7 +653,7 @@
   gap: 10px;
 }
 .desktop-chat .project-selector-trigger {
-  border-radius: 7px;
+  border-radius: 8px;
   font-size: 12px;
 }
 @media (max-width: 900px) {
@@ -740,7 +740,7 @@
   height: 26px;
   min-height: 26px;
   padding: 4px;
-  color: #78818c;
+  color: var(--bito-secondary);
 }
 .bito-dialog.is-capture .workspace-dialog-body {
   padding: 0;
@@ -750,14 +750,14 @@
 }
 .task-composer {
   padding: 18px 20px 0;
-  background: #fff;
+  background: var(--bito-surface);
   border-radius: 12px;
   min-width: 0;
 }
 .task-composer.is-inline {
-  border: 1px solid #d8dce2;
+  border: 1px solid var(--bito-hairline);
   margin: 12px 0;
-  border-radius: 9px;
+  border-radius: 8px;
 }
 .task-composer .task-title-input .bito-field-control,
 .task-composer .task-description-input .bito-field-control {
@@ -770,7 +770,7 @@
 }
 .task-composer .task-title-input input {
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
 }
 .task-composer .task-description-input textarea {
@@ -793,24 +793,24 @@
 .task-chip.bito-button {
   min-height: 29px;
   height: 29px;
-  border: 1px solid #e1e4e8;
-  border-radius: 5px;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 6px;
   font-size: 12px;
   padding: 4px 8px;
   gap: 6px;
-  color: #657180;
+  color: var(--bito-secondary);
   background: white;
 }
 .task-chip.has-date {
-  color: #28804b;
+  color: var(--bito-ink);
 }
 .task-property-select {
   display: flex;
   align-items: center;
-  border: 1px solid #e1e4e8;
-  border-radius: 5px;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 6px;
   padding-left: 8px;
-  color: #687280;
+  color: var(--bito-secondary);
   height: 29px;
 }
 .task-property-select .bito-field-control {
@@ -826,13 +826,13 @@
   width: auto;
 }
 [data-priority="1"] {
-  color: #c5453d;
+  color: var(--bito-ink);
 }
 [data-priority="2"] {
-  color: #b07119;
+  color: var(--bito-ink);
 }
 [data-priority="3"] {
-  color: #3774b8;
+  color: var(--bito-ink);
 }
 .task-composer-footer {
   display: flex;
@@ -841,7 +841,7 @@
   align-items: center;
   margin: 0 -20px;
   padding: 12px 16px;
-  border-top: 1px solid #eceef0;
+  border-top: 1px solid var(--bito-hairline);
 }
 .task-location {
   display: flex;
@@ -852,7 +852,7 @@
   flex-wrap: wrap;
 }
 .task-location > span {
-  color: #7d8794;
+  color: var(--bito-secondary);
   display: flex;
 }
 .task-location .bito-field {
@@ -886,7 +886,7 @@
   margin: 0 0 12px;
   font-size: 12px;
   line-height: 1.5;
-  color: #b4443c;
+  color: var(--bito-error);
 }
 .task-discard {
   display: flex;
@@ -895,7 +895,7 @@
   flex-wrap: wrap;
   font-size: 12px;
   padding: 10px 0;
-  border-top: 1px solid #eceef0;
+  border-top: 1px solid var(--bito-hairline);
 }
 .task-discard .bito-button {
   font-size: 12px;
@@ -916,15 +916,15 @@
   padding: 7px 6px;
   gap: 9px;
   font-size: 12px;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 .task-date-popover small {
   margin-left: auto;
-  color: #8a929c;
+  color: var(--bito-secondary);
   font-size: 11px;
 }
 .task-calendar-grid {
-  border-block: 1px solid #eceef0;
+  border-block: 1px solid var(--bito-hairline);
   margin: 8px 0;
   padding: 8px 0;
 }
@@ -946,7 +946,7 @@
   width: 100%;
 }
 .task-row-description {
-  color: #858c96;
+  color: var(--bito-secondary);
   font-size: 12px;
   margin: 2px 0 3px;
   line-height: 1.5;
@@ -969,7 +969,7 @@
   background: transparent;
 }
 .task-row-metadata .task-chip:hover {
-  background: #f3f6f9;
+  background: var(--bito-surface-muted);
 }
 .task-priority {
   display: inline-flex;
@@ -987,7 +987,7 @@
   height: 28px;
   min-height: 28px;
   padding: 6px;
-  color: #9299a2;
+  color: var(--bito-secondary);
 }
 .section-expanded {
   transform: rotate(90deg);
@@ -997,20 +997,20 @@
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #28313b;
+  background: var(--bito-ink);
   color: white;
   padding: 12px 18px;
   display: flex;
   align-items: center;
   gap: 8px;
   border-radius: 8px;
-  box-shadow: 0 6px 24px #0002;
+  box-shadow: var(--bito-shadow-floating);
   z-index: 100;
   font-size: 13px;
 }
 .saved-task-meta {
   margin: 4px 0 0 30px;
-  color: #748092;
+  color: var(--bito-secondary);
   font-size: 12px;
   display: flex;
   gap: 10px;
@@ -1035,7 +1035,7 @@
 }
 .task-composer .bito-field.task-title-input input {
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .task-composer .bito-area-field.task-description-input .bito-field-control {
   min-height: 48px;
@@ -1062,24 +1062,24 @@
 .board-work-session.is-idle {
   padding: 10px 12px;
   margin-bottom: 10px;
-  border-radius: 7px;
-  background: #fafcfa;
-  border-color: #eaf0ea;
+  border-radius: 8px;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .board-work-session.is-idle .board-session-copy small {
   display: none;
 }
 .board-work-session.is-idle .board-session-copy strong {
   font-size: 12px;
-  color: #66746b;
+  color: var(--bito-ink-soft);
   font-weight: 400;
 }
 .board-work-session.is-idle .project-primary {
   font-size: 11px;
   min-height: 30px;
   padding: 6px 9px;
-  background: #eaf3ed;
-  color: #348052;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
   border-radius: 6px;
 }
 .task-date-popover {
@@ -1093,21 +1093,21 @@
   border-radius: 50%;
 }
 .projects-board .board-task-row[data-priority="1"] .astryx-checkbox-indicator {
-  border-color: #c5453d;
+  border-color: var(--bito-hairline);
 }
 .projects-board .board-task-row[data-priority="2"] .astryx-checkbox-indicator {
-  border-color: #b07119;
+  border-color: var(--bito-hairline);
 }
 .projects-board .board-task-row[data-priority="3"] .astryx-checkbox-indicator {
-  border-color: #3774b8;
+  border-color: var(--bito-hairline);
 }
 .projects-board .task-row-description {
   margin: 2px 0 3px;
   line-height: 1.5;
 }
 .projects-board .board-work-session.is-idle .project-primary {
-  background: #eaf3ed;
-  color: #348052;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 
 /* Project tasks and context stay visible together. */
@@ -1142,9 +1142,9 @@
 }
 .board-list-heading {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   margin: 0;
-  color: #626b77;
+  color: var(--bito-ink-soft);
 }
 .project-board-layout > .board-project-summary {
   grid-column: 1;
@@ -1175,25 +1175,25 @@
   padding: 9px 10px;
   font-size: 13px;
   gap: 8px;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 .projects-board .board-add-group {
   margin-top: 18px;
   padding: 10px 8px;
   gap: 9px;
-  color: #626b77;
+  color: var(--bito-ink-soft);
   width: 100%;
   justify-content: flex-start;
-  border-top: 1px solid #eceef0;
+  border-top: 1px solid var(--bito-hairline);
   border-radius: 0;
 }
 .projects-board .board-add-group:hover {
-  color: #007aff;
-  background: #fafafa;
+  color: var(--bito-ink);
+  background: var(--bito-surface-muted);
 }
 .board-insights .board-side-calendar {
-  border: 1px solid #e7ebef;
-  border-radius: 9px;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
   background: white;
   padding: 14px;
 }
@@ -1230,7 +1230,7 @@
   gap: 6px;
 }
 .side-calendar-week small {
-  color: #7a818b;
+  color: var(--bito-secondary);
   font-size: 10px;
 }
 .side-calendar-week strong {
@@ -1243,8 +1243,8 @@
   border-radius: 50%;
 }
 .side-calendar-week [data-today="true"] strong {
-  background: #eaf3ff;
-  color: #007aff;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 .side-calendar-week i {
   width: 3px;
@@ -1253,7 +1253,7 @@
   background: transparent;
 }
 .side-calendar-week i[data-event="true"] {
-  background: #8d98a5;
+  background: var(--bito-muted);
 }
 .side-calendar-agenda {
   display: flex;
@@ -1274,7 +1274,7 @@
 .side-calendar-event time {
   flex: none;
   min-width: 35px;
-  color: #7a818b;
+  color: var(--bito-secondary);
 }
 .side-calendar-event .bito-button-content > span {
   flex: 1;
@@ -1282,17 +1282,17 @@
   overflow-wrap: anywhere;
 }
 .side-calendar-event.is-done {
-  color: #818993;
+  color: var(--bito-secondary);
 }
 .projects-board .side-calendar-connect {
   width: 100%;
   justify-content: flex-start;
   gap: 7px;
   padding: 10px 0 0;
-  border-top: 1px solid #edf0f2;
+  border-top: 1px solid var(--bito-hairline);
   margin-top: 12px;
   font-size: 11px;
-  color: #687280;
+  color: var(--bito-secondary);
 }
 .board-insights .board-progress-chart {
   padding: 14px;
@@ -1316,13 +1316,13 @@
   font-size: 11px;
 }
 .priority-label[data-priority="1"] {
-  color: #b9413b;
+  color: var(--bito-ink);
 }
 .priority-label[data-priority="2"] {
-  color: #a36817;
+  color: var(--bito-ink);
 }
 .priority-label[data-priority="3"] {
-  color: #376ba5;
+  color: var(--bito-ink);
 }
 @media (max-width: 1100px) {
   .projects-board .project-board-layout {
@@ -1359,7 +1359,7 @@
 }
 .saved-work-priority .saved-work-row {
   border: 0;
-  border-bottom: 1px solid #edf0f2;
+  border-bottom: 1px solid var(--bito-hairline);
   border-radius: 0;
   padding: 14px 8px;
 }
@@ -1381,8 +1381,8 @@
   gap: 16px;
   padding: 12px 0;
   margin: 0 36px 16px;
-  border-bottom: 1px solid var(--bito-border, #e7e9ed);
-  color: #68717c;
+  border-bottom: 1px solid var(--bito-border, var(--bito-hairline));
+  color: var(--bito-secondary);
 }
 .task-composer.is-inline .task-composer-footer {
   justify-content: flex-end;
@@ -1391,7 +1391,7 @@
   margin-top: 16px;
 }
 .task-chip.is-overdue {
-  color: #b5473b;
+  color: var(--bito-ink);
 }
 .saved-work-week-label {
   margin-right: auto;
@@ -1410,4 +1410,53 @@
   .saved-work-week-nav {
     flex-wrap: wrap;
   }
+}
+
+/* Focus is drawn once around the field, including nested chat/setup composers. */
+.bito-field.bito-field.bito-field input:focus-visible,
+.bito-field.bito-field.bito-field textarea:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.setup-composer .bito-field-control:focus-within,
+.desktop-composer .bito-field-control:focus-within {
+  outline: none;
+  box-shadow: none;
+}
+.setup-composer:focus-within {
+  outline: 2px solid var(--bito-focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.setup-choices .bito-button {
+  border-radius: 9999px;
+}
+.projects-board .sidebar-create,
+.projects-board .board-rail-button {
+  font-size: 14px;
+}
+.projects-board .board-rail-button.selected {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.project-topbar,
+.pref-header {
+  background: #ffffffd9;
+  backdrop-filter: blur(12px);
+}
+
+.pref-nav-item.selected {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.desktop-chat .desktop-composer:focus-within {
+  outline: 2px solid var(--bito-focus);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+.bito-dialog .project-form-actions .bito-button,
+.board-work-session.is-idle .project-primary {
+  min-height: 36px;
+  font-size: 13px;
+  padding: 8px 14px;
 }

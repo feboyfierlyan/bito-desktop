@@ -2,56 +2,55 @@
 html[data-astryx-theme="neutral"],
 [data-astryx-theme="neutral"] {
   color-scheme: light;
-  --font-family-body:
-    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  --font-family-body: var(--bito-font);
   --font-family-heading: var(--font-family-body);
-  --color-accent: #007aff;
-  --color-on-accent: #fff;
-  --color-accent-muted: #eaf3ff;
-  --color-accent-hover: #006be0;
-  --color-text-primary: #22262d;
-  --color-text-secondary: #737c89;
-  --color-text-tertiary: #959ca7;
-  --color-text-disabled: #a2a8b2;
-  --color-text-accent: #007aff;
-  --color-icon-accent: #007aff;
-  --color-background: #fff;
-  --color-background-surface: #fff;
-  --color-background-body: #f1f3f7;
-  --color-background-popover: #fff;
-  --color-background-card: #fff;
-  --color-background-muted: #f7f8fa;
-  --color-background-blue: #edf5ff;
-  --color-background-green: #eef7ef;
-  --color-neutral: #edf0f4;
-  --color-border: #e6e9ef;
-  --color-border-emphasized: #cfd6e1;
-  --color-border-blue: #b1d3ff;
-  --color-success: #38834b;
-  --color-success-muted: #eaf5ec;
-  --color-error: #c94642;
+  --color-accent: var(--bito-ink);
+  --color-on-accent: var(--bito-surface);
+  --color-accent-muted: var(--bito-surface-muted);
+  --color-accent-hover: var(--bito-ink-soft);
+  --color-text-primary: var(--bito-ink);
+  --color-text-secondary: var(--bito-secondary);
+  --color-text-tertiary: var(--bito-muted);
+  --color-text-disabled: var(--bito-muted);
+  --color-text-accent: var(--bito-ink);
+  --color-icon-accent: var(--bito-ink);
+  --color-background: var(--bito-surface);
+  --color-background-surface: var(--bito-surface);
+  --color-background-body: var(--bito-surface-warm);
+  --color-background-popover: var(--bito-surface);
+  --color-background-card: var(--bito-surface);
+  --color-background-muted: var(--bito-surface-warm);
+  --color-background-blue: var(--bito-surface-muted);
+  --color-background-green: var(--bito-surface-muted);
+  --color-neutral: var(--bito-surface-muted);
+  --color-border: var(--bito-hairline);
+  --color-border-emphasized: var(--bito-stone);
+  --color-border-blue: var(--bito-hairline);
+  --color-success: var(--bito-success);
+  --color-success-muted: var(--bito-success-surface);
+  --color-error: var(--bito-error);
   --radius-inner: 6px;
-  --radius-element: 10px;
-  --radius-container: 16px;
-  --radius-page: 22px;
-  --text-body-size: 13px;
+  --radius-element: 8px;
+  --radius-container: 12px;
+  --radius-page: 16px;
+  --text-body-size: 0.875rem;
   --text-body-leading: 1.5;
-  --text-label-size: 13px;
-  --text-supporting-size: 12px;
+  --text-label-size: 0.8125rem;
+  --text-supporting-size: 0.75rem;
   --size-element-sm: 28px;
   --size-element-md: 36px;
-  --size-element-lg: 42px;
+  --size-element-lg: 44px;
   --duration-fast: 140ms;
   --duration-medium: 240ms;
   --duration-slow: 440ms;
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --shadow-low: 0 2px 6px #20334f08;
-  --shadow-med: 0 8px 28px #20334f12;
-  --shadow-high: 0 22px 72px #152d4f24;
-  --blue: #007aff;
-  --blue-hover: #006be0;
-  --line: #e6e9ef;
-  --muted: #737c89;
+  --shadow-low: none;
+  --shadow-med: none;
+  --shadow-high: var(--bito-shadow-floating);
+  --blue: var(--bito-ink);
+  --blue-hover: var(--bito-ink-soft);
+  --line: var(--bito-surface-muted);
+  --muted: var(--bito-secondary);
 }
 /* The provider must not paint or alter native transparent-window geometry. */
 #root > [data-astryx-theme] {
@@ -78,37 +77,39 @@ html[data-astryx-theme="neutral"],
     box-shadow 200ms;
 }
 .bito-button:focus-visible {
-  outline: 2px solid #007aff;
+  outline: 2px solid var(--bito-focus);
   outline-offset: 3px;
 }
 .bito-button:disabled {
   cursor: default;
 }
 .bito-button:active:not(:disabled) {
-  filter: brightness(0.97);
+  /* Press feedback is immediate; click still commits on release. */
+  filter: brightness(0.9);
+  transition-duration: 0ms;
 }
 .bito-button.primary,
 .bito-button.project-primary,
 .bito-button.board-primary {
-  background: #007aff;
-  color: #fff;
-  border: 1px solid #007aff;
-  box-shadow: 0 1px 2px #0067d51a;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
+  border: 1px solid var(--bito-hairline);
+  box-shadow: none;
 }
 .bito-button.primary:hover:not(:disabled),
 .bito-button.project-primary:hover:not(:disabled) {
-  background: #006be0;
+  background: var(--bito-ink);
 }
 .bito-button.secondary {
-  background: #f1f4f8;
-  color: #364152;
-  border: 1px solid #e6e9ef;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink-soft);
+  border: 1px solid var(--bito-hairline);
 }
 .bito-button.primary:disabled,
 .bito-button.project-primary:disabled {
-  background: #aecfff;
+  background: var(--bito-surface-muted);
   border-color: transparent;
-  color: #fff;
+  color: var(--bito-surface);
 }
 .bito-field {
   width: 100%;
@@ -118,11 +119,11 @@ html[data-astryx-theme="neutral"],
 .bito-field-control {
   min-height: 40px;
   height: auto;
-  border: 1px solid #e2e7ee;
-  border-radius: 10px;
-  background: #fff;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
+  background: var(--bito-surface);
   padding: 9px 12px;
-  box-shadow: 0 1px 2px #152d4f03;
+  box-shadow: none;
   transition:
     border-color 160ms,
     box-shadow 160ms,
@@ -144,7 +145,7 @@ html[data-astryx-theme="neutral"],
   background: transparent;
   box-shadow: none;
   outline: none;
-  color: #29313e;
+  color: var(--bito-ink);
   font: inherit;
   line-height: 1.55;
 }
@@ -153,14 +154,14 @@ html[data-astryx-theme="neutral"],
 }
 .bito-field-control input::placeholder,
 .bito-field-control textarea::placeholder {
-  color: #a0a7b2;
+  color: var(--bito-muted);
 }
 .bito-area-field .bito-field-control {
   min-height: 96px;
   align-items: stretch;
 }
 .bito-native-input {
-  accent-color: #007aff;
+  accent-color: var(--bito-ink);
 }
 .bito-native-input[type="checkbox"] {
   width: 16px;
@@ -178,7 +179,7 @@ html[data-astryx-theme="neutral"],
 }
 .bito-form-field > span {
   font-size: 12px;
-  color: #737c89;
+  color: var(--bito-secondary);
 }
 .bito-select-field .bito-field-control {
   width: 100%;
@@ -190,8 +191,8 @@ html[data-astryx-theme="neutral"],
 
 /* Desktop workspace: one rail, one reading surface, details only when needed. */
 .projects-app.projects-board {
-  background: #f1f3f7;
-  color: #252c37;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
   padding: 14px 14px 14px 0;
 }
 .projects-app.astryx-app-shell {
@@ -226,21 +227,21 @@ html[data-astryx-theme="neutral"],
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  color: #7b8491;
+  color: var(--bito-secondary);
 }
 .projects-board .board-rail-button.selected {
-  background: #fff;
-  color: #007aff;
-  box-shadow: 0 2px 6px #20334f08;
+  background: var(--bito-surface);
+  color: var(--bito-ink);
+  box-shadow: none;
 }
 .projects-board .board-rail-profile {
-  background: #e1e8f1;
+  background: var(--bito-surface-muted);
   border-radius: 50%;
 }
 .projects-board .project-workspace {
-  border-color: #e4e8ef;
-  border-radius: 18px;
-  box-shadow: 0 3px 16px #20334f04;
+  border-color: var(--bito-hairline);
+  border-radius: 16px;
+  box-shadow: none;
 }
 .projects-board .project-topbar {
   padding: 22px 28px 18px;
@@ -249,7 +250,7 @@ html[data-astryx-theme="neutral"],
 .projects-board .project-topbar h1 {
   font-size: 23px;
   letter-spacing: -0.65px;
-  font-weight: 650;
+  font-weight: 500;
 }
 .board-gallery {
   padding: 4px 28px 28px;
@@ -257,27 +258,27 @@ html[data-astryx-theme="neutral"],
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 .projects-board .board-project-card {
-  border-color: #e7ebf1;
+  border-color: var(--bito-hairline);
   border-radius: 16px;
-  box-shadow: 0 2px 5px #20334f03;
+  box-shadow: none;
 }
 .projects-board .board-project-card:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: #b7d6fc;
-  box-shadow: 0 8px 24px #20334f0d;
+  border-color: var(--bito-hairline);
+  box-shadow: none;
 }
 .board-project-cover {
   height: 138px;
-  background: linear-gradient(135deg, #eaf3ff, #f5f8fd);
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-1 {
-  background: linear-gradient(135deg, #eaf6ed, #f6faf6);
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-2 {
-  background: linear-gradient(135deg, #fff1df, #fdf8f1);
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-3 {
-  background: linear-gradient(135deg, #eef0ff, #f8f8fe);
+  background: var(--bito-surface-warm);
 }
 .cover-checklist {
   transform: none;
@@ -291,24 +292,24 @@ html[data-astryx-theme="neutral"],
 }
 .board-project-caption strong {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
 }
 .board-project-caption > span {
   font-size: 11px;
-  color: #8a93a0;
+  color: var(--bito-secondary);
 }
 .projects-board .board-project-add {
   min-height: 64px;
-  border-radius: 15px;
-  border: 1px dashed #cdd7e5;
-  background: #fafbfd;
-  color: #7e8da2;
+  border-radius: 16px;
+  border: 1px dashed var(--bito-hairline);
+  background: var(--bito-surface-warm);
+  color: var(--bito-secondary);
 }
 .projects-board .board-project-add:hover {
-  color: #007aff;
-  background: #f0f6ff;
-  border-color: #9ec7fb;
+  color: var(--bito-ink);
+  background: var(--bito-surface-muted);
+  border-color: var(--bito-hairline);
 }
 .bito-gallery-progress {
   margin-top: 5px;
@@ -324,40 +325,40 @@ html[data-astryx-theme="neutral"],
 .board-calendar,
 .board-progress-chart,
 .board-milestones {
-  border-color: #e7ebf1;
-  border-radius: 14px;
-  background: #fff;
+  border-color: var(--bito-hairline);
+  border-radius: 12px;
+  background: var(--bito-surface);
 }
 .board-calendar {
-  box-shadow: 0 1px 4px #20334f03;
+  box-shadow: none;
 }
 .board-calendar header {
-  border-bottom-color: #edf0f5;
+  border-bottom-color: var(--bito-hairline);
 }
 .board-task-group {
   margin-top: 24px;
 }
 .board-task-row {
-  border-color: #edf0f5;
+  border-color: var(--bito-hairline);
   transition: background-color 160ms;
 }
 .board-task-row:hover {
-  background: #f8faff;
+  background: var(--bito-surface-muted);
 }
 .board-checkbox {
   border-radius: 6px;
 }
 .board-task-row.is-done .board-checkbox {
-  background: #007aff;
-  border-color: #007aff;
-  color: #fff;
+  background: var(--bito-ink);
+  border-color: var(--bito-hairline);
+  color: var(--bito-surface);
 }
 .board-task-title {
   line-height: 1.5;
 }
 .board-progress-chart h2,
 .board-milestones h2 {
-  font-weight: 600;
+  font-weight: 500;
 }
 .bito-empty-state {
   grid-column: 1 / -1;
@@ -367,49 +368,49 @@ html[data-astryx-theme="neutral"],
 
 /* Settings share the same controls, density and focus treatment. */
 .preferences {
-  color: #252c37;
-  background: #fff;
+  color: var(--bito-ink);
+  background: var(--bito-surface);
 }
 .pref-sidebar {
-  background: #f6f8fb;
-  border-color: #e9edf3;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .pref-nav-item {
   height: 40px;
   justify-content: flex-start;
-  color: #76808e;
+  color: var(--bito-secondary);
 }
 .pref-nav-item:hover {
-  background: #edf1f6;
+  background: var(--bito-surface-muted);
 }
 .pref-nav-selection {
-  background: #e7f1ff;
+  background: var(--bito-surface-warm);
 }
 .pref-header {
   padding-bottom: 22px;
 }
 .pref-group h2 {
   font-size: 12px;
-  font-weight: 550;
-  color: #7a8491;
+  font-weight: 500;
+  color: var(--bito-secondary);
 }
 .pref-group-body {
-  background: #fff;
-  border: 1px solid #e7ebf1;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px #20334f03;
+  background: var(--bito-surface);
+  border: 1px solid var(--bito-hairline);
+  border-radius: 12px;
+  box-shadow: none;
 }
 .bito-preference-switch {
   padding: 16px;
   min-height: 62px;
 }
 .bito-preference-switch + .bito-preference-switch {
-  border-top: 1px solid #edf0f5;
+  border-top: 1px solid var(--bito-hairline);
 }
 .bito-preference-switch .astryx-switch-label {
   font-size: 13px;
   font-weight: 500;
-  color: #303846;
+  color: var(--bito-ink-soft);
 }
 .bito-preference-switch .astryx-switch {
   flex: none;
@@ -418,27 +419,27 @@ html[data-astryx-theme="neutral"],
   padding: 16px;
 }
 .preferences .pref-field > span {
-  color: #737c89;
+  color: var(--bito-secondary);
 }
 .pref-personality-grid .bito-button {
-  border-radius: 11px;
+  border-radius: 12px;
 }
 
 /* Auth and onboarding retain their shared, already-loaded character. */
 .auth-google.bito-button {
   border-radius: 12px;
-  background: #f4f6f9;
-  color: #252c37;
-  border: 1px solid #e8ecf2;
-  box-shadow: 0 1px 3px #20334f05;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
+  border: 1px solid var(--bito-hairline);
+  box-shadow: none;
 }
 .auth-google.bito-button:hover:not(:disabled) {
-  background: #eaf2fd;
-  border-color: #cbdff8;
+  background: var(--bito-surface-muted);
+  border-color: var(--bito-hairline);
 }
 .auth-card {
-  border-color: #dfe8e2;
-  box-shadow: 0 12px 42px #163c2410;
+  border-color: var(--bito-hairline);
+  box-shadow: none;
 }
 .onboarding .bito-button,
 .onboard .bito-button {
@@ -461,51 +462,51 @@ html[data-astryx-theme="neutral"],
 
 /* Chat remains a single clipped surface so content follows the panel motion. */
 .desktop-chat {
-  --desktop-blue: #007aff;
+  --desktop-blue: var(--bito-ink);
 }
 .desktop-chat-panel {
-  border-radius: 24px;
+  border-radius: 16px;
 }
 .desktop-chat-surface {
   background: #fffffffc;
-  border: 1px solid #e7ebf2;
-  box-shadow: inset 0 1px 0 #fff;
+  border: 1px solid var(--bito-hairline);
+  box-shadow: inset 0 1px 0 #ffffff80;
 }
 .desktop-chat .desktop-message.assistant .bubble {
-  --bubble-fill: #f0f2f6;
-  color: #2b3340;
+  --bubble-fill: var(--bito-surface-warm);
+  color: var(--bito-ink);
 }
 .desktop-chat .desktop-message.user .bubble {
-  --bubble-fill: #007aff;
+  --bubble-fill: var(--bito-ink);
 }
 .desktop-chat .response-card {
-  border-radius: 14px;
-  border-color: #e3e9f2;
-  box-shadow: 0 2px 7px #20334f04;
+  border-radius: 12px;
+  border-color: var(--bito-hairline);
+  box-shadow: none;
 }
 .desktop-chat .desktop-composer {
-  background: #f5f7fa;
-  border-color: #e2e7ef;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
   border-radius: 22px;
 }
 .desktop-chat .desktop-composer:focus-within {
   box-shadow: none;
 }
 .desktop-send.bito-button {
-  background: #007aff;
-  color: #fff;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
 }
 .desktop-send.bito-button:disabled {
-  background: #c3dcfa;
+  background: var(--bito-surface-muted);
 }
 .desktop-more.bito-button {
-  color: #8993a1;
+  color: var(--bito-secondary);
 }
 .desktop-more.bito-button:hover {
-  background: #e8edf4;
+  background: var(--bito-surface-muted);
 }
 .desktop-chat .project-selector-trigger {
-  border-radius: 9px;
+  border-radius: 8px;
 }
 .desktop-chat .response-card .bito-button {
   font-size: 12px;
@@ -600,7 +601,7 @@ html[data-astryx-theme="neutral"],
   .desktop-message.user
   .bubble-content
   :where(p, span, strong, em, li, a, code) {
-  color: #fff;
+  color: var(--bito-surface);
 }
 .setup-composer .bito-field.bito-field input,
 .setup-composer .bito-field.bito-field input:focus {
@@ -648,12 +649,12 @@ html[data-astryx-theme="neutral"],
   height: fit-content;
   max-width: calc(100dvw - 48px);
   max-height: min(84dvh, 900px);
-  border: 1px solid #e1e6ee;
-  border-radius: 20px;
-  background: #fff;
-  color: #252c37;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 16px;
+  background: var(--bito-surface);
+  color: var(--bito-ink);
   overflow: hidden;
-  box-shadow: 0 24px 80px #142c4b26;
+  box-shadow: var(--bito-shadow-floating);
 }
 .workspace-dialog.bito-dialog.is-wide {
   --dialog-width: 1000px;
@@ -670,7 +671,7 @@ html[data-astryx-theme="neutral"],
   overflow: hidden;
 }
 .workspace-dialog.bito-dialog::backdrop {
-  background: #17263b42;
+  background: #0a0a0a42;
   backdrop-filter: blur(5px);
 }
 .bito-dialog .workspace-dialog-body {
@@ -681,11 +682,11 @@ html[data-astryx-theme="neutral"],
 }
 .bito-dialog .astryx-dialog-header {
   padding: 20px 24px;
-  border-bottom-color: #edf0f5;
+  border-bottom-color: var(--bito-hairline);
 }
 .bito-dialog .astryx-dialog-header h2 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.35px;
 }
 .bito-dialog .astryx-dialog-header button {
@@ -736,11 +737,11 @@ html[data-astryx-theme="neutral"],
 }
 .calendar-auto-row .astryx-switch-label {
   font-size: 14px;
-  font-weight: 550;
+  font-weight: 500;
 }
 .calendar-auto-row .astryx-field-description {
   font-size: 12px;
-  color: #7a8190;
+  color: var(--bito-secondary);
   line-height: 1.5;
 }
 .pref-memory-input > .bito-field {
@@ -755,7 +756,7 @@ html[data-astryx-theme="neutral"],
   gap: 10px;
   font: inherit;
   font-weight: 500;
-  color: #647287;
+  color: var(--bito-secondary);
   background: transparent;
   border: 0;
   border-radius: 6px;
@@ -765,7 +766,7 @@ html[data-astryx-theme="neutral"],
   content: none;
 }
 .bito-disclosure > .astryx-collapsible-trigger:hover {
-  color: #007aff;
+  color: var(--bito-ink);
 }
 .bito-disclosure > .astryx-collapsible-content {
   font-size: inherit;
@@ -782,7 +783,7 @@ html[data-astryx-theme="neutral"],
 .bito-field.bito-field .bito-field-control:focus-within {
   outline: none !important;
   box-shadow: none !important;
-  border-color: #e2e7ee;
+  border-color: var(--bito-focus);
 }
 .bito-field :is(input, textarea, [role="combobox"], [role="spinbutton"]):focus,
 .bito-field
@@ -805,5 +806,104 @@ body .desktop-chat .desktop-composer:focus-within,
 body .composer:focus-within {
   outline: none;
   box-shadow: none;
-  border-color: #e2e7ee;
+  border-color: var(--bito-focus);
+}
+
+/* Shared action treatments. Icon buttons and draggable mascots keep their geometry. */
+[data-astryx-theme="neutral"] button.bito-button[data-bito-variant="primary"],
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="secondary"] {
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: none;
+}
+[data-astryx-theme="neutral"] button.bito-button[data-bito-variant="primary"] {
+  background: var(--bito-ink);
+  color: var(--bito-surface);
+  border: 1px solid transparent;
+}
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="primary"]:hover:not(:disabled) {
+  background: var(--bito-ink-soft);
+  border-color: transparent;
+}
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="secondary"] {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+  border: 1px solid transparent;
+}
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="secondary"]:hover:not(:disabled) {
+  background: var(--bito-hairline);
+}
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="primary"]:disabled,
+[data-astryx-theme="neutral"]
+  button.bito-button[data-bito-variant="secondary"]:disabled {
+  background: var(--bito-surface-muted);
+  color: var(--bito-muted);
+  border-color: transparent;
+}
+.bito-button:focus-visible,
+.bito-field-control:focus-within {
+  outline: 2px solid var(--bito-focus);
+  outline-offset: 2px;
+}
+/* Primary authentication action uses the same treatment as the rest of the app. */
+.auth-window .auth-google.bito-button {
+  min-height: 44px;
+  border-radius: 9999px;
+  font-size: 14px;
+}
+/* Elevation is reserved for floating menus and dialogs, not resting cards. */
+.astryx-popover {
+  border: 1px solid var(--bito-hairline);
+  box-shadow: var(--bito-shadow-floating);
+}
+
+/* A flat, full-width row should respond without shrinking the whole layout. */
+.bito-button:is(
+    .board-project-card,
+    .board-rail-button,
+    .pref-nav-item,
+    .sidebar-project
+  ):active:not(:disabled) {
+  transform: none;
+  background: var(--bito-surface-muted);
+  filter: none;
+}
+
+/* Preserve information and focus when the OS requests simpler materials. */
+@media (prefers-reduced-transparency: reduce) {
+  .desktop-chat-surface,
+  .astryx-popover {
+    background: var(--bito-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .workspace-dialog.bito-dialog::backdrop {
+    backdrop-filter: none;
+    background: #0a0a0a66;
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --bito-secondary: #343434;
+    --bito-muted: #454545;
+    --bito-hairline: #767676;
+    --bito-stone: #767676;
+  }
+  .desktop-chat-surface,
+  .astryx-popover {
+    background: var(--bito-surface);
+    border-color: var(--bito-ink);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .bito-button:focus-visible {
+    outline-width: 3px;
+  }
 }

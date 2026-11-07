@@ -7,6 +7,7 @@ import { Switch as AstryxSwitch } from "@astryxdesign/core/Switch";
 import { Card } from "@astryxdesign/core/Card";
 import { Slider } from "@astryxdesign/core/Slider";
 import { BitoInput, BitoButton, BitoTextArea } from "./ui/controls";
+import { BitoMascot } from "./ui/BitoMascot";
 import { version } from "../package.json";
 import { bitoStyles } from "./bito-voice";
 // @refresh reset
@@ -210,7 +211,11 @@ export function SettingsWindow({
       data-platform={/Mac/.test(navigator.platform) ? "mac" : "other"}
     >
       <aside className="pref-sidebar">
-        <div className="pref-window-title">Pengaturan</div>
+        <div className="pref-window-title">
+          <BitoMascot />
+          <span>bito.</span>
+        </div>
+        <p className="pref-sidebar-caption">Dibuat nyaman untukmu.</p>
         <nav
           aria-label="Bagian pengaturan"
           ref={nav}
@@ -272,7 +277,20 @@ export function SettingsWindow({
                 <ArrowLeft size={17} />
               </BitoButton>
             )}
-            <h1>{title}</h1>
+            <div className="pref-title-copy">
+              <h1>{title}</h1>
+              <p>
+                {
+                  {
+                    you: "Sedikit tentangmu, supaya Bito lebih mengerti.",
+                    bito: "Atur cara Bito menemani harimu.",
+                    app: "Koneksi, kenyamanan, dan aksesibilitas.",
+                    data: "Lihat dan kelola yang kamu simpan di Bito.",
+                    reminders: "Hal kecil yang ingin kamu ingat.",
+                  }[page]
+                }
+              </p>
+            </div>
           </div>
           <div
             className={`pref-save-status ${status}`}
@@ -299,7 +317,7 @@ export function SettingsWindow({
                 Coba simpan lagi
               </BitoButton>
             ) : (
-              "Tersimpan otomatis"
+              "Disimpan otomatis"
             )}
           </div>
         </header>
@@ -412,6 +430,19 @@ export function SettingsWindow({
             )}
             {page === "bito" && (
               <>
+                <div className="pref-companion-preview">
+                  <BitoMascot />
+                  <div>
+                    <strong>Bito, dengan caramu.</strong>
+                    <p>
+                      Gaya bicara{" "}
+                      {bitoStyles
+                        .find((item) => item.value === profile.draft.style)
+                        ?.title.toLocaleLowerCase()}{" "}
+                      · kamu bisa mengubahnya kapan saja.
+                    </p>
+                  </div>
+                </div>
                 <Group title="Kepribadian">
                   <div className="pref-field">
                     <span>Gaya bicara</span>

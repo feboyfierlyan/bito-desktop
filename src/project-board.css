@@ -14,11 +14,11 @@
   animation: board-reveal 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .projects-app.projects-board {
-  background: #e9e9eb;
+  background: var(--bito-surface-muted);
   padding: 16px 16px 16px 0;
   gap: 0;
   font-size: 13px;
-  color: #282a30;
+  color: var(--bito-ink);
 }
 .projects-board .board-rail {
   width: 68px;
@@ -39,28 +39,28 @@
 .projects-board .board-rail-profile {
   width: 42px;
   height: 42px;
-  border-radius: 11px;
+  border-radius: 12px;
   -webkit-app-region: no-drag;
-  color: #47494e;
+  color: var(--bito-ink-soft);
 }
 .projects-board .board-rail-button:hover,
 .projects-board .board-rail-button.selected {
-  background: #fafafa;
+  background: var(--bito-surface-muted);
 }
 .projects-board .board-rail-button.selected {
-  color: #087bff;
+  color: var(--bito-ink);
 }
 .projects-board .board-rail-profile {
   margin-top: auto;
-  background: #dcdcdf;
+  background: var(--bito-surface-muted);
   border-radius: 50%;
 }
 .projects-board .project-workspace {
   min-width: 0;
   flex: 1;
-  border: 1px solid #dedee2;
-  border-radius: 15px;
-  background: #fff;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 16px;
+  background: var(--bito-surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
 }
 .projects-board .project-topbar h1 {
   font-size: 23px;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -0.7px;
   line-height: 1.3;
 }
@@ -113,10 +113,10 @@
   align-items: stretch;
   justify-content: flex-start;
   overflow: hidden;
-  background: #f4f5f7;
-  border-radius: 13px;
+  background: var(--bito-surface-warm);
+  border-radius: 12px;
   text-align: left;
-  border: 1px solid #eceef1;
+  border: 1px solid var(--bito-hairline);
   transition:
     transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.22s,
@@ -124,29 +124,29 @@
 }
 .projects-board .board-project-card:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 9px 24px #2538500e;
-  border-color: #d3dce9;
+  box-shadow: none;
+  border-color: var(--bito-hairline);
 }
 .board-project-cover {
   height: 122px;
   overflow: hidden;
   position: relative;
-  background: #f0f3f8;
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-1 {
-  background: #f1f5ef;
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-2 {
-  background: #f6f0eb;
+  background: var(--bito-surface-warm);
 }
 .board-project-cover.cover-3 {
-  background: #f1eff8;
+  background: var(--bito-surface-warm);
 }
 .cover-orbit {
   position: absolute;
   width: 120px;
   height: 120px;
-  border: 1px solid #c9d8ec;
+  border: 1px solid var(--bito-hairline);
   border-radius: 50%;
   top: -57px;
   right: -25px;
@@ -166,7 +166,7 @@
   transform: rotate(-3deg);
   display: grid;
   gap: 9px;
-  color: #90a0b7;
+  color: var(--bito-secondary);
   font-size: 10px;
 }
 .cover-checklist span {
@@ -178,7 +178,7 @@
   display: inline-block;
   width: 9px;
   height: 9px;
-  border: 1px solid #a8b9d1;
+  border: 1px solid var(--bito-hairline);
   border-radius: 3px;
   margin-right: 8px;
 }
@@ -186,22 +186,22 @@
   padding: 13px 15px 15px;
   display: grid;
   gap: 7px;
-  background: #fff;
+  background: var(--bito-surface);
   flex: 1;
 }
 .board-project-caption strong {
   font-size: 13px;
   line-height: 1.4;
-  font-weight: 550;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 .board-project-caption > span {
   font-size: 10px;
-  color: #858b95;
+  color: var(--bito-secondary);
 }
 .gallery-progress {
   height: 3px;
-  background: #edf0f5;
+  background: var(--bito-surface-warm);
   border-radius: 8px;
   margin-top: 3px;
   overflow: hidden;
@@ -209,23 +209,23 @@
 .gallery-progress i {
   display: block;
   height: 100%;
-  background: #8caff5;
+  background: var(--bito-hairline);
   transition: width 0.3s ease;
 }
 .projects-board .board-project-add {
   height: 60px;
   align-self: start;
-  background: #f1f1f3;
-  border-radius: 13px;
-  color: #8c8e95;
+  background: var(--bito-surface-warm);
+  border-radius: 12px;
+  color: var(--bito-secondary);
   grid-column: 1;
   transition:
     background 0.2s,
     color 0.2s;
 }
 .projects-board .board-project-add:hover {
-  background: #e8effb;
-  color: #087bff;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 .project-board-layout {
   padding: 0 22px 22px;
@@ -238,7 +238,7 @@
   align-items: start;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #d6d9df transparent;
+  scrollbar-color: var(--bito-hairline) transparent;
 }
 .board-main-column {
   min-width: 0;
@@ -250,9 +250,9 @@
   gap: 12px;
   padding: 14px 16px;
   margin-bottom: 14px;
-  border: 1px solid #e4ebf6;
-  border-radius: 14px;
-  background: #f7faff;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 12px;
+  background: var(--bito-surface-warm);
 }
 .board-session-copy {
   flex: 1 1 180px;
@@ -261,16 +261,16 @@
   gap: 4px;
 }
 .board-session-copy small {
-  color: #78889f;
+  color: var(--bito-secondary);
   font-size: 11px;
 }
 .board-session-copy strong {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 .board-session-time {
-  color: #53667f;
+  color: var(--bito-ink-soft);
   font-variant-numeric: tabular-nums;
   font-size: 13px;
 }
@@ -287,14 +287,14 @@
   gap: 6px;
   min-height: 34px;
   padding: 8px 10px;
-  border-radius: 9px;
+  border-radius: 8px;
   font-size: 12px;
   transition:
     background 160ms ease,
     transform 160ms ease;
 }
 .board-session-actions button:hover:not(:disabled) {
-  background: #eaf1fc;
+  background: var(--bito-surface-muted);
 }
 .board-session-actions button:active:not(:disabled) {
   transform: scale(0.98);
@@ -307,7 +307,7 @@
   line-height: 1.5;
 }
 .board-session-hint {
-  color: #78889f;
+  color: var(--bito-secondary);
 }
 .calendar-review {
   display: grid;
@@ -316,7 +316,7 @@
 }
 .calendar-review > p {
   margin: 0;
-  color: #7a8190;
+  color: var(--bito-secondary);
   line-height: 1.6;
 }
 .calendar-connection-line {
@@ -324,11 +324,11 @@
   align-items: center;
   gap: 9px;
   padding: 12px;
-  background: #f5f8fd;
-  border-radius: 11px;
+  background: var(--bito-surface-warm);
+  border-radius: 12px;
 }
 .calendar-connection-line > svg {
-  color: #087bff;
+  color: var(--bito-ink);
   flex: none;
 }
 .calendar-connection-line > span {
@@ -338,7 +338,7 @@
 }
 .calendar-connection-line button,
 .calendar-review-stale button {
-  color: #087bff;
+  color: var(--bito-ink);
   white-space: nowrap;
   padding: 4px;
 }
@@ -351,7 +351,7 @@
   align-items: flex-start;
   gap: 11px;
   padding: 13px;
-  border: 1px solid #e5e9ef;
+  border: 1px solid var(--bito-hairline);
   border-radius: 12px;
   cursor: pointer;
   transition:
@@ -359,14 +359,14 @@
     border-color 160ms ease;
 }
 .calendar-review-entry:has(input:checked) {
-  background: #f7faff;
-  border-color: #b9d7ff;
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 .calendar-review-entry:has(input:disabled) {
   cursor: default;
 }
 .calendar-review-entry input {
-  accent-color: #087bff;
+  accent-color: var(--bito-ink);
   width: 17px;
   height: 17px;
   margin: 1px 0 0;
@@ -379,12 +379,12 @@
 }
 .calendar-review-entry strong {
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 .calendar-review-entry time {
   font-size: 12px;
-  color: #7a8190;
+  color: var(--bito-secondary);
 }
 .calendar-review-entry small {
   display: flex;
@@ -393,17 +393,17 @@
   line-height: 1.5;
 }
 .calendar-sent {
-  color: #458359;
+  color: var(--bito-ink);
 }
 .calendar-review-stale {
-  background: #fff7eb;
+  background: var(--bito-surface-warm);
   padding: 10px 12px;
-  border-radius: 10px;
-  color: #967447;
+  border-radius: 8px;
+  color: var(--bito-ink);
 }
 .calendar-review > .calendar-review-footnote {
   font-size: 11px;
-  color: #9098a5;
+  color: var(--bito-secondary);
 }
 .calendar-review > .project-primary {
   display: inline-flex;
@@ -420,7 +420,7 @@
 }
 .calendar-review button:focus-visible,
 .board-session-actions button:focus-visible {
-  outline: 2px solid #72afff;
+  outline: 2px solid var(--bito-focus);
   outline-offset: 3px;
 }
 .calendar-spinner {
@@ -441,9 +441,9 @@
 .board-calendar,
 .board-progress-chart,
 .board-milestones {
-  border: 6px solid #f1f1f3;
-  border-radius: 14px;
-  background: #fff;
+  border: 6px solid var(--bito-hairline);
+  border-radius: 12px;
+  background: var(--bito-surface);
   overflow: hidden;
 }
 .board-calendar {
@@ -478,36 +478,30 @@
   width: 27px;
   height: 27px;
   padding: 0;
-  border-radius: 7px;
-  color: #858a94;
+  border-radius: 8px;
+  color: var(--bito-secondary);
   flex: none;
 }
 .projects-board .board-icon:hover {
-  background: #f0f2f6;
-  color: #40444c;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink-soft);
 }
 .projects-board .calendar-today {
   padding: 4px 7px;
   font-size: 10px;
-  color: #7e8693;
-  border: 1px solid #e9ebf0;
+  color: var(--bito-secondary);
+  border: 1px solid var(--bito-hairline);
   border-radius: 6px;
 }
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   min-height: 163px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 40px,
-    #edf0f4 40px,
-    #edf0f4 41px
-  );
+  background: var(--bito-surface-warm);
   background-position-y: 59px;
 }
 .calendar-day {
-  border-left: 1px solid #edf0f4;
+  border-left: 1px solid var(--bito-hairline);
   min-width: 0;
   padding: 3px;
 }
@@ -520,7 +514,7 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  color: #666c76;
+  color: var(--bito-secondary);
 }
 .calendar-day-heading > span {
   font-size: 8px;
@@ -537,10 +531,10 @@
   border-radius: 50%;
 }
 .calendar-day.is-today .calendar-day-heading {
-  color: #087bff;
+  color: var(--bito-ink);
 }
 .calendar-day.is-today .calendar-day-heading > strong {
-  background: #087bff;
+  background: var(--bito-ink);
   color: white;
 }
 .calendar-day-events {
@@ -550,8 +544,8 @@
   padding-bottom: 7px;
 }
 .projects-board .calendar-event {
-  background: #e8f0ff;
-  color: #3974c7;
+  background: var(--bito-surface-warm);
+  color: var(--bito-ink);
   border-radius: 4px;
   padding: 5px 4px;
   line-height: 1.35;
@@ -564,12 +558,12 @@
   word-break: break-word;
 }
 .projects-board .calendar-event.deadline {
-  background: #087bff;
-  color: #fff;
+  background: var(--bito-ink);
+  color: var(--bito-surface);
 }
 .projects-board .calendar-event.is-done {
-  background: #eaf3e8;
-  color: #64885a;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 .calendar-week-empty {
   position: absolute;
@@ -579,7 +573,7 @@
   margin: 0;
   text-align: center;
   font-size: 10px;
-  color: #9298a3;
+  color: var(--bito-secondary);
   pointer-events: none;
 }
 .board-task-groups {
@@ -592,7 +586,7 @@
   margin-bottom: 8px;
 }
 .projects-board .board-task-group > header > button {
-  color: #898c93;
+  color: var(--bito-secondary);
   font-size: 14px;
   justify-content: flex-start;
   text-align: left;
@@ -606,27 +600,27 @@
   gap: 10px;
   min-height: 37px;
   padding: 5px 3px;
-  border-radius: 7px;
+  border-radius: 8px;
   transition: background 0.15s;
 }
 .board-task-row:hover {
-  background: #f8f9fb;
+  background: var(--bito-surface-muted);
 }
 .projects-board .board-checkbox {
   width: 19px;
   height: 19px;
   padding: 0;
   flex: none;
-  border: 1.5px solid #737780;
-  border-radius: 5px;
+  border: 1.5px solid var(--bito-hairline);
+  border-radius: 6px;
   transition:
     background 0.18s,
     border-color 0.18s;
 }
 .projects-board .is-done > .board-checkbox {
-  background: #8a82f1;
-  border-color: #8a82f1;
-  color: #fff;
+  background: var(--bito-hairline);
+  border-color: var(--bito-hairline);
+  color: var(--bito-surface);
 }
 .projects-board .board-task-title {
   flex: 1;
@@ -644,22 +638,22 @@
 }
 .is-done .board-task-title .bito-button-content > span {
   text-decoration: line-through;
-  color: #a5a6ab;
+  color: var(--bito-secondary);
 }
 .task-blocked-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #dcab68;
+  background: var(--bito-ink);
   flex: none;
 }
 .board-task-title .bito-button-content > svg {
   flex: none;
-  color: #8ba2ce;
+  color: var(--bito-ink);
 }
 .projects-board .board-task-date {
   font-size: 10px;
-  color: #858992;
+  color: var(--bito-secondary);
   padding: 4px 2px;
   flex: none;
   min-width: 37px;
@@ -667,14 +661,14 @@
 .projects-board .board-add-step {
   width: 100%;
   height: 26px;
-  background: #f0f0f2;
-  border-radius: 20px;
-  color: #8a8d93;
+  background: var(--bito-surface-warm);
+  border-radius: 16px;
+  color: var(--bito-secondary);
   margin-top: 1px;
 }
 .projects-board .board-add-step:hover {
-  background: #e7eefb;
-  color: #087bff;
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
 }
 .board-progress-chart {
   padding: 9px 10px 7px;
@@ -690,18 +684,18 @@
   font-size: 11px;
   font-weight: 500;
   margin: 0;
-  color: #676e78;
+  color: var(--bito-secondary);
 }
 .board-progress-chart > header > strong {
   font-size: 11px;
   font-weight: 500;
-  color: #6d7cf3;
+  color: var(--bito-ink);
 }
 .board-chart-counts {
   display: flex;
   gap: 18px;
   font-size: 9px;
-  color: #969ba4;
+  color: var(--bito-secondary);
   margin-top: 13px;
 }
 .board-chart-counts > span {
@@ -713,10 +707,10 @@
   display: inline-block;
   width: 5px;
   height: 5px;
-  background: #b8bdc7;
+  background: var(--bito-hairline);
 }
 .board-chart-counts > span + span i {
-  background: #7b83ec;
+  background: var(--bito-hairline);
 }
 .board-progress-chart svg {
   width: 100%;
@@ -729,7 +723,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 8px;
-  color: #969aa4;
+  color: var(--bito-secondary);
   margin-top: -1px;
 }
 .board-milestones {
@@ -749,11 +743,11 @@
   border-radius: 6px;
 }
 .projects-board .board-milestone:hover {
-  background: #f6f7fa;
+  background: var(--bito-surface-muted);
 }
 .board-milestone .bito-button-content > svg {
   flex: none;
-  color: #7b80dc;
+  color: var(--bito-ink);
   margin-top: 2px;
 }
 .board-milestone .bito-button-content > span {
@@ -765,13 +759,13 @@
 }
 .board-milestone small {
   display: block;
-  color: #a0a5af;
+  color: var(--bito-secondary);
   font-size: 9px;
   margin-top: 2px;
 }
 .board-milestone time {
   font-size: 9px;
-  color: #9096a2;
+  color: var(--bito-secondary);
   white-space: nowrap;
   padding-top: 2px;
 }
@@ -783,7 +777,7 @@
 }
 .projects-board .board-secondary-actions > button {
   font-size: 11px;
-  color: #8a919e;
+  color: var(--bito-secondary);
   padding: 3px;
 }
 .board-menu-container {
@@ -795,11 +789,11 @@
   bottom: 32px;
   z-index: 3;
   min-width: 150px;
-  background: #fff;
+  background: var(--bito-surface);
   padding: 5px;
-  box-shadow: 0 5px 24px #18283818;
-  border: 1px solid #e8ebf0;
-  border-radius: 10px;
+  box-shadow: none;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
 }
 .projects-board .board-options > button {
   display: flex;
@@ -808,14 +802,14 @@
   white-space: nowrap;
   font-size: 11px;
   padding: 8px;
-  border-radius: 5px;
+  border-radius: 6px;
 }
 .board-options > button:hover {
-  background: #f4f6fa;
+  background: var(--bito-surface-muted);
 }
 .board-empty {
   font-size: 11px;
-  color: #989da7;
+  color: var(--bito-secondary);
   margin: 12px 4px;
   grid-column: 1/-1;
 }
@@ -828,8 +822,8 @@
   margin-bottom: 16px;
 }
 .board-error {
-  color: #b3453c;
-  background: #fff3f0;
+  color: var(--bito-error);
+  background: var(--bito-surface-warm);
   border-radius: 8px;
   padding: 9px 12px;
   font-size: 12px;
@@ -847,7 +841,7 @@
   border: 0;
   padding: 28px;
   background: transparent;
-  color: #282a30;
+  color: var(--bito-ink);
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -856,7 +850,7 @@
   place-items: center;
 }
 .workspace-dialog::backdrop {
-  background: #15171f55;
+  background: #0a0a0a55;
   backdrop-filter: blur(2px);
 }
 .workspace-dialog-panel {
@@ -864,10 +858,10 @@
   max-height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
-  background: #fff;
-  border: 1px solid #e4e6eb;
-  border-radius: 18px;
-  box-shadow: 0 24px 80px #131c2926;
+  background: var(--bito-surface);
+  border: 1px solid var(--bito-hairline);
+  border-radius: 16px;
+  box-shadow: var(--bito-shadow-floating);
   overflow: hidden;
   margin: auto;
 }
@@ -880,13 +874,13 @@
   justify-content: space-between;
   gap: 14px;
   padding: 19px 24px;
-  border-bottom: 1px solid #f0f1f4;
+  border-bottom: 1px solid var(--bito-hairline);
   flex: none;
 }
 .workspace-dialog-header h2 {
   flex: 1;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.35px;
   margin: 0;
 }
@@ -896,7 +890,7 @@
   min-height: 0;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: #d7dae0 transparent;
+  scrollbar-color: var(--bito-hairline) transparent;
 }
 .projects-board .workspace-dialog .project-create {
   padding: 0;
@@ -931,7 +925,7 @@
 }
 .workspace-dialog .project-form .bito-field-control {
   min-height: 40px;
-  border-radius: 9px;
+  border-radius: 8px;
 }
 .workspace-dialog .project-form-actions {
   margin-top: 18px;
@@ -948,7 +942,7 @@
 }
 .workspace-dialog h3 {
   font-size: 17px;
-  font-weight: 550;
+  font-weight: 500;
   letter-spacing: -0.3px;
   line-height: 1.45;
   margin: 0 0 15px;
@@ -956,15 +950,15 @@
 .board-task-detail > p {
   font-size: 13px;
   line-height: 1.65;
-  color: #7b828d;
+  color: var(--bito-secondary);
   white-space: pre-wrap;
 }
 .board-done-when {
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  background: #f5f8f4;
-  border-radius: 9px;
+  background: var(--bito-surface-warm);
+  border-radius: 8px;
   padding: 10px;
 }
 .board-done-when svg {
@@ -973,7 +967,7 @@
 }
 .board-task-estimate {
   font-size: 11px;
-  color: #a0a5ae;
+  color: var(--bito-secondary);
 }
 .projects-board .pw-blocker {
   display: flex;
@@ -1086,11 +1080,11 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #7a8190;
+  color: var(--bito-secondary);
   min-height: 24px;
 }
 .calendar-sync-status button {
-  color: #087bff;
+  color: var(--bito-ink);
   margin-left: auto;
 }
 .calendar-readonly {
@@ -1098,38 +1092,38 @@
 }
 .calendar-readonly > svg {
   flex: none;
-  color: #8ba5c4;
+  color: var(--bito-ink);
   margin-top: 1px;
 }
 
 .board-session-stop {
   margin: 4px 0 0;
   font-size: 12px;
-  color: #63748c;
+  color: var(--bito-secondary);
   line-height: 1.5;
 }
 .board-session-note {
   display: grid;
   width: 100%;
   gap: 12px;
-  border-top: 1px solid #e4ebf6;
+  border-top: 1px solid var(--bito-hairline);
   padding-top: 12px;
 }
 .board-session-note label {
   display: grid;
   gap: 6px;
-  color: #53667f;
+  color: var(--bito-ink-soft);
   font-size: 12px;
 }
 .projects-board .board-session-note .bito-field-control {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #dce5f2;
-  border-radius: 10px;
+  border: 1px solid var(--bito-hairline);
+  border-radius: 8px;
   padding: 10px 12px;
   font: inherit;
   line-height: 1.5;
-  color: #293343;
+  color: var(--bito-ink);
   background: white;
   transition:
     border-color 160ms ease,
@@ -1142,11 +1136,11 @@
 }
 .projects-board .board-session-note .bito-field-control:focus-within {
   outline: none;
-  border-color: #2587ff;
-  box-shadow: 0 0 0 3px #087dff18;
+  border-color: var(--bito-focus);
+  box-shadow: 0 0 0 2px var(--bito-focus-soft);
 }
 .board-session-note small {
-  color: #63748c;
+  color: var(--bito-secondary);
   font-size: 12px;
 }
 .board-session-outcomes {
@@ -1156,18 +1150,18 @@
 }
 .projects-board .board-session-outcomes button {
   padding: 8px 12px;
-  border-radius: 9px;
+  border-radius: 8px;
   background: white;
-  border: 1px solid #e4ebf6;
+  border: 1px solid var(--bito-hairline);
   font-size: 12px;
   transition:
     background 160ms ease,
     border-color 160ms ease;
 }
 .projects-board .board-session-outcomes button[aria-pressed="true"] {
-  color: #087dff;
-  background: #eaf3ff;
-  border-color: #a8ceff;
+  color: var(--bito-ink);
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
 }
 @media (prefers-reduced-motion: reduce) {
   .board-session-note *,

@@ -174,7 +174,7 @@ export function AreaSelect() {
               {...rect}
               rx="4"
               fill="none"
-              stroke="#58a3ff"
+              stroke="var(--bito-focus)"
               strokeWidth="1.5"
             />
           )}

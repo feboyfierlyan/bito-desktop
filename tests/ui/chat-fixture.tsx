@@ -35,6 +35,7 @@ if (import.meta.env.DEV) {
   await import("../../src/DesktopChat.css");
   await import("../../src/ui/astryx-bito.css");
   await import("../../src/ui/workspace.css");
+  await import("../../src/ui/product.css");
   function Fixture() {
     const [state, set] = useState(base);
     async function act(name: string, p: any) {

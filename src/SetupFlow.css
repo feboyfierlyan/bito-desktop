@@ -4,7 +4,7 @@
   width: 100%;
   height: 100dvh;
   overflow: hidden;
-  background: #f5f9ff;
+  background: var(--bito-surface-warm);
 }
 .setup-flow-artwork {
   position: absolute;
@@ -25,9 +25,9 @@
 }
 .setup-flow-panel {
   position: absolute;
-  background: #fff;
-  border: 1.5px solid #255b3f;
-  box-shadow: 0 12px 40px #163e2826;
+  background: var(--bito-surface);
+  border: 1px solid var(--bito-hairline);
+  box-shadow: none;
   pointer-events: none;
 }
 .setup-flow-page {
