@@ -5,7 +5,7 @@
 <h1 align="center">Bito</h1>
 <p align="center"><strong>Teman kecil untuk berpikir, merencanakan, dan mulai mengerjakan.</strong><br />Ngobrol, susun tugas, dan dapatkan bantuan saat bekerja—langsung di desktopmu.</p>
 <p align="center">
-  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/latest"><strong>Unduh Bito v0.6.2 · Latest</strong></a> ·
+  <a href="https://github.com/feboyfierlyan/bito-desktop/releases/latest"><strong>Unduh Bito v0.6.3 · Latest</strong></a> ·
   <a href="#apa-yang-bisa-kamu-lakukan">Jelajahi fitur</a> ·
   <a href="#mulai-dengan-bito">Cara mulai</a> ·
   <a href="CHANGELOG.md">Yang baru</a>
@@ -16,15 +16,15 @@ Bito menemani kamu dari “mulai dari mana?” sampai langkah berikutnya terasa 
 
 ## Unduh Bito
 
-**[v0.6.2 adalah rilis Latest](https://github.com/feboyfierlyan/bito-desktop/releases/latest)**, tersedia sebagai rilis biasa di GitHub Releases.
+**[v0.6.3 adalah rilis Latest](https://github.com/feboyfierlyan/bito-desktop/releases/latest)**, tersedia sebagai rilis biasa di GitHub Releases.
 
-| Perangkat | Unduhan v0.6.2 |
+| Perangkat | Unduhan v0.6.3 |
 | --- | --- |
-| Mac Apple Silicon · M1 atau lebih baru | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/Bito-0.6.2-macOS-arm64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/Bito-0.6.2-macOS-arm64.zip) |
-| Mac Intel | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/Bito-0.6.2-macOS-x64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/Bito-0.6.2-macOS-x64.zip) |
-| Windows x64 | [Installer EXE](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/Bito-0.6.2-Windows-x64-Setup.exe) |
+| Mac Apple Silicon · M1 atau lebih baru | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/Bito-0.6.3-macOS-arm64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/Bito-0.6.3-macOS-arm64.zip) |
+| Mac Intel | [DMG](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/Bito-0.6.3-macOS-x64.dmg) · [ZIP](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/Bito-0.6.3-macOS-x64.zip) |
+| Windows x64 | [Installer EXE](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/Bito-0.6.3-Windows-x64-Setup.exe) |
 
-[Panduan instalasi](docs/INSTALL.md) · [Catatan rilis v0.6.2](docs/releases/v0.6.2.md) · [Checksum SHA-256](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.2/SHA256SUMS.txt) · [Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases)
+[Panduan instalasi](docs/INSTALL.md) · [Catatan rilis v0.6.3](docs/releases/v0.6.3.md) · [Checksum SHA-256](https://github.com/feboyfierlyan/bito-desktop/releases/download/v0.6.3/SHA256SUMS.txt) · [Semua versi](https://github.com/feboyfierlyan/bito-desktop/releases)
 
 **Sebelum mengunduh:** installer tersedia publik, tetapi login dan layanan AI masih memerlukan akun Google yang diizinkan oleh pengelola Bito. macOS belum memiliki Developer ID/notarization dan installer Windows belum signed; peringatan keamanan OS mungkin muncul. Lihat [batasan rilis](#batasan-rilis) sebelum memasang.
 
@@ -67,7 +67,7 @@ Untuk memperbarui aplikasi, keluar dari Bito lalu pasang versi baru. Jangan hapu
 
 ## Batasan rilis
 
-v0.6.2 ditandai sebagai **Latest** di GitHub. Status ini tidak menghilangkan batasan berikut:
+v0.6.3 ditandai sebagai **Latest** di GitHub. Status ini tidak menghilangkan batasan berikut:
 
 - **Penandatanganan:** paket Mac memakai tanda tangan ad-hoc, belum Developer ID dan notarization Apple. Installer Windows belum memiliki tanda tangan penerbit.
 - **Akses akun:** layanan backend masih dibatasi untuk akun yang diizinkan. Akun Google Calendar dalam mode OAuth Testing mungkin juga perlu terdaftar sebagai test user.
@@ -75,7 +75,7 @@ v0.6.2 ditandai sebagai **Latest** di GitHub. Status ini tidak menghilangkan bat
 - **Cakupan pengujian:** build dan tes CI macOS/Windows telah lolos. Interaksi native serta instalasi/upgrade Windows dan Mac Intel belum seluruhnya diuji langsung pada perangkat fisik. Login Google baru di setiap platform juga belum terverifikasi end-to-end; tes integrasi live memakai akun yang sudah terhubung.
 - **Koneksi dan hasil AI:** fitur AI serta bantuan layar memerlukan jaringan. Periksa kembali jawaban, tanggal, dan rencana sebelum mengandalkannya.
 
-Rilis ini telah melewati **400 tes lokal tanpa skip**, termasuk pengujian database, serta pemeriksaan build lintas platform. Detail verifikasi dan batasannya tersedia di [catatan rilis](docs/releases/v0.6.2.md) dan [dokumentasi pengujian](docs/TESTING.md).
+Rilis ini telah melewati pengujian otomatis dan pemeriksaan paket lintas platform melalui workflow rilis GitHub Actions. Detail verifikasi dan batasannya tersedia di [catatan rilis](docs/releases/v0.6.3.md) dan [dokumentasi pengujian](docs/TESTING.md).
 
 ## Tentang Bito
 

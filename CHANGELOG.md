@@ -2,6 +2,14 @@
 
 Perubahan Bito per versi. Setiap rilis ditautkan ke commit dan file distribusinya sendiri; versi lama tetap tersedia.
 
+## [0.6.3](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.3) — 11 November 2026
+
+- Tugas memakai satu halaman dengan tab Hari ini dan Semua, ringkasan progres, serta detail tugas di kolom kanan.
+- Jadwal, Proyek, dan Arsip memakai tata letak workspace yang selaras, dengan perbaikan animasi grup, checklist, dan panel.
+- Penyuntingan tugas melindungi draf dan memeriksa perubahan yang belum disimpan. Pemilihan tanggal dan pengelolaan sesi kerja diperjelas.
+- Area hover karakter mengikuti bentuk Bito. Kontrol desktop tetap bisa dijangkau dari kaki Bito.
+- Perbaikan aksesibilitas, onboarding, dan penanganan bantuan layar. Lihat [catatan rilis](docs/releases/v0.6.3.md).
+
 ## [0.6.2](https://github.com/feboyfierlyan/bito-desktop/releases/tag/v0.6.2) — 8 November 2026
 
 - Font lokal baru dan tampilan konsisten untuk seluruh antarmuka Bito.
