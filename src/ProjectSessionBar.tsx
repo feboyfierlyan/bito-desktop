@@ -19,6 +19,8 @@ export function ProjectSessionBar({
   busy,
   onDirty,
   reduced,
+  taskId,
+  compact = false,
 }: {
   project: Project;
   projects: Project[];
@@ -26,9 +28,11 @@ export function ProjectSessionBar({
   busy: boolean;
   onDirty: (dirty: boolean) => void;
   reduced: boolean;
+  taskId?: string;
+  compact?: boolean;
 }) {
   const session = openProjectSession(project);
-  const entry = projectWorkEntry(project, session?.taskId);
+  const entry = projectWorkEntry(project, session?.taskId || taskId);
   const other = projects.find(
     (p) => p.id !== project.id && openProjectSession(p),
   );
@@ -38,7 +42,7 @@ export function ProjectSessionBar({
   const held = useRef(false);
   useEffect(() => {
     setNow(Date.now());
-    if (session?.phase !== "running" || session.minutes === null) return;
+    if (session?.phase !== "running") return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, [session?.id, session?.phase, session?.minutes]);
@@ -63,44 +67,62 @@ export function ProjectSessionBar({
   const elapsed = session ? Math.floor(sessionElapsed(session, now) / 1000) : 0;
   return (
     <motion.section
-      className={`board-work-session ${!session ? "is-idle" : ""}`}
+      className={`board-work-session ${!session ? "is-idle" : ""} ${compact ? "is-compact" : ""}`}
       aria-label="Sesi bersama Bito"
       initial={{ opacity: 0, y: reduced ? 0 : 5 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduced ? 0 : 0.2 }}
     >
-      <BitoMascot className="session-mascot" />
-      <div className="board-session-copy">
-        <small>
-          {session?.phase === "running"
-            ? "Lagi dikerjakan"
-            : session?.phase === "paused"
-              ? "Dijeda · lanjut kapan kamu siap"
-              : session?.phase === "review"
-                ? "Gimana hasilnya?"
-                : entry?.continuing
-                  ? "Lanjut dari titik terakhir"
-                  : "Satu langkah dulu"}
-        </small>
-        <strong>
-          {session
-            ? entry?.checkpoint?.nextStep || session.objective
-            : entry?.objective}
-        </strong>
-        {entry && <small>{entry.estimateLabel}</small>}
-        {!session && entry?.checkpoint?.lastStop && (
-          <p className="board-session-stop">
-            Terakhir: {entry.checkpoint.lastStop}
-          </p>
-        )}
-      </div>
-      {session && session.minutes !== null && session.phase === "running" && (
-        <time className="board-session-time" aria-label="Sisa sesi">
-          {Math.floor(Math.max(0, session.minutes * 60 - elapsed) / 60)}:
-          {String(Math.max(0, session.minutes * 60 - elapsed) % 60).padStart(
-            2,
-            "0",
+      {!(compact && !session) && (
+        <>
+          <BitoMascot className="session-mascot" />
+          <div className="board-session-copy">
+            <small>
+              {session?.phase === "running"
+                ? "Lagi dikerjakan"
+                : session?.phase === "paused"
+                  ? "Dijeda · lanjut kapan kamu siap"
+                  : session?.phase === "review"
+                    ? "Gimana hasilnya?"
+                    : entry?.continuing
+                      ? "Lanjut dari titik terakhir"
+                      : "Satu langkah dulu"}
+            </small>
+            <strong>
+              {session
+                ? entry?.checkpoint?.nextStep || session.objective
+                : entry?.objective}
+            </strong>
+            {entry && <small>{entry.estimateLabel}</small>}
+            {!session && entry?.checkpoint?.lastStop && (
+              <p className="board-session-stop">
+                Terakhir: {entry.checkpoint.lastStop}
+              </p>
+            )}
+          </div>
+        </>
+      )}
+      {compact && !session && entry?.checkpoint?.lastStop && (
+        <p className="board-session-stop">
+          Terakhir: {entry.checkpoint.lastStop}
+        </p>
+      )}
+      {session && session.phase === "running" && (
+        <time
+          className="board-session-time"
+          aria-label={session.minutes === null ? "Waktu sesi" : "Sisa sesi"}
+        >
+          {Math.floor(
+            (session.minutes === null
+              ? elapsed
+              : Math.max(0, session.minutes * 60 - elapsed)) / 60,
           )}
+          :
+          {String(
+            (session.minutes === null
+              ? elapsed
+              : Math.max(0, session.minutes * 60 - elapsed)) % 60,
+          ).padStart(2, "0")}
         </time>
       )}
       <div className="board-session-actions">
@@ -139,7 +161,7 @@ export function ProjectSessionBar({
               }
             >
               <Square size={13} />
-              Akhiri sesi
+              Simpan progres
             </BitoButton>
           </>
         )}
@@ -148,11 +170,18 @@ export function ProjectSessionBar({
             className="project-primary"
             disabled={locked || !!other}
             onClick={() =>
-              void perform(() => act("project-assist", entry.payload))
+              void perform(() =>
+                act("project-work-start", {
+                  id: project.id,
+                  taskId: entry.task.id,
+                  objective: entry.objective,
+                  minutes: null,
+                }),
+              )
             }
           >
             <Play size={14} />
-            {entry.continuing ? "Lanjut bareng Bito" : "Mulai bareng Bito"}
+            {entry.continuing ? "Lanjut fokus" : "Mulai fokus"}
           </BitoButton>
         )}
       </div>
@@ -258,11 +287,9 @@ function SessionNote({
     perform(async () => {
       const reply = await checkpoint();
       if (!reply.ok) return reply;
-      return act("project-assist", {
+      return act("project-work-resume", {
         id: project.id,
-        taskId: session.taskId,
-        intent: "continue",
-        resume: true,
+        sessionId: session.id,
       });
     });
   return (
@@ -332,17 +359,20 @@ function SessionNote({
         />
       </div>
       {outcome !== "done" && (
-        <div className="bito-form-field">
-          Nanti lanjut apa?
-          <BitoInput
-            label="Nanti lanjut apa?"
-            maxLength={1000}
-            value={nextStep}
-            disabled={locked}
-            placeholder="Misalnya, tambahkan contoh untuk poin terakhir"
-            onChange={(e) => update(e.target.value, "nextStep")}
-          />
-        </div>
+        <details className="session-next-step">
+          <summary>Langkah berikutnya (opsional)</summary>
+          <div className="bito-form-field">
+            Nanti lanjut apa?
+            <BitoInput
+              label="Nanti lanjut apa?"
+              maxLength={1000}
+              value={nextStep}
+              disabled={locked}
+              placeholder="Misalnya, tambahkan contoh untuk poin terakhir"
+              onChange={(e) => update(e.target.value, "nextStep")}
+            />
+          </div>
+        </details>
       )}
       <div className="board-session-actions">
         {session.phase === "paused" && (
@@ -378,7 +408,7 @@ function SessionNote({
               })
             }
           >
-            Akhiri sesi
+            Simpan progres
           </BitoButton>
         )}
         {savedNotice && !dirty && <small role="status">Tersimpan</small>}

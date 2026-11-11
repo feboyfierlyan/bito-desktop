@@ -35,10 +35,10 @@ export function NewTask({
   const [sending, setSending] = useState(false);
   const locked = busy || sending;
   const submit = async (file = false) => {
-    if (locked || (!file && !text.trim())) return;
+    if (locked || (!file && !name.trim())) return;
     setSending(true);
     try {
-      const brief = newTaskBrief(text, name, deadline);
+      const brief = newTaskBrief(text || name, name, deadline);
       if (file) await onImport(brief);
       else await onCreate(brief);
     } finally {
@@ -48,7 +48,7 @@ export function NewTask({
   return (
     <section className="task-intake">
       <p className="project-intro">
-        Ceritakan atau lampirkan instruksinya. Bito bantu susun langkahnya.
+        Beri nama dulu. Langkahnya bisa kamu tambahkan setelah ini.
       </p>
       <form
         className="project-form"
@@ -57,36 +57,32 @@ export function NewTask({
           void submit();
         }}
       >
-        <label htmlFor="task-story">Apa yang ingin kamu selesaikan?</label>
-        <BitoTextArea
-          id="task-story"
-          label="Apa yang ingin kamu selesaikan?"
-          rows={5}
-          maxLength={4000}
+        <BitoInput
+          label="Nama proyek"
+          placeholder="Misalnya, Presentasi hari Jumat"
+          maxLength={100}
+          value={name}
           autoFocus
           disabled={locked}
-          placeholder="Misalnya, aku harus bikin presentasi 5 slide untuk Jumat depan…"
-          value={text}
           onChange={(e) => {
-            setText(e.target.value);
-            onDirty(!!e.target.value || !!name || !!deadline);
+            setName(e.target.value);
+            onDirty(!!text || !!e.target.value || !!deadline);
           }}
         />
         <BitoDisclosure className="project-disclosure">
-          <summary>Nama & tenggat (opsional)</summary>
-          <div className="bito-form-field">
-            Nama proyek
-            <BitoInput
-              label="Nama proyek"
-              maxLength={100}
-              value={name}
-              disabled={locked}
-              onChange={(e) => {
-                setName(e.target.value);
-                onDirty(!!text || !!e.target.value || !!deadline);
-              }}
-            />
-          </div>
+          <summary>Tujuan & tenggat (opsional)</summary>
+          <BitoTextArea
+            label="Tujuan proyek"
+            placeholder="Apa yang ingin kamu selesaikan?"
+            rows={3}
+            maxLength={4000}
+            value={text}
+            disabled={locked}
+            onChange={(e) => {
+              setText(e.target.value);
+              onDirty(!!e.target.value || !!name || !!deadline);
+            }}
+          />
           <div className="bito-form-field">
             Tenggat
             <BitoDateInput
@@ -103,9 +99,9 @@ export function NewTask({
         <div className="project-form-actions">
           <BitoButton
             className="project-primary"
-            disabled={locked || !text.trim()}
+            disabled={locked || !name.trim()}
           >
-            Susun bersama Bito <ArrowUp size={15} />
+            Buat proyek
           </BitoButton>
           <BitoButton
             type="button"

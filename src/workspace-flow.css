@@ -1,0 +1,2477 @@
+/* Approved A entry point, B project lists, calendar on its own surface. */
+.workspace-flow .workspace-brand-caption {
+  display: none;
+}
+.workspace-flow .board-rail {
+  width: 208px;
+  gap: 20px;
+  overflow-y: auto;
+}
+.workspace-flow .sidebar-project {
+  min-width: 0;
+}
+.workspace-flow .sidebar-project > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.workspace-flow .sidebar-create {
+  font-size: 12px;
+}
+.workspace-flow .project-topbar {
+  padding: 32px 36px 18px;
+  min-height: 82px;
+}
+.workspace-flow .project-topbar h1 {
+  font-size: 28px;
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+.workspace-flow .project-workspace[data-view="today"] > .project-topbar {
+  display: none;
+}
+.workspace-tasks {
+  width: 100%;
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 24px 40px 48px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+}
+.workspace-flow [data-view="today"] .workspace-tasks {
+  padding-top: 48px;
+}
+.workspace-day {
+  font-size: 12px;
+  color: var(--bito-secondary);
+  margin: 0 0 8px;
+}
+.workspace-hello {
+  font-size: 30px;
+  letter-spacing: -1px;
+  margin: 0 0 28px;
+  line-height: 1.2;
+}
+.workspace-focus {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--bito-surface-warm);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+.workspace-focus > .bito-mascot {
+  width: 44px;
+  flex: none;
+  margin-top: 16px;
+}
+.workspace-focus > div {
+  min-width: 0;
+}
+.workspace-focus small {
+  font-size: 10px;
+  color: var(--bito-secondary);
+  letter-spacing: 0.06em;
+}
+.workspace-focus h3 {
+  font-size: 21px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  margin: 12px 0 8px;
+}
+.workspace-focus p {
+  font-size: 12px;
+  color: var(--bito-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.workspace-task-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 12px;
+  gap: 16px;
+}
+.workspace-task-heading h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.workspace-task-heading > .bito-button {
+  font-size: 11px;
+  color: var(--bito-secondary);
+}
+.workspace-task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--bito-hairline);
+  min-height: 66px;
+  padding: 8px 0;
+}
+.workspace-task-open.bito-button {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+  text-align: left;
+  white-space: normal;
+  gap: 5px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.workspace-task-open small {
+  color: var(--bito-secondary);
+  font-size: 11px;
+  font-weight: 400;
+}
+.workspace-task-row time {
+  font-size: 11px;
+  flex: none;
+  color: var(--bito-secondary);
+}
+.workspace-task-row.is-done .workspace-task-open > span {
+  text-decoration: line-through;
+  color: var(--bito-secondary);
+}
+.workspace-task-row time.is-overdue {
+  color: var(--bito-secondary);
+}
+.workspace-add.bito-button {
+  margin-top: 16px;
+  gap: 10px;
+  justify-content: flex-start;
+  color: var(--bito-secondary);
+}
+.workspace-empty {
+  color: var(--bito-secondary);
+  line-height: 1.6;
+  padding: 20px 0;
+  font-size: 13px;
+}
+.workspace-task-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.workspace-task-search .bito-field {
+  flex: 1;
+}
+.capture-options {
+  margin-top: 10px;
+}
+.capture-options summary,
+.session-next-step summary {
+  font-size: 12px;
+  color: var(--bito-secondary);
+  cursor: pointer;
+  padding: 8px 0;
+}
+.capture-options[open] summary,
+.session-next-step[open] summary {
+  margin-bottom: 10px;
+}
+.workspace-flow .project-board-layout {
+  display: block;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 36px 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.workspace-flow .board-main-column {
+  min-width: 0;
+}
+.workspace-flow .board-task-group {
+  margin: 22px 0;
+}
+.workspace-flow .board-task-row {
+  min-height: 58px;
+  padding: 8px 0;
+  gap: 12px;
+  border-bottom: 1px solid var(--bito-hairline);
+}
+.workspace-flow .board-task-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+.workspace-flow .board-task-title {
+  font-size: 14px;
+  flex: 1;
+  white-space: normal;
+  line-height: 1.5;
+}
+.workspace-flow .task-row-metadata {
+  margin: 0;
+  flex: none;
+}
+.workspace-flow .board-task-group > header {
+  padding: 12px 0;
+}
+.workspace-flow .board-open-session {
+  width: 100%;
+  justify-content: flex-start;
+  background: var(--bito-surface-warm);
+  margin: 16px 0;
+  padding: 12px 16px;
+  white-space: normal;
+  text-align: left;
+}
+.workspace-flow .board-project-summary {
+  margin-bottom: 24px;
+}
+.workspace-flow .board-list-heading {
+  font-size: 13px;
+  color: var(--bito-secondary);
+}
+.workspace-flow .project-progress-disclosure {
+  margin-top: 32px;
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.workspace-flow .project-progress-disclosure summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+.workspace-flow .project-progress-disclosure .board-progress-card {
+  max-width: 420px;
+}
+.workspace-dialog.is-side-panel {
+  position: fixed !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  width: min(440px, 100vw) !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border-left: 1px solid var(--bito-hairline);
+}
+.workspace-task-panel > small {
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.workspace-task-panel h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+  margin: 20px 0 12px;
+}
+.workspace-task-panel p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--bito-secondary);
+}
+.task-panel-properties,
+.task-panel-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+.workspace-task-panel .board-work-session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bito-surface-warm);
+  border: 0;
+  margin: 24px 0;
+}
+.workspace-task-panel .board-work-session .session-mascot {
+  display: none;
+}
+.workspace-task-panel .board-session-copy {
+  flex-basis: 100%;
+}
+.workspace-task-panel .board-session-copy strong {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.workspace-task-panel .board-session-copy small {
+  display: block;
+  margin: 4px 0;
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.workspace-task-panel .board-session-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.workspace-task-panel .board-session-time {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-task-panel form > .bito-field {
+  margin-bottom: 16px;
+}
+.workspace-schedule {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 32px 32px;
+}
+.schedule-toolbar,
+.schedule-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.schedule-toolbar {
+  justify-content: space-between;
+  margin: 0 0 22px;
+  flex-wrap: wrap;
+}
+.schedule-toolbar h2 {
+  font-size: 18px;
+  margin: 0 8px;
+}
+.schedule-toolbar button[aria-pressed="true"] {
+  background: var(--bito-surface-muted);
+}
+.schedule-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+.schedule-layout.with-day {
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 20px;
+}
+.schedule-scroll {
+  overflow: auto;
+  min-width: 0;
+}
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid var(--bito-hairline);
+  border-left: 1px solid var(--bito-hairline);
+  min-width: 490px;
+}
+.schedule-weekday {
+  padding: 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--bito-secondary);
+  border-right: 1px solid var(--bito-hairline);
+  border-bottom: 1px solid var(--bito-hairline);
+}
+.schedule-cell {
+  min-height: 84px;
+  padding: 6px;
+  box-sizing: border-box;
+  border-right: 1px solid var(--bito-hairline);
+  border-bottom: 1px solid var(--bito-hairline);
+  min-width: 0;
+}
+.schedule-grid.week .schedule-cell {
+  min-height: 320px;
+}
+.schedule-cell[data-outside="true"] {
+  background: var(--bito-surface-warm);
+  color: var(--bito-muted);
+}
+.schedule-cell[data-selected="true"] {
+  background: var(--bito-surface-muted);
+}
+.schedule-date.bito-button {
+  min-width: 26px;
+  min-height: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 4px;
+  font-size: 11px;
+}
+.schedule-date[aria-current="date"] {
+  background: var(--bito-ink);
+  color: var(--bito-surface);
+}
+.schedule-event.bito-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 22px;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  padding: 4px 6px;
+  margin-top: 4px;
+  border-left: 2px solid var(--bito-secondary);
+  border-radius: 2px;
+  background: var(--bito-surface-muted);
+}
+.schedule-event.is-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+.schedule-more.bito-button {
+  font-size: 10px;
+  padding: 4px;
+}
+.schedule-day {
+  border: 1px solid var(--bito-hairline);
+  border-radius: 12px;
+  padding: 16px;
+}
+.schedule-day header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.schedule-day h3 {
+  font-size: 16px;
+  margin: 0;
+}
+.schedule-day-item.bito-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  white-space: normal;
+  text-align: left;
+  gap: 6px;
+  padding: 12px 0;
+  width: 100%;
+  border-bottom: 1px solid var(--bito-hairline);
+}
+.schedule-day-item small,
+.schedule-day p,
+.schedule-footer p {
+  font-size: 11px;
+  color: var(--bito-secondary);
+}
+.schedule-day form {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.schedule-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  margin-top: 20px;
+}
+@media (max-width: 1050px) {
+  .workspace-flow .board-rail {
+    width: 184px;
+  }
+  .workspace-tasks {
+    padding: 24px;
+  }
+  .workspace-flow .project-board-layout {
+    padding: 0 24px 32px;
+  }
+  .schedule-layout.with-day {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .schedule-day {
+    margin-top: 20px;
+  }
+  .workspace-schedule {
+    padding: 8px 20px 24px;
+  }
+  .workspace-flow .board-task-content {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .workspace-flow .task-row-metadata {
+    margin-left: auto;
+  }
+}
+@media (max-width: 650px) {
+  .workspace-flow .board-rail {
+    width: 64px;
+    padding: 44px 6px 16px;
+  }
+  .workspace-flow .sidebar-projects,
+  .workspace-flow .sidebar-create,
+  .workspace-flow .workspace-brand {
+    display: none;
+  }
+  .workspace-flow .board-nav-label,
+  .workspace-flow .board-rail-profile .bito-button-content > span {
+    display: none;
+  }
+  .workspace-flow .board-rail-button {
+    justify-content: center;
+  }
+  .workspace-focus {
+    padding: 20px;
+    gap: 12px;
+  }
+  .workspace-focus > .bito-mascot {
+    display: none;
+  }
+  .workspace-flow .project-topbar {
+    padding: 24px;
+  }
+  .workspace-task-row {
+    flex-wrap: wrap;
+  }
+  .workspace-task-row time {
+    margin-left: 28px;
+  }
+  .workspace-tasks {
+    padding: 20px;
+  }
+  .workspace-hello {
+    font-size: 26px;
+  }
+}
+.projects-board
+  .workspace-task-panel
+  .board-work-session
+  .board-session-copy
+  strong {
+  display: none;
+}
+.workspace-flow .board-task-group > header {
+  border-bottom: 0;
+}
+.workspace-flow .board-task-groups {
+  padding-top: 0;
+}
+.workspace-flow .board-task-group {
+  margin: 16px 0 24px;
+  padding: 0;
+}
+.workspace-flow .board-empty-setup {
+  display: block;
+  padding: 28px 0;
+  text-align: left;
+}
+.workspace-flow .board-empty-setup h2 {
+  font-size: 20px;
+  margin: 0 0 20px;
+}
+
+.workspace-flow .workspace-library-nav {
+  gap: 2px;
+  border-top: 1px solid var(--bito-hairline);
+  padding-top: 12px;
+}
+.workspace-flow .workspace-library-nav .board-rail-button {
+  font-size: 12px;
+  color: var(--bito-secondary);
+}
+
+/* Superlist-inspired navigation; scoped to the rail to preserve the workspace. */
+.workspace-flow.projects-board .board-rail {
+  padding: 38px 0 16px;
+  gap: 24px;
+  overflow: hidden;
+}
+.workspace-flow .board-rail .workspace-brand {
+  padding: 0 20px;
+  grid-template-columns: 24px 1fr;
+  column-gap: 8px;
+}
+.workspace-flow .board-rail .workspace-brand .bito-mascot {
+  width: 24px;
+  height: 26px;
+}
+.workspace-flow .board-rail .workspace-brand strong {
+  font-size: 21px;
+}
+.workspace-flow .board-rail nav {
+  gap: 0;
+  flex-shrink: 0;
+}
+.workspace-flow .board-rail .board-rail-button,
+.workspace-flow .board-rail .sidebar-project {
+  position: relative;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 20px;
+  color: var(--bito-ink-soft);
+  background: transparent;
+  text-align: left;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+.workspace-flow .board-rail .board-rail-button svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+  stroke-width: 1.7;
+}
+.workspace-flow .board-rail .board-rail-button:hover,
+.workspace-flow .board-rail .sidebar-project:hover {
+  background: var(--bito-surface-muted);
+}
+.workspace-flow .board-rail .board-rail-button.selected,
+.workspace-flow .board-rail .sidebar-project.selected {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.workspace-flow .board-rail .selected::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 2px;
+  background: var(--bito-success);
+  pointer-events: none;
+}
+.workspace-flow .board-rail .sidebar-projects {
+  gap: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex-shrink: 1;
+  scrollbar-width: thin;
+}
+.workspace-flow .board-rail .sidebar-section-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px 8px 20px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.workspace-flow .board-rail .sidebar-create.bito-button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--bito-secondary);
+  box-shadow: none;
+}
+.workspace-flow .board-rail .sidebar-create:hover {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.workspace-flow .board-rail .sidebar-project .bito-button-content {
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+.workspace-flow .board-rail .sidebar-project-icon {
+  color: var(--bito-secondary);
+  flex: none;
+  stroke-width: 1.5;
+}
+.workspace-flow .board-rail .sidebar-project.selected .sidebar-project-icon {
+  color: inherit;
+}
+.workspace-flow .board-rail .sidebar-project small {
+  margin-left: auto;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-flow .board-rail .workspace-library-nav {
+  border: 0;
+  padding: 0;
+  margin-top: -8px;
+}
+.workspace-flow .board-rail .workspace-library-nav .board-rail-button,
+.workspace-flow .board-rail .workspace-library-nav svg {
+  color: var(--bito-secondary);
+}
+.workspace-flow .board-rail .workspace-library-nav .selected {
+  color: var(--bito-ink);
+}
+.workspace-flow .board-rail .board-rail-profile {
+  border: 0;
+  border-radius: 6px;
+  width: calc(100% - 24px);
+  margin: auto 12px 0;
+  padding: 0 8px;
+  height: 36px;
+  flex-shrink: 0;
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.workspace-flow .board-rail .board-rail-profile:hover {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.workspace-flow .board-rail button:focus-visible {
+  outline: 2px solid var(--bito-focus);
+  outline-offset: -3px;
+}
+@media (max-width: 650px) {
+  .workspace-flow.projects-board .board-rail {
+    width: 64px;
+    padding: 44px 0 16px;
+  }
+  .workspace-flow .board-rail .board-rail-button {
+    padding: 0;
+    justify-content: center;
+  }
+  .workspace-flow .board-rail .board-rail-profile {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+/* A single layout interpolates between both widths: no display swaps mid-motion. */
+.workspace-flow.projects-board .board-rail {
+  --sidebar-motion: 260ms cubic-bezier(0.22, 0.72, 0.2, 1);
+  transition: width var(--sidebar-motion);
+}
+.workspace-flow .board-rail .sidebar-header {
+  position: relative;
+  display: block;
+  height: 28px;
+  flex-shrink: 0;
+  transition: height var(--sidebar-motion);
+}
+.workspace-flow .board-rail .workspace-brand {
+  display: flex;
+  position: absolute;
+  left: 20px;
+  top: 1px;
+  padding: 0;
+  gap: 8px;
+  white-space: nowrap;
+}
+.workspace-flow .board-rail .sidebar-toggle {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 7px;
+  color: var(--bito-secondary);
+  transition:
+    top var(--sidebar-motion),
+    right var(--sidebar-motion),
+    background-color 140ms ease;
+}
+.workspace-flow .board-rail .sidebar-toggle:hover {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.workspace-flow .board-rail .sidebar-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    transform var(--sidebar-motion),
+    stroke-width 160ms ease;
+}
+.workspace-flow .board-rail .selected .sidebar-icon {
+  stroke-width: 1.85;
+}
+.workspace-flow .board-rail .sidebar-project-icon {
+  width: 16px;
+  height: 16px;
+}
+.workspace-flow .board-rail .sidebar-project small .sidebar-icon {
+  width: 12px;
+  height: 12px;
+}
+.workspace-flow .board-rail .board-rail-button {
+  justify-content: flex-start;
+  padding: 0 20px;
+  transition:
+    padding var(--sidebar-motion),
+    background-color 140ms ease;
+}
+.workspace-flow .board-rail .board-rail-button .bito-button-content,
+.workspace-flow .board-rail .board-rail-profile .bito-button-content {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.workspace-flow .board-rail .board-nav-label,
+.workspace-flow .board-rail .workspace-brand strong,
+.workspace-flow .board-rail .sidebar-section-label > span,
+.workspace-flow .board-rail .board-rail-profile .bito-button-content > span {
+  display: block;
+  white-space: nowrap;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    opacity 180ms ease 45ms,
+    transform 220ms ease 30ms,
+    visibility 0s;
+}
+.workspace-flow .board-rail .board-rail-button .bito-button-content,
+.workspace-flow .board-rail .board-rail-profile .bito-button-content {
+  width: max-content;
+  min-width: max-content;
+}
+.workspace-flow .board-rail .sidebar-projects {
+  display: flex;
+}
+.workspace-flow .board-rail .sidebar-section-label {
+  position: relative;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 20px 8px;
+}
+.workspace-flow .board-rail .sidebar-create {
+  display: flex;
+  position: absolute;
+  right: 12px;
+  top: 0;
+  transition:
+    right var(--sidebar-motion),
+    background-color 140ms ease;
+}
+.workspace-flow .board-rail .sidebar-project-list {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition:
+    grid-template-rows var(--sidebar-motion),
+    opacity 180ms ease 40ms,
+    transform 220ms ease 30ms,
+    visibility 0s;
+}
+.workspace-flow .board-rail .sidebar-project-list-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.workspace-flow .board-rail .board-rail-profile {
+  justify-content: flex-start;
+  padding: 0 8px;
+  transition:
+    padding var(--sidebar-motion),
+    background-color 140ms ease;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail {
+  width: 64px;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .sidebar-header {
+  height: 68px;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .sidebar-toggle {
+  top: 40px;
+  right: 18px;
+}
+.workspace-flow[data-sidebar-collapsed="true"]
+  .board-rail
+  .sidebar-toggle
+  .sidebar-icon {
+  transform: rotate(180deg);
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .board-nav-label,
+.workspace-flow[data-sidebar-collapsed="true"]
+  .board-rail
+  .workspace-brand
+  strong,
+.workspace-flow[data-sidebar-collapsed="true"]
+  .board-rail
+  .sidebar-section-label
+  > span,
+.workspace-flow[data-sidebar-collapsed="true"]
+  .board-rail
+  .board-rail-profile
+  .bito-button-content
+  > span {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition:
+    opacity 115ms ease,
+    transform 170ms ease,
+    visibility 0s 170ms;
+}
+.workspace-flow[data-sidebar-collapsed="true"]
+  .board-rail
+  .sidebar-project-list {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition:
+    grid-template-rows var(--sidebar-motion),
+    opacity 115ms ease,
+    transform 170ms ease,
+    visibility 0s 260ms;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .sidebar-create {
+  right: 18px;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .board-rail-button {
+  padding: 0 23px;
+}
+.workspace-flow[data-sidebar-collapsed="true"] .board-rail .board-rail-profile {
+  padding: 0 11px;
+}
+@media (max-width: 650px) {
+  .workspace-flow[data-sidebar-collapsed="false"] .board-rail {
+    width: 208px;
+  }
+}
+.workspace-flow[data-reduced-motion="true"] .board-rail,
+.workspace-flow[data-reduced-motion="true"] .board-rail * {
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-flow.projects-board .board-rail,
+  .workspace-flow.projects-board .board-rail * {
+    transition: none !important;
+  }
+}
+
+/* Task workspace: quiet list canvas + a separate, factual insights column. */
+.workspace-flow
+  .project-workspace:is(
+    [data-view="today"],
+    [data-view="tasks"],
+    [data-view="schedule"]
+  )
+  > .project-topbar {
+  display: none;
+}
+.workspace-task-columns {
+  --task-canvas: var(--bito-surface);
+  --task-gutter: var(--bito-surface-muted);
+  --task-ink: var(--bito-ink);
+  --task-muted: var(--bito-secondary);
+  --task-line: var(--bito-hairline);
+  --task-hover: var(--bito-surface-muted);
+  --task-accent: var(--bito-success);
+  --task-danger: var(--bito-error);
+  display: grid;
+  --context-width: 360px;
+  grid-template-columns: minmax(0, 1fr) var(--context-width);
+  transition:
+    grid-template-columns 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    column-gap 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  gap: 10px;
+  padding: 10px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  background: var(--task-gutter);
+  color: var(--task-ink);
+  container-type: inline-size;
+}
+.workspace-task-columns[data-insights="false"] {
+  grid-template-columns: minmax(0, 1fr) 0px;
+  column-gap: 0;
+}
+.workspace-task-columns .workspace-tasks {
+  --task-content-inset: clamp(20px, 3vw, 48px);
+  max-width: none;
+  min-width: 0;
+  padding: 34px var(--task-content-inset) 28px !important;
+  border-radius: 13px;
+  background: var(--task-canvas);
+  scrollbar-width: thin;
+}
+.tasks-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 26px;
+}
+.tasks-page-header h1 {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -1.1px;
+  line-height: 1.15;
+  margin: 5px 0 0;
+}
+.task-scope-tabs {
+  position: relative;
+  display: flex;
+  width: 200px;
+  margin: -8px 0 24px;
+  border-bottom: 1px solid var(--task-line);
+}
+.task-scope-tabs::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 50%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--task-accent);
+  pointer-events: none;
+  transition: transform 220ms cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+.task-scope-tabs[data-all="true"]::after {
+  transform: translateX(100%);
+}
+.workspace-task-columns .task-scope-tabs > .bito-button {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px 6px 0 0;
+  color: var(--task-muted);
+  background: transparent;
+  background-image: none !important;
+  transform: none !important;
+  filter: none !important;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease;
+}
+.workspace-task-columns .task-scope-tabs > .bito-button[aria-selected="true"] {
+  color: var(--task-accent);
+}
+.workspace-task-columns
+  .task-scope-tabs
+  > .bito-button:is(:hover, :focus-visible) {
+  background-color: var(--task-hover);
+}
+.task-scope-tabs[data-reduced-motion="true"]::after,
+.workspace-task-columns
+  .task-scope-tabs[data-reduced-motion="true"]
+  > .bito-button {
+  transition: none;
+}
+.task-group-review {
+  margin-left: auto;
+  color: var(--task-accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+.task-group-empty p {
+  margin: 0;
+}
+.workspace-task-columns .task-pick-existing.bito-button {
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--task-accent);
+}
+.tasks-page-header .workspace-day {
+  color: var(--task-muted);
+  font-size: 12px;
+  margin: 0;
+}
+.tasks-header-tools {
+  display: flex;
+  gap: 4px;
+}
+.tasks-header-tools .bito-button,
+.task-view-options > summary {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  padding: 7px;
+  color: var(--task-muted);
+}
+.task-view-options {
+  position: relative;
+}
+.task-view-options > summary {
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  list-style: none;
+  background: var(--task-hover);
+}
+.task-view-options summary::-webkit-details-marker {
+  display: none;
+}
+.task-view-options > div {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  z-index: 6;
+  width: 220px;
+  padding: 14px;
+  border: 1px solid var(--task-line);
+  background: var(--task-canvas);
+  box-shadow: 0 8px 30px #00000015;
+  border-radius: 12px;
+}
+.task-view-options > div > .bito-button {
+  width: 100%;
+  margin-top: 10px;
+}
+.workspace-task-columns .task-add-top.bito-button {
+  box-sizing: border-box;
+  width: calc(100% + 2 * var(--task-content-inset));
+  max-width: none;
+  margin: 0 calc(-1 * var(--task-content-inset)) 18px;
+  padding: 9px var(--task-content-inset);
+  border-radius: 0;
+  min-height: 36px;
+  font-size: 13px;
+  color: var(--task-muted);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.workspace-task-columns
+  .task-add-top.bito-button:is(:hover, :focus-visible, [aria-expanded="true"]) {
+  background: var(--task-hover);
+  color: var(--task-accent);
+}
+.workspace-task-columns .task-add-top.bito-button:focus-visible {
+  outline-offset: -2px;
+}
+.workspace-task-columns .workspace-task-search {
+  margin-bottom: 12px;
+}
+.workspace-task-columns .task-composer {
+  margin-bottom: 20px;
+}
+/* Task lists: a stronger group label, quiet metadata, and one aligned text edge. */
+.task-group {
+  margin: 0 0 18px;
+  overflow: clip;
+}
+.task-group-heading {
+  margin: 0;
+}
+.workspace-task-columns .task-group-toggle.bito-button {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  gap: 8px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--task-ink);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-align: left;
+  /* Astryx's pressed scale moves an entire full-width heading. Keep its
+     geometry fixed, and own the paint transition on both press and release. */
+  transform: none !important;
+  filter: none !important;
+  background-image: none !important;
+  transition:
+    background-color 180ms cubic-bezier(0.22, 0.7, 0.2, 1),
+    color 180ms ease;
+}
+.workspace-task-columns .task-group-toggle.bito-button:hover {
+  background: var(--task-hover);
+}
+.workspace-task-columns .task-group-toggle.bito-button:active:not(:disabled) {
+  background-color: var(--bito-hairline);
+  transition-duration: 180ms;
+}
+.task-group-toggle svg {
+  flex-shrink: 0;
+  margin-right: 8px;
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.task-group[data-expanded="false"] .task-group-toggle svg {
+  transform: rotate(-90deg);
+}
+.task-group-count {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--task-muted);
+  font-variant-numeric: tabular-nums;
+}
+.task-group-body {
+  overflow: hidden;
+}
+.task-group-body-inner {
+  display: flow-root;
+}
+.task-row-motion {
+  overflow: hidden;
+}
+.task-row-reveal {
+  transform-origin: left center;
+}
+.workspace-task-columns .workspace-task-row {
+  gap: 6px;
+  padding: 3px 8px;
+  margin: 0;
+  min-height: 52px;
+  border: none;
+  border-radius: 7px;
+  align-items: flex-start;
+  transition: background 160ms ease;
+}
+.workspace-task-columns .workspace-task-row:hover,
+.workspace-task-columns .workspace-task-row:focus-within {
+  background: var(--task-hover);
+}
+.workspace-task-columns .workspace-task-row > .astryx-checkbox-input {
+  margin: 0 0 0 -6px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+.workspace-task-columns .workspace-task-row .astryx-checkbox-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.workspace-task-columns
+  .workspace-task-row
+  .astryx-checkbox-input:active
+  .astryx-checkbox-indicator {
+  transform: scale(0.9);
+}
+.workspace-task-columns .workspace-task-open.bito-button {
+  padding: 3px 0;
+  gap: 2px;
+  border-radius: 0;
+  font-size: 15px;
+  min-height: 44px;
+  background: transparent;
+  color: var(--task-ink);
+}
+.task-row-title {
+  line-height: 22px;
+  overflow-wrap: anywhere;
+  font-weight: 400;
+  transition: color 160ms ease;
+}
+.task-row-meta {
+  display: flex;
+  gap: 2px 12px;
+  flex-wrap: wrap;
+  line-height: 18px;
+  text-align: left;
+}
+.task-row-meta > span,
+.workspace-task-columns .task-row-meta time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--task-muted);
+  font-size: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  flex: initial;
+}
+.task-row-meta svg {
+  flex-shrink: 0;
+}
+.workspace-task-columns .task-row-meta .is-overdue {
+  color: var(--task-muted);
+}
+.workspace-task-columns .task-row-meta .is-overdue svg,
+.workspace-task-columns .task-row-meta .task-blocked {
+  color: var(--task-danger);
+}
+.workspace-task-columns .task-row-meta .task-important {
+  color: var(--bito-warning);
+}
+.workspace-task-columns .task-row-meta .task-running {
+  color: var(--task-accent);
+}
+.workspace-task-columns .workspace-task-row.is-done .task-row-title {
+  color: var(--task-muted);
+  text-decoration: none;
+}
+/* An inline background clones across wrapped lines, so each line draws along
+   the text rather than a single rule spanning the whole row. */
+.task-row-title-text {
+  background: linear-gradient(var(--task-muted), var(--task-muted)) no-repeat
+    left 56% / 0% 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-size 300ms cubic-bezier(0.22, 0.7, 0.2, 1) 60ms;
+}
+.workspace-task-row[data-checked="true"] .task-row-title-text {
+  background-size: 100% 1px;
+}
+.workspace-task-row .astryx-checkbox-indicator-check path {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 220ms cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+.workspace-task-row[data-checked="true"] .astryx-checkbox-indicator-check path {
+  stroke-dashoffset: 0;
+}
+.workspace-task-columns
+  .workspace-task-row[data-checked="true"]
+  .astryx-checkbox-indicator {
+  background: var(--bito-success);
+  border-color: var(--bito-success);
+  color: var(--bito-surface);
+}
+.workspace-task-row[data-checked="true"] .astryx-checkbox-indicator-check {
+  opacity: 1;
+  transform: none;
+}
+.workspace-task-row[data-completing="true"]
+  .astryx-checkbox-input
+  > [data-astryx-pressable] {
+  opacity: 1;
+}
+.workspace-task-columns
+  .workspace-task-row[data-completing="true"]
+  .astryx-checkbox-indicator {
+  opacity: 1;
+}
+.workspace-task-columns .workspace-task-row.is-done .task-row-meta {
+  text-decoration: none;
+}
+.task-group[data-reduced-motion="true"] .task-group-body,
+.task-group[data-reduced-motion="true"] .task-group-body-inner,
+.task-group[data-reduced-motion="true"] .task-group-toggle.bito-button,
+.task-group[data-reduced-motion="true"] .task-group-toggle svg,
+.task-group[data-reduced-motion="true"] .workspace-task-row,
+.task-group[data-reduced-motion="true"] .astryx-checkbox-indicator,
+.task-group[data-reduced-motion="true"] .task-row-title,
+.task-group[data-reduced-motion="true"] .task-row-title-text,
+.task-group[data-reduced-motion="true"] .astryx-checkbox-indicator-check path {
+  transition: none;
+}
+.task-group-empty {
+  color: var(--task-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.task-group-empty {
+  margin: 6px 8px 8px 40px;
+}
+.workspace-task-columns .compact-focus {
+  padding: 14px;
+  gap: 12px;
+  margin: 0 0 18px;
+  align-items: center;
+  background: var(--bito-success-surface);
+  border-radius: 10px;
+}
+.workspace-task-columns .compact-focus > .bito-mascot {
+  width: 28px;
+  margin: 0;
+}
+.compact-focus > div {
+  flex: 1;
+}
+.workspace-task-columns .compact-focus h3 {
+  font-size: 14px;
+  margin: 4px 0;
+}
+.workspace-task-columns .compact-focus small {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--task-accent);
+  font-size: 11px;
+}
+.workspace-task-columns .compact-focus p {
+  font-size: 11px;
+  margin: 0;
+}
+.workspace-insights {
+  background: var(--task-canvas);
+  border-radius: 13px;
+  padding: 21px 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  min-width: 0;
+}
+.workspace-insights > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.workspace-insights h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+}
+.workspace-insights > header .bito-button {
+  padding: 5px;
+  min-height: 28px;
+  color: var(--task-muted);
+}
+.insights-scope {
+  margin: 0 0 20px;
+  color: var(--task-muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.insight-card {
+  border: 1px solid var(--task-line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  background: var(--task-canvas);
+}
+.insight-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 9px;
+  display: flex;
+  justify-content: space-between;
+}
+.insight-card h3 > span {
+  font-weight: 400;
+  color: var(--task-muted);
+}
+.insight-card p {
+  color: var(--task-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 10px 0 0;
+}
+.insight-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: var(--task-accent);
+}
+.insight-status.needs-attention {
+  color: var(--task-danger);
+}
+.insight-condition .insight-status {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.insight-status.is-empty {
+  color: var(--task-muted);
+}
+.insight-status-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.insight-attention-list {
+  margin-top: 12px;
+  border-top: 1px solid var(--task-line);
+  padding-top: 4px;
+}
+.insight-attention-list .insight-attention-task {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  padding: 10px 6px;
+  min-height: 40px;
+  font-size: 12px;
+  border-radius: 7px;
+}
+.insight-attention-list .insight-attention-task:hover:not(:disabled) {
+  background: var(--bito-surface-warm);
+}
+.insight-attention-title {
+  display: block;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.insight-attention-list small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--task-muted);
+  margin-top: 4px;
+}
+.insight-more-tasks {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+.insight-more-tasks[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.insight-more-tasks-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.insight-attention-list .insight-more-toggle {
+  width: 100%;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 8px;
+  font-size: 11px;
+  color: var(--bito-secondary);
+  border-radius: 7px;
+  text-align: left;
+}
+.insight-more-toggle .bito-button-content {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 10px;
+}
+.insight-more-toggle svg {
+  flex-shrink: 0;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.insight-more-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+.insight-attention-list .insight-more-toggle:hover {
+  color: var(--bito-ink-soft);
+  background: var(--bito-surface-warm);
+}
+.insight-more-tasks[data-reduced-motion="true"],
+.insight-more-tasks[data-reduced-motion="true"] + .insight-more-toggle svg {
+  transition: none;
+}
+.insight-percent {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.7px;
+}
+.insight-percent {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  min-width: 4ch;
+}
+.insight-percent > span {
+  display: inline-block;
+}
+.insight-progress-track {
+  height: 5px;
+  margin: 13px 0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--task-line);
+}
+.insight-progress-track > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--task-accent);
+  transform-origin: left;
+}
+.insight-counts {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  color: var(--task-muted);
+  font-size: 11px;
+}
+.insight-counts > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+/* Compact project rows share the task panel's type, spacing and Bito tokens. */
+.insight-project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 -6px;
+}
+.workspace-insights .insight-project-row.bito-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 6px;
+  border-radius: 7px;
+  text-align: left;
+  color: var(--task-ink);
+  background: transparent;
+  transform: none !important;
+  filter: none !important;
+  background-image: none !important;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+.workspace-insights
+  .insight-project-row.bito-button:is(:hover, :focus-visible) {
+  background-color: var(--task-hover);
+}
+.workspace-insights .insight-project-row.bito-button:active:not(:disabled) {
+  background-color: var(--bito-hairline);
+  transition-duration: 180ms;
+}
+.insight-project-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+.insight-project-title {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.insight-project-count {
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--task-muted);
+  font-variant-numeric: tabular-nums;
+}
+.insight-project-row > svg {
+  flex-shrink: 0;
+  color: var(--task-muted);
+}
+.insight-project-track {
+  display: block;
+  height: 3px;
+  margin-top: 4px;
+  border-radius: 4px;
+  background: var(--task-line);
+  overflow: hidden;
+}
+.insight-project-track > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--task-accent);
+  transform-origin: left;
+}
+.workspace-insights .insight-project-all.bito-button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 36px;
+  margin-top: 6px;
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--task-accent);
+}
+.workspace-task-columns :is(button, summary):focus-visible {
+  outline: 2px solid var(--task-accent);
+  outline-offset: 3px;
+}
+@media (max-width: 1050px) {
+  .workspace-task-columns {
+    --context-width: 300px;
+  }
+  .workspace-task-columns .workspace-tasks {
+    --task-content-inset: 22px;
+    padding: 28px var(--task-content-inset) !important;
+  }
+  .workspace-insights {
+    padding: 20px 12px;
+  }
+}
+@media (max-width: 850px) {
+  .workspace-task-columns {
+    display: block;
+    overflow-y: auto;
+  }
+  .workspace-task-columns .workspace-tasks {
+    overflow: visible;
+    min-height: 55%;
+  }
+  .workspace-insights {
+    margin-top: 10px;
+    overflow: visible;
+  }
+  .workspace-insights .insight-card {
+    max-width: none;
+  }
+  .tasks-page-header h1 {
+    font-size: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-task-columns,
+  .workspace-task-columns *,
+  .workspace-task-columns *::before,
+  .workspace-task-columns *::after {
+    transition: none !important;
+  }
+}
+@media (forced-colors: active) {
+  .workspace-task-columns {
+    --task-canvas: Canvas;
+    --task-gutter: Canvas;
+    --task-ink: CanvasText;
+    --task-muted: CanvasText;
+    --task-line: GrayText;
+    --task-hover: Canvas;
+    --task-accent: LinkText;
+    --task-danger: CanvasText;
+  }
+  .insight-card {
+    border-color: CanvasText;
+  }
+}
+
+/* A persistent context column: task details replace insights, never the list. */
+.workspace-context-slot {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 13px;
+}
+.workspace-task-columns[data-reduced-motion="true"] {
+  transition: none;
+}
+.workspace-context-column {
+  width: var(--context-width);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  background: var(--task-canvas);
+  border-radius: 13px;
+}
+.workspace-context-content {
+  min-height: 100%;
+}
+.workspace-context-column .workspace-insights {
+  overflow: visible;
+  border-radius: 0;
+}
+.task-detail-column {
+  padding: 21px 22px 28px;
+  min-width: 0;
+}
+.task-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.task-detail-header h2 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--task-muted);
+  margin: 0;
+  outline: none;
+}
+.task-detail-header .bito-button {
+  padding: 5px;
+  min-height: 28px;
+  color: var(--task-muted);
+}
+.task-detail-column .workspace-task-panel > small {
+  display: block;
+  font-size: 11px;
+  color: var(--task-muted);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+.task-detail-column .workspace-task-panel h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  letter-spacing: -0.45px;
+  margin: 0 0 16px;
+  overflow-wrap: anywhere;
+}
+.task-detail-column .workspace-task-panel p {
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.task-detail-column .task-panel-properties {
+  margin: 18px 0;
+  gap: 6px;
+}
+.task-detail-column .task-panel-properties .bito-button {
+  font-size: 12px;
+  padding: 7px 9px;
+}
+.task-detail-column .board-work-session {
+  padding: 14px;
+  gap: 10px;
+  margin: 20px 0;
+  background: var(--task-hover);
+  border-radius: 10px;
+}
+.task-detail-column .board-session-copy strong {
+  font-size: 14px;
+}
+.task-detail-column .board-session-actions .bito-button {
+  font-size: 12px;
+  padding: 9px 12px;
+}
+.task-detail-column .task-panel-secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  border-top: 1px solid var(--task-line);
+  padding-top: 12px;
+}
+.task-detail-column .task-panel-secondary .bito-button {
+  justify-content: flex-start;
+  font-size: 12px;
+  border-radius: 7px;
+  padding: 9px;
+}
+.task-detail-column .project-form-actions {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.task-detail-column .project-form-actions .bito-button {
+  font-size: 12px;
+  padding: 9px 12px;
+}
+.workspace-task-columns .workspace-task-row.is-selected {
+  background: var(--task-hover);
+  box-shadow: inset -2px 0 var(--bito-success);
+}
+.task-switch-confirm {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 14px 16px;
+  background: var(--bito-warning-surface);
+  border-bottom: 1px solid var(--bito-stone);
+  font-size: 12px;
+}
+.task-switch-confirm p {
+  margin: 0 0 8px;
+}
+.task-switch-confirm > div {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.task-switch-confirm .bito-button {
+  font-size: 11px;
+  padding: 7px;
+}
+/* Direct, single-level choices. Astryx manages anchoring, dismissal and focus. */
+.task-view-popover {
+  background: var(--bito-surface-warm) !important;
+  border: 1px solid var(--bito-hairline) !important;
+  border-radius: 12px !important;
+  padding: 5px 0 !important;
+  box-shadow: 0 10px 28px #00000018 !important;
+  overflow: hidden;
+}
+.task-view-menu {
+  color: var(--bito-ink-soft);
+  padding: 0;
+}
+.task-view-menu .task-menu-label {
+  font-size: 10px;
+  color: var(--bito-secondary);
+  padding: 8px 14px 5px 29px;
+}
+.projects-app .task-view-menu button {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 34px;
+  padding: 7px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.projects-app .task-view-menu button:hover,
+.projects-app .task-view-menu button:focus-visible {
+  background: var(--bito-surface-muted);
+  outline: none;
+}
+.projects-app .task-view-menu button[aria-checked="true"] {
+  background: var(--bito-surface-muted);
+}
+.projects-app .task-view-menu button i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex: none;
+  background: transparent;
+}
+.projects-app .task-view-menu button[aria-checked="true"] i {
+  background: var(--bito-success);
+}
+.task-menu-divider {
+  height: 1px;
+  background: var(--bito-hairline);
+  margin: 5px 12px;
+}
+.tasks-header-tools .task-view-trigger {
+  background: var(--task-hover);
+}
+.tasks-header-tools .task-view-trigger[aria-expanded="true"] {
+  background: var(--bito-surface-muted);
+  color: var(--task-ink);
+}
+@media (max-width: 1050px) {
+  .workspace-task-columns {
+    --context-width: 300px;
+  }
+  .task-detail-column {
+    padding: 20px 16px;
+  }
+}
+@media (max-width: 850px) {
+  .workspace-context-slot {
+    display: grid;
+    grid-template-rows: 1fr;
+    margin-top: 10px;
+    transition:
+      grid-template-rows 340ms cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 340ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .workspace-task-columns[data-insights="false"] .workspace-context-slot {
+    grid-template-rows: 0fr;
+    margin-top: 0;
+  }
+  .workspace-context-column {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+  .workspace-context-column .workspace-insights {
+    margin-top: 0;
+    border-radius: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .projects-app .task-view-menu button {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .task-view-popover,
+  .projects-app .task-view-menu button {
+    background: Canvas !important;
+    color: CanvasText;
+  }
+  .projects-app .task-view-menu button[aria-checked="true"] {
+    outline: 1px solid Highlight;
+  }
+  .projects-app .task-view-menu button[aria-checked="true"] i {
+    background: Highlight;
+  }
+}
+
+/* Task details: quiet context, one focus action, completion, then optional help. */
+.task-detail-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-detail-tools .bito-button {
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 7px;
+}
+.task-detail-tools .bito-button:hover:not(:disabled) {
+  background: var(--bito-surface-muted);
+  color: var(--bito-ink);
+}
+.task-detail-column .task-description p {
+  margin: 0;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+.task-description p.is-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.task-detail-column .task-description > .bito-button {
+  padding: 5px 0;
+  font-size: 11px;
+  color: var(--bito-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: 4px;
+}
+.task-detail-column .task-panel-properties {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 24px;
+}
+.task-detail-column .task-criteria-trigger {
+  width: 32px;
+  height: 32px;
+  padding: 7px !important;
+  color: var(--bito-secondary);
+  border-radius: 50%;
+}
+.task-criteria-content {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--bito-ink-soft);
+}
+.task-criteria-content p {
+  margin: 8px 0 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  color: var(--bito-secondary);
+}
+.task-detail-column .board-work-session.is-compact.is-idle {
+  display: block;
+  padding: 0;
+  margin: 0 0 10px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.task-detail-column .is-compact.is-idle .board-session-actions {
+  display: flex;
+  margin: 0;
+  width: 100%;
+}
+.task-detail-column .is-compact.is-idle .project-primary {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  font-size: 13px;
+  justify-content: center;
+}
+.task-detail-column .task-panel-secondary {
+  border: 0;
+  padding: 0;
+  gap: 10px;
+}
+.task-detail-column .task-panel-secondary .task-complete-action {
+  width: 100%;
+  min-height: 42px;
+  justify-content: center;
+  background: var(--bito-success-surface);
+  color: var(--bito-success);
+  border: 1px solid #cfe1d2;
+  border-radius: 10px;
+  font-size: 13px;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+.task-detail-column
+  .task-panel-secondary
+  .task-complete-action:hover:not(:disabled) {
+  background: #dfeddf;
+  border-color: #b5d0bb;
+}
+.task-detail-column .task-panel-secondary .task-complete-action.is-done {
+  color: var(--bito-ink-soft);
+  background: var(--bito-surface-warm);
+  border-color: var(--bito-hairline);
+}
+.task-detail-column .task-panel-secondary .task-help-action {
+  align-self: center;
+  justify-content: center;
+  width: auto;
+  margin-top: 6px;
+  min-height: 36px;
+  padding: 7px 10px;
+  color: var(--bito-secondary);
+  font-size: 12px;
+}
+.task-detail-column
+  .task-panel-secondary
+  .task-help-action:hover:not(:disabled) {
+  color: var(--bito-ink);
+  background: var(--bito-surface-warm);
+}
+
+.workspace-task-columns[data-reduced-motion="true"] .workspace-context-slot {
+  transition: none;
+}
+
+/* Each digit fades before leaving its position; no hard clipping edge. */
+.insight-percent > .rolling-percentage {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: bottom;
+  letter-spacing: -0.02em;
+}
+.rolling-digit {
+  display: inline-block;
+  position: relative;
+  width: 0.62em;
+  height: 1.3em;
+  overflow: visible;
+  font-variant-numeric: tabular-nums;
+}
+.rolling-digit-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.3;
+}
+.rolling-percent-sign {
+  margin-left: 0.025em;
+}
+
+/* Calendar uses the same canvas, header, tabs and context rail as Tasks. */
+.workspace-schedule-columns .schedule-toolbar {
+  margin: 0 0 18px;
+  gap: 12px;
+}
+.workspace-schedule-columns .schedule-toolbar h2 {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.25px;
+  margin: 0 8px;
+}
+.workspace-schedule-columns .schedule-toolbar .bito-button {
+  min-height: 32px;
+  padding: 6px 9px;
+  font-size: 12px;
+  color: var(--task-muted);
+  border-radius: 8px;
+}
+.workspace-schedule-columns .schedule-grid {
+  border-radius: 10px;
+  overflow: hidden;
+  min-width: 0;
+}
+.workspace-schedule-columns .schedule-weekday {
+  text-transform: none;
+  font-size: 11px;
+  text-align: center;
+  padding: 10px 6px;
+}
+.workspace-schedule-columns .schedule-cell {
+  min-height: 100px;
+  transition: background 180ms ease;
+}
+.workspace-schedule-columns .schedule-grid.week .schedule-cell {
+  min-height: 380px;
+}
+.workspace-schedule-columns .schedule-date[aria-current="date"] {
+  background: var(--task-accent);
+  color: var(--bito-surface);
+}
+.workspace-schedule-columns .schedule-date.bito-button {
+  font-size: 12px;
+}
+.workspace-schedule-columns .schedule-event.bito-button {
+  font-size: 11px;
+  line-height: 1.4;
+  border-left-color: var(--task-accent);
+  border-radius: 4px;
+  color: var(--task-ink);
+}
+.workspace-schedule-columns .schedule-day {
+  margin: 0;
+  padding: 24px 20px 28px;
+  border: 0;
+  border-radius: 0;
+}
+.workspace-schedule-columns .schedule-day header {
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.workspace-schedule-columns .schedule-day-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+.workspace-schedule-columns .schedule-day h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.workspace-schedule-columns .schedule-day header .bito-button {
+  min-height: 28px;
+  padding: 5px;
+  color: var(--task-muted);
+}
+.workspace-schedule-columns .schedule-day-item.bito-button {
+  padding: 12px 10px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  gap: 4px;
+}
+.workspace-schedule-columns .schedule-day-item.bito-button:hover {
+  background: var(--task-hover);
+}
+.workspace-schedule-columns .schedule-day-item.is-done > span {
+  text-decoration: line-through;
+  color: var(--task-muted);
+}
+.workspace-schedule-columns .schedule-day-item small {
+  font-size: 11px;
+}
+.workspace-schedule-columns .schedule-day-empty {
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0 0 12px;
+}
+.workspace-schedule-columns .schedule-day form {
+  padding-top: 24px;
+  border-top: 1px solid var(--task-line);
+}
+.workspace-schedule-columns .schedule-footer {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.workspace-schedule-columns .schedule-footer .bito-button {
+  font-size: 12px;
+  color: var(--task-muted);
+  padding: 8px 10px;
+}
+@media (max-width: 1050px) {
+  .workspace-schedule-columns .schedule-day {
+    padding: 20px 16px;
+  }
+}
+
+.workspace-schedule-columns .schedule-day form h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Project directory and project tasks share the workspace canvas and motion. */
+.workspace-flow
+  .project-workspace:is(
+    [data-view="home"],
+    [data-view="archives"],
+    [data-view="detail"]
+  )
+  > .project-topbar {
+  display: none;
+}
+.workspace-flow .project-board-container {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.workspace-directory-columns .workspace-directory {
+  overflow: auto;
+}
+.workspace-directory .gallery-toolbar {
+  display: block;
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.workspace-directory .gallery-filters {
+  width: 300px;
+  max-width: 100%;
+  gap: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.workspace-directory .gallery-filters::after {
+  width: 33.333%;
+}
+.workspace-directory .gallery-filters[data-filter="ongoing"]::after {
+  transform: translateX(100%);
+}
+.workspace-directory .gallery-filters[data-filter="completed"]::after {
+  transform: translateX(200%);
+}
+.workspace-directory .gallery-filters .bito-button[aria-pressed="true"] {
+  color: var(--task-accent);
+  background: transparent;
+}
+.workspace-directory .gallery-search {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 16px;
+}
+.workspace-directory .workspace-result-status {
+  font-size: 12px;
+  margin: 0 0 10px;
+  color: var(--task-muted);
+}
+.workspace-directory .workspace-project-results {
+  display: block;
+}
+.workspace-directory .board-project-card.bito-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 10px;
+  min-height: 78px;
+  margin: 0;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  background: transparent;
+  text-align: left;
+  transform: none !important;
+  transition: background-color 180ms ease;
+}
+.workspace-directory .board-project-card.bito-button:hover {
+  background: var(--task-hover);
+}
+.workspace-directory .board-project-caption {
+  flex: 1;
+  min-width: 0;
+}
+.workspace-directory .board-project-caption strong {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.workspace-directory .project-list-metadata {
+  gap: 12px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.workspace-directory .project-list-symbol {
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--task-accent);
+}
+.workspace-directory .project-list-progress {
+  width: 140px;
+  flex: none;
+  font-size: 11px;
+  color: var(--task-muted);
+}
+.workspace-directory .project-list-chevron {
+  color: var(--task-muted);
+}
+.directory-progress-track {
+  height: 3px;
+  background: var(--task-line);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.directory-progress-track > span {
+  display: block;
+  height: 100%;
+  background: var(--task-accent);
+  border-radius: inherit;
+  transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.workspace-project-columns .tasks-page-header h1 {
+  font-size: 28px;
+  overflow-wrap: anywhere;
+}
+.workspace-project-columns .board-view-toolbar {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.workspace-project-columns .board-list-heading {
+  font-size: 13px;
+  color: var(--task-muted);
+  font-weight: 400;
+}
+.workspace-project-columns .board-view-actions .bito-button {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--task-muted);
+}
+.workspace-project-columns .board-project-summary {
+  margin: 0 0 26px;
+  padding: 0;
+  font-size: 12px;
+  gap: 14px;
+  color: var(--task-muted);
+}
+.workspace-project-columns .task-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.workspace-project-columns .task-group-toggle {
+  min-width: 0;
+  flex: 1;
+}
+.workspace-project-columns .group-settings {
+  flex: none;
+  padding: 6px;
+  color: var(--task-muted);
+  min-height: 28px;
+}
+.workspace-project-columns .board-add-step.bito-button {
+  width: 100%;
+  border-radius: 7px;
+  padding: 10px 8px;
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: var(--task-muted);
+  justify-content: flex-start;
+}
+.workspace-project-columns .board-add-step.bito-button:hover {
+  background: var(--task-hover);
+}
+.workspace-project-columns .completed-toggle {
+  font-size: 12px;
+  color: var(--task-muted);
+}
+.workspace-project-columns .project-archive-banner {
+  margin: 0 0 22px;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+}
+.workspace-project-columns .project-archive-banner .bito-button {
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .workspace-directory .project-list-progress {
+    width: 80px;
+  }
+  .workspace-directory .board-project-card.bito-button {
+    gap: 8px;
+  }
+  .workspace-project-columns .tasks-page-header h1 {
+    font-size: 24px;
+  }
+}
+
+.workspace-directory .gallery-filters {
+  border: 0;
+  border-bottom: 1px solid var(--task-line);
+}
+.workspace-directory .project-list-status {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--task-muted);
+}
+.workspace-directory .project-list-status[data-status="completed"] {
+  color: var(--task-accent);
+}

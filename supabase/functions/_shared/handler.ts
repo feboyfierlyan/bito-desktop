@@ -236,9 +236,17 @@ export function createHandler(options: HandlerOptions) {
                 ? "interrupted"
                 : "server_error",
           );
-          await db
-            .finish(job, signal.aborted ? "cancelled" : "error", [], [])
-            .catch(() => {});
+          if (nested && !signal.aborted)
+            await db
+              .observeScreen!(job, p.toolCallId!, observationQuestion, {
+                input: 0,
+                output: 0,
+              })
+              .catch(() => {});
+          else
+            await db
+              .finish(job, signal.aborted ? "cancelled" : "error", [], [])
+              .catch(() => {});
           throw signal.aborted ? new ApiError("interrupted", 409) : e;
         }
       }

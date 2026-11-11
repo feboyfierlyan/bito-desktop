@@ -454,6 +454,16 @@ export function Onboarding({
             onClick={() => {
               if (step < 2) void act("onboarding-wave");
             }}
+            onKeyDown={(e) => {
+              if (
+                step === 2 &&
+                armed &&
+                (e.key === "Enter" || e.key === " ")
+              ) {
+                e.preventDefault();
+                void act("onboarding-finish");
+              }
+            }}
             onPointerDown={(e) => {
               if (step !== 2 || !armed || e.button !== 0) return;
               e.preventDefault();

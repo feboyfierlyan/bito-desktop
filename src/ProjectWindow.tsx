@@ -3,13 +3,14 @@ import { AppShell } from "@astryxdesign/core/AppShell";
 import { BitoDateInput, BitoSelect } from "./ui/controls";
 import { Badge } from "@astryxdesign/core/Badge";
 import { BitoButton, BitoInput, BitoTextArea } from "./ui/controls";
-import { SavedWorkDirectory } from "./SavedWorkDirectory";
+import { WorkspaceTasks } from "./WorkspaceTasks";
+import { WorkspaceSchedule } from "./WorkspaceSchedule";
+import { SidebarIcon } from "./ui/SidebarIcon";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowLeft,
   Plus,
-  ListChecks,
   FolderOpen,
   Paperclip,
   Check,
@@ -17,11 +18,8 @@ import {
   X,
   Square,
   Pencil,
-  Home,
   CalendarDays,
-  ListFilter,
   Sprout,
-  Settings2,
 } from "lucide-react";
 import { api } from "./bridge";
 import type { Reply, Snapshot } from "./shared";
@@ -74,9 +72,39 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
     state.projects.find((p) => p.id === viewedArchiveId) ||
     activeProject(state);
   const [quickView, setQuickView] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bito-sidebar-collapsed");
+      if (saved !== null) return saved === "true";
+    } catch {
+      /* Storage can be unavailable in preview environments. */
+    }
+    return window.matchMedia("(max-width: 650px)").matches;
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("bito-sidebar-collapsed", String(sidebarCollapsed));
+    } catch {
+      /* The toggle still works without persistence. */
+    }
+  }, [sidebarCollapsed]);
   const [workspaceView, setWorkspaceView] = useState<
-    "projects" | "schedule" | "priority"
-  >("projects");
+    "projects" | "schedule" | "tasks"
+  >("tasks");
+  const [allTasks, setAllTasks] = useState(() => {
+    try {
+      return window.localStorage.getItem("bito-task-view") === "all";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("bito-task-view", allTasks ? "all" : "today");
+    } catch {
+      /* Views remain usable when storage is unavailable. */
+    }
+  }, [allTasks]);
   const [preparing, setPreparing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [gallery, setGallery] = useState(true);
@@ -122,8 +150,9 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
       }
       setGallery(false);
       setDetailOpen(false);
-      setQuickView(true);
-      setWorkspaceView("projects");
+      setQuickView(false);
+      setWorkspaceView("tasks");
+      setAllTasks(true);
       setCreating(false);
     }
   }, [state.quickTasksNavigation]);
@@ -195,9 +224,8 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
       setWorkspaceView("projects");
       setQuickView(false);
       setGallery(false);
-      setDetailOpen(true);
+      setDetailOpen(false);
       setDirty(false);
-      void run("send", { text: projectSetupPrompt });
     }
   };
   const continueSetup = () => {
@@ -228,7 +256,7 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
           setGallery(false);
           setQuickView(false);
           setTab("overview");
-          setDetailOpen(!p.plan);
+          setDetailOpen(false);
         }
       })();
     });
@@ -241,25 +269,126 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
       height="fill"
       contentPadding={0}
       mobileNav={{ breakpoint: "none", hasToggle: false }}
-      className="projects-app projects-simple projects-board"
+      className="projects-app projects-simple projects-board workspace-flow"
       data-reduced-motion={state.settings.reducedMotion}
+      data-sidebar-collapsed={sidebarCollapsed}
+      data-workspace-view={workspaceView}
       sideNav={
         <aside className="board-rail" aria-label="Navigasi Bito">
-          <div className="workspace-brand">
-            <BitoMascot />
-            <strong>bito.</strong>
-            <span className="workspace-brand-caption">teman kerjamu</span>
+          <div className="sidebar-header">
+            <div className="workspace-brand">
+              <BitoMascot />
+              <strong>bito.</strong>
+              <span className="workspace-brand-caption">teman kerjamu</span>
+            </div>
+            <BitoButton
+              className="sidebar-toggle"
+              aria-label={
+                sidebarCollapsed ? "Lebarkan sidebar" : "Sempitkan sidebar"
+              }
+              title={
+                sidebarCollapsed ? "Lebarkan sidebar" : "Sempitkan sidebar"
+              }
+              aria-expanded={!sidebarCollapsed}
+              aria-controls="bito-sidebar-navigation"
+              onClick={() => setSidebarCollapsed((value) => !value)}
+            >
+              <SidebarIcon name="sidebar" />
+            </BitoButton>
           </div>
-          <BitoButton
-            className="sidebar-create"
-            variant="secondary"
-            disabled={locked || dirty}
-            onClick={() => change(() => setCreating(true))}
-          >
-            <Plus size={18} />
-            Tambah proyek
-          </BitoButton>
-          <nav aria-label="Halaman workspace">
+          <nav id="bito-sidebar-navigation" aria-label="Halaman workspace">
+            <BitoButton
+              className={`board-rail-button ${workspaceView === "tasks" ? "selected" : ""}`}
+              aria-current={workspaceView === "tasks" ? "page" : undefined}
+              aria-label="Tugas"
+              title="Tugas"
+              disabled={locked}
+              onClick={() =>
+                change(() => {
+                  setGallery(false);
+                  setQuickView(false);
+                  setWorkspaceView("tasks");
+                  setCreating(false);
+                  setDetailOpen(false);
+                })
+              }
+            >
+              <SidebarIcon name="tasks" />
+              <span className="board-nav-label">Tugas</span>
+            </BitoButton>
+            <BitoButton
+              disabled={locked}
+              className={`board-rail-button ${workspaceView === "schedule" ? "selected" : ""}`}
+              aria-label="Jadwal"
+              title="Jadwal"
+              aria-current={workspaceView === "schedule" ? "page" : undefined}
+              onClick={() =>
+                change(() => {
+                  setWorkspaceView("schedule");
+                  setQuickView(false);
+                })
+              }
+            >
+              <SidebarIcon name="calendar" />
+              <span className="board-nav-label">Jadwal</span>
+            </BitoButton>
+          </nav>
+          <div className="sidebar-projects">
+            <div className="sidebar-section-label">
+              <span>Proyekmu</span>
+              <BitoButton
+                className="sidebar-create"
+                aria-label="Tambah proyek"
+                title="Tambah proyek"
+                disabled={locked || dirty}
+                onClick={() => change(() => setCreating(true))}
+              >
+                <SidebarIcon name="add" />
+              </BitoButton>
+            </div>
+            <div
+              className="sidebar-project-list"
+              inert={sidebarCollapsed}
+              aria-hidden={sidebarCollapsed}
+            >
+              <div className="sidebar-project-list-inner">
+                {state.projects
+                  .filter((p) => p.status !== "archived")
+                  .map((p) => (
+                    <BitoButton
+                      key={p.id}
+                      className={`sidebar-project ${!gallery && !quickView && workspaceView === "projects" && project?.id === p.id ? "selected" : ""}`}
+                      disabled={locked}
+                      aria-current={
+                        !gallery &&
+                        !quickView &&
+                        workspaceView === "projects" &&
+                        project?.id === p.id
+                          ? "page"
+                          : undefined
+                      }
+                      onClick={() => openProject(p)}
+                      title={p.name}
+                    >
+                      <SidebarIcon
+                        name="project"
+                        className="sidebar-project-icon"
+                      />
+                      <span>{p.name}</span>
+                      <small>
+                        {projectProgress(p).total > 0
+                          ? projectProgress(p).total -
+                              projectProgress(p).done || (
+                              <SidebarIcon name="done" />
+                            )
+                          : null}
+                      </small>
+                    </BitoButton>
+                  ))}
+              </div>
+            </div>
+          </div>
+          <nav aria-label="Koleksi proyek" className="workspace-library-nav">
             <BitoButton
               className={`board-rail-button ${gallery && !archives && !quickView && workspaceView === "projects" ? "selected" : ""}`}
               aria-current={
@@ -284,55 +413,8 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
                 })
               }
             >
-              <Home size={22} />
+              <SidebarIcon name="projects" />
               <span className="board-nav-label">Proyek</span>
-            </BitoButton>
-            <BitoButton
-              disabled={locked}
-              className={`board-rail-button ${workspaceView === "priority" ? "selected" : ""}`}
-              aria-current={workspaceView === "priority" ? "page" : undefined}
-              onClick={() =>
-                change(() => {
-                  setWorkspaceView("priority");
-                  setQuickView(false);
-                })
-              }
-            >
-              <ListFilter size={18} />
-              <span className="board-nav-label">Prioritas</span>
-            </BitoButton>
-            <BitoButton
-              disabled={locked}
-              className={`board-rail-button ${workspaceView === "schedule" ? "selected" : ""}`}
-              aria-current={workspaceView === "schedule" ? "page" : undefined}
-              onClick={() =>
-                change(() => {
-                  setWorkspaceView("schedule");
-                  setQuickView(false);
-                })
-              }
-            >
-              <CalendarDays size={18} />
-              <span className="board-nav-label">Jadwal</span>
-            </BitoButton>
-            <BitoButton
-              className={`board-rail-button ${quickView ? "selected" : ""}`}
-              aria-current={quickView ? "page" : undefined}
-              aria-label="Tugas singkat"
-              title="Tugas singkat"
-              disabled={locked}
-              onClick={() =>
-                change(() => {
-                  setGallery(false);
-                  setQuickView(true);
-                  setWorkspaceView("projects");
-                  setCreating(false);
-                  setDetailOpen(false);
-                })
-              }
-            >
-              <ListChecks size={22} />
-              <span className="board-nav-label">Tugas singkat</span>
             </BitoButton>
             <BitoButton
               className={`board-rail-button ${gallery && archives && workspaceView === "projects" ? "selected" : ""}`}
@@ -355,44 +437,18 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
                 })
               }
             >
-              <Archive size={21} />
+              <SidebarIcon name="archive" />
               <span className="board-nav-label">Arsip</span>
             </BitoButton>
           </nav>
-          <div className="sidebar-projects">
-            <div className="sidebar-section-label">
-              <span>Proyekmu</span>
-            </div>
-            {state.projects
-              .filter((p) => p.status !== "archived")
-              .map((p) => (
-                <BitoButton
-                  key={p.id}
-                  className={`sidebar-project ${!gallery && !quickView && workspaceView === "projects" && project?.id === p.id ? "selected" : ""}`}
-                  disabled={locked}
-                  onClick={() => openProject(p)}
-                  title={p.name}
-                >
-                  <span className="sidebar-project-dot" />
-                  <span>{p.name}</span>
-                  <small>
-                    {projectProgress(p).total > 0
-                      ? projectProgress(p).total - projectProgress(p).done || (
-                          <Check size={12} />
-                        )
-                      : null}
-                  </small>
-                </BitoButton>
-              ))}
-          </div>
           <BitoButton
             className="board-rail-profile"
             aria-label="Pengaturan Bito"
-            title={state.profile.name || "Pengaturan Bito"}
+            title="Pengaturan Bito"
             disabled={dirty}
             onClick={() => void run("show-settings")}
           >
-            <Settings2 size={18} />
+            <SidebarIcon name="settings" />
             <span>Pengaturan</span>
           </BitoButton>
         </aside>
@@ -438,15 +494,13 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             <h1>
               {workspaceView === "schedule"
                 ? "Jadwal"
-                : workspaceView === "priority"
-                  ? "Prioritas"
-                  : quickView
-                    ? "Tugas singkat"
-                    : gallery
-                      ? archives
-                        ? "Arsip proyek"
-                        : "Proyek"
-                      : project?.name || "Proyek"}
+                : workspaceView === "tasks"
+                  ? "Tugas"
+                  : gallery
+                    ? archives
+                      ? "Arsip proyek"
+                      : "Proyek"
+                    : project?.name || "Proyek"}
             </h1>
           </div>
         </header>
@@ -458,25 +512,35 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             </BitoButton>
           </div>
         )}
-        {workspaceView !== "projects" ? (
-          <div className="project-content saved-work-page">
-            <SavedWorkDirectory
-              key={workspaceView}
-              state={state}
-              act={run}
-              initialView={workspaceView}
-              fixedView
-            />
-          </div>
-        ) : quickView ? (
-          <div className="project-content saved-work-page">
-            <SavedWorkDirectory
-              state={state}
-              act={act}
-              quickOnly
-              onDirty={setDirty}
-            />
-          </div>
+        {workspaceView === "schedule" ? (
+          <WorkspaceSchedule
+            state={state}
+            act={run}
+            busy={locked}
+            onDirty={setDirty}
+            onProject={openProject}
+          />
+        ) : workspaceView === "tasks" ? (
+          <WorkspaceTasks
+            state={state}
+            act={run}
+            busy={locked}
+            onDirty={setDirty}
+            onProject={openProject}
+            onCreate={() => change(() => setCreating(true))}
+            onAllProjects={() =>
+              change(() => {
+                setWorkspaceView("projects");
+                setGallery(true);
+                setArchives(false);
+                setQuickView(false);
+                setCreating(false);
+                setDetailOpen(false);
+              })
+            }
+            all={allTasks}
+            onViewChange={setAllTasks}
+          />
         ) : gallery || !project ? (
           <ProjectGallery
             key={archives ? "archives" : "projects"}
@@ -486,32 +550,43 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             projects={state.projects}
             busy={locked}
             archives={archives}
+            reduced={state.settings.reducedMotion}
             onOpen={openProject}
           />
         ) : (
           <div className="project-board-container">
-            {project.status === "archived" && (
-              <div className="project-archive-banner" role="status">
-                <span>Proyek diarsipkan · hanya untuk dilihat</span>
-                <BitoButton
-                  disabled={locked}
-                  onClick={async () => {
-                    const result = await run("project-status", {
-                      id: project.id,
-                      status: project.plan ? "active" : "planning",
-                    });
-                    if (result.ok) {
-                      await run("project-select", project.id);
-                      setViewedArchiveId(null);
-                      setArchives(false);
-                    }
-                  }}
-                >
-                  Pulihkan proyek
-                </BitoButton>
-              </div>
-            )}
             <ProjectBoard
+              key={project.id}
+              banner={
+                project.status === "archived" && (
+                  <div className="project-archive-banner" role="status">
+                    <span>Proyek diarsipkan · hanya untuk dilihat</span>
+                    <BitoButton
+                      disabled={locked}
+                      onClick={async () => {
+                        const result = await run("project-status", {
+                          id: project.id,
+                          status: project.plan ? "active" : "planning",
+                        });
+                        if (result.ok) {
+                          await run("project-select", project.id);
+                          setViewedArchiveId(null);
+                          setArchives(false);
+                        }
+                      }}
+                    >
+                      Pulihkan proyek
+                    </BitoButton>
+                  </div>
+                )
+              }
+              onBack={() =>
+                change(() => {
+                  setGallery(true);
+                  setDetailOpen(false);
+                  setCreating(false);
+                })
+              }
               project={project}
               state={state}
               act={run}
@@ -540,6 +615,8 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
                 change(() => {
                   setTab(project.plan ? "plan" : "overview");
                   setDetailOpen(true);
+                  if (!project.plan && !project.draft && !project.understanding)
+                    void run("send", { text: projectSetupPrompt });
                 })
               }
             />
@@ -860,7 +937,11 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
               </BitoButton>
               <BitoButton
                 className="project-link"
-                onClick={() => void api.command("settings-close-ready")}
+                onClick={() => {
+                  setClosing(false);
+                  setDirty(false);
+                  void api.command("settings-close-ready");
+                }}
               >
                 Tutup tanpa menyimpan
               </BitoButton>

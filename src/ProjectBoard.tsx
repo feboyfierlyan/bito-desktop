@@ -1,37 +1,37 @@
 import { BitoDateInput } from "./ui/controls";
 import { BitoButton, BitoInput } from "./ui/controls";
 import { Popover } from "@astryxdesign/core/Popover";
-import { Card } from "@astryxdesign/core/Card";
-import { ProgressBar } from "@astryxdesign/core/ProgressBar";
 import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
-import { useEffect, useState, type FormEvent } from "react";
-import { AnimatePresence } from "motion/react";
 import {
-  ChevronLeft,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import {
   ChevronRight,
+  ArrowLeft,
+  PanelRight,
+  Ban,
   Plus,
-  Diamond,
   Paperclip,
   MoreHorizontal,
-  Play,
   Check,
   Clock3,
   CalendarDays,
   Flag,
 } from "lucide-react";
-import type { Project } from "./projects";
+import type { Project, ProjectTask } from "./projects";
 import { projectProgress } from "./projects";
 import type { Reply, Snapshot } from "./shared";
 import { openProjectSession } from "./project-work";
-import {
-  calendarWeek,
-  localDateKey,
-  progressSeries,
-  projectCalendarItems,
-} from "./project-board";
-import { ProjectCalendar } from "./ProjectCalendar";
-import { ProjectSessionBar } from "./ProjectSessionBar";
-import { TaskComposer, TaskDatePicker } from "./TaskComposer";
+import { localDateKey } from "./project-board";
+import { WorkspaceInsights } from "./WorkspaceInsights";
+import { TaskListGroup, TaskListRowMotion } from "./WorkspaceTaskListMotion";
+import { TaskComposer } from "./TaskComposer";
+import { WorkspaceTaskPanel } from "./WorkspaceTaskPanel";
 import { WorkspaceDialog } from "./WorkspaceDialog";
 
 type Act = (name: string, payload?: unknown) => Promise<Reply>;
@@ -58,7 +58,11 @@ export function ProjectBoard({
   onWork,
   onSetup,
   onDirty,
+  onBack,
+  banner,
 }: {
+  onBack?: () => void;
+  banner?: ReactNode;
   project: Project;
   state: Snapshot;
   act: Act;
@@ -69,16 +73,38 @@ export function ProjectBoard({
   onSetup: () => void;
   onDirty: (dirty: boolean) => void;
 }) {
-  const [showCompleted, setShowCompleted] = useState(false);
+  const reduced = useReducedMotion() || state.settings.reducedMotion;
+  const today = localDateKey(new Date());
+  const [contextOpen, setContextOpen] = useState(true);
+  const [panelBusy, setPanelBusy] = useState(false);
+  const [pendingPanel, setPendingPanel] = useState<{
+    id: string | null;
+    open: boolean;
+  } | null>(null);
+  const contextToggle = useRef<HTMLButtonElement>(null);
+  const [pendingTasks, setPendingTasks] = useState<
+    Record<string, { task: ProjectTask; confirmed: boolean }>
+  >({});
+  const taskLocks = useRef(new Set<string>());
+  const taskTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      taskTimers.current.forEach(clearTimeout);
+      taskTimers.current.clear();
+    };
+  }, []);
+  const [showCompleted, setShowCompleted] = useState(
+    project.status === "archived" || project.status === "completed",
+  );
   const [sessionDirty, setSessionDirty] = useState(false);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [anchor, setAnchor] = useState(() => new Date());
   const [modal, setModal] = useState<Modal>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [addingGroup, setAddingGroup] = useState<string | null>(null);
   const [captureDirty, setCaptureDirty] = useState(false);
-  const [collapsed, setCollapsed] = useState<string[]>([]);
   const [targetDate, setTargetDate] = useState("");
   const [initialDate, setInitialDate] = useState("");
   const [groupTitle, setGroupTitle] = useState("");
@@ -88,11 +114,10 @@ export function ProjectBoard({
   useEffect(() => {
     setModal(null);
     setAddingGroup(null);
-    setCollapsed([]);
-    setShowCompleted(false);
-    setCalendarOpen(false);
+    setShowCompleted(
+      project.status === "archived" || project.status === "completed",
+    );
     setError("");
-    setAnchor(new Date());
   }, [project.id]);
   const counts = projectProgress(project);
   const progress = {
@@ -102,10 +127,7 @@ export function ProjectBoard({
   const milestones = project.plan?.milestones || [];
   const session = openProjectSession(project);
   const editable = !["archived", "completed"].includes(project.status);
-  const locked = busy || submitting;
-  const week = calendarWeek(anchor);
-  const today = localDateKey(new Date());
-  const events = projectCalendarItems(project);
+  const locked = busy || submitting || panelBusy;
   const task =
     modal?.kind === "task"
       ? milestones.flatMap((m) => m.tasks).find((t) => t.id === modal.id)
@@ -152,15 +174,52 @@ export function ProjectBoard({
       setSubmitting(false);
     }
   };
-  const toggle = (id: string) => {
+  const applyPanel = (id: string | null, open = true) => {
+    setPendingPanel(null);
+    setSessionDirty(false);
+    setModal(id ? { kind: "task", id } : null);
+    setContextOpen(open);
+    if (!open) contextToggle.current?.focus({ preventScroll: true });
+  };
+  const requestPanel = (id: string | null, open = true) => {
+    if (locked || (id && modal?.kind === "task" && modal.id === id)) return;
+    if (sessionDirty) setPendingPanel({ id, open });
+    else applyPanel(id, open);
+  };
+  const toggle = async (id: string) => {
     const t = milestones.flatMap((m) => m.tasks).find((t) => t.id === id);
-    if (t)
-      void request("project-task", {
-        id: project.id,
-        taskId: id,
-        expectedStatus: t.status,
-        status: t.status === "done" ? "todo" : "done",
-      });
+    if (!t || taskLocks.current.has(id) || locked || !editable) return;
+    taskLocks.current.add(id);
+    setPendingTasks((prev) => ({
+      ...prev,
+      [id]: { task: t, confirmed: false },
+    }));
+    const release = () => {
+      taskLocks.current.delete(id);
+      taskTimers.current.delete(id);
+      if (mounted.current)
+        setPendingTasks((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+    };
+    const result = await request("project-task", {
+      id: project.id,
+      taskId: id,
+      expectedStatus: t.status,
+      status: t.status === "done" ? "todo" : "done",
+    });
+    if (!mounted.current) return;
+    if (!result.ok || reduced) {
+      release();
+      return;
+    }
+    setPendingTasks((prev) => ({
+      ...prev,
+      [id]: { task: t, confirmed: true },
+    }));
+    taskTimers.current.set(id, setTimeout(release, 440));
   };
   const openMilestone = (id: string) => {
     setError("");
@@ -198,415 +257,453 @@ export function ProjectBoard({
   const [menu, setMenu] = useState(false);
 
   return (
-    <div className="project-board-layout">
-      <div className="board-view-toolbar">
-        <h2 className="board-list-heading">Tugas proyek</h2>
-        <div className="board-view-actions">
-          {editable && (
+    <div
+      className="workspace-task-columns workspace-project-columns"
+      data-insights={contextOpen}
+      data-reduced-motion={!!reduced}
+    >
+      <div className="workspace-tasks project-task-canvas">
+        <header className="tasks-page-header">
+          <div>
+            <p className="workspace-day">
+              {project.status === "archived" ? "Arsip proyek" : "Proyek"}
+            </p>
+            <h1>{project.name}</h1>
+          </div>
+          <div className="tasks-header-tools">
+            {onBack && (
+              <BitoButton
+                aria-label="Kembali ke semua proyek"
+                title="Kembali"
+                onClick={onBack}
+              >
+                <ArrowLeft size={18} />
+              </BitoButton>
+            )}
             <BitoButton
-              disabled={
-                locked ||
-                captureDirty ||
-                !!project.draft ||
-                milestones.length >= 8
-              }
-              onClick={newGroup}
+              ref={contextToggle}
+              className="insights-toggle"
+              aria-label={contextOpen ? "Tutup kolom kanan" : "Buka ringkasan"}
+              aria-expanded={contextOpen}
+              aria-controls="project-context-column"
+              disabled={locked}
+              onClick={() => requestPanel(null, !contextOpen)}
             >
-              <Plus size={15} />
-              Tambah kelompok
+              <PanelRight size={18} />
+            </BitoButton>
+          </div>
+        </header>
+        {banner}
+        <div className="board-view-toolbar">
+          <h2 className="board-list-heading">Tugas proyek</h2>
+          <div className="board-view-actions">
+            {editable && (
+              <BitoButton
+                disabled={
+                  locked ||
+                  sessionDirty ||
+                  captureDirty ||
+                  !!project.draft ||
+                  milestones.length >= 8
+                }
+                onClick={newGroup}
+              >
+                <Plus size={15} />
+                Tambah kelompok
+              </BitoButton>
+            )}
+            <BitoButton onClick={onMaterials}>
+              <Paperclip size={15} /> Bahan
+              {project.materials.length ? ` (${project.materials.length})` : ""}
+            </BitoButton>{" "}
+            <Popover
+              label="Pilihan proyek"
+              isOpen={menu}
+              onOpenChange={setMenu}
+              placement="below"
+              alignment="end"
+              width={210}
+              content={
+                <div className="board-project-menu">
+                  <BitoButton
+                    onClick={() => {
+                      setMenu(false);
+                      onDetails();
+                    }}
+                  >
+                    Detail proyek
+                  </BitoButton>
+                  <BitoButton
+                    disabled={!editable}
+                    onClick={() => {
+                      setMenu(false);
+                      onSetup();
+                    }}
+                  >
+                    Edit rencana
+                  </BitoButton>
+                </div>
+              }
+            >
+              <BitoButton
+                type="button"
+                className="board-icon"
+                aria-label="Pilihan proyek"
+                aria-expanded={menu}
+              >
+                <MoreHorizontal size={17} />
+              </BitoButton>
+            </Popover>
+          </div>
+        </div>
+        <div className="board-project-summary">
+          <span>
+            {progress.done} dari {progress.total} tugas selesai
+          </span>
+          {project.deadline && (
+            <span>
+              <CalendarDays size={13} /> Tenggat {shortDate(project.deadline)}
+            </span>
+          )}
+        </div>
+        <div className="board-main-column">
+          {session && (
+            <BitoButton
+              className="board-open-session"
+              onClick={() => requestPanel(session.taskId)}
+            >
+              <Clock3 size={15} />{" "}
+              {session.phase === "running" ? "Sesi berjalan" : "Lanjutkan sesi"}
+              : {session.taskTitle}
             </BitoButton>
           )}
-          <BitoButton onClick={onMaterials}>
-            <Paperclip size={15} /> Bahan
-            {project.materials.length ? ` (${project.materials.length})` : ""}
-          </BitoButton>{" "}
-          <Popover
-            label="Pilihan proyek"
-            isOpen={menu}
-            onOpenChange={setMenu}
-            placement="below"
-            alignment="end"
-            width={210}
-            content={
-              <div className="board-project-menu">
+          {error && !modal && (
+            <p className="board-error" role="alert">
+              {error}
+            </p>
+          )}
+          <div className="board-task-groups">
+            {progress.total > 0 &&
+              progress.done === progress.total &&
+              !showCompleted && (
+                <div className="board-all-done">
+                  <Check size={24} />
+                  <h2>Semua tugas selesai.</h2>
+                  <p>
+                    Kerja bagus. Kamu bisa melihat kembali tugasmu kapan saja.
+                  </p>
+                </div>
+              )}
+            {!project.plan ? (
+              <div className="board-empty-setup">
+                <h2>Mulai dari satu tugas.</h2>
+                {editable &&
+                  (addingGroup === "new" ? (
+                    <TaskComposer
+                      key={project.id}
+                      projects={[project]}
+                      initialProjectId={project.id}
+                      act={act}
+                      busy={busy}
+                      inline
+                      onDirty={setCaptureDirty}
+                      onSaved={() => {
+                        setCaptureDirty(false);
+                        setAddingGroup(null);
+                      }}
+                      onCancel={() => setAddingGroup(null)}
+                    />
+                  ) : (
+                    <BitoButton
+                      className="board-add-step"
+                      onClick={() => setAddingGroup("new")}
+                    >
+                      <Plus size={16} />
+                      Tambah tugas pertama
+                    </BitoButton>
+                  ))}
                 <BitoButton
-                  onClick={() => {
-                    setMenu(false);
-                    onDetails();
-                  }}
+                  onClick={onSetup}
+                  disabled={locked || captureDirty || !editable}
                 >
-                  Detail proyek
-                </BitoButton>
-                <BitoButton
-                  disabled={!editable}
-                  onClick={() => {
-                    setMenu(false);
-                    onSetup();
-                  }}
-                >
-                  Edit rencana
+                  Bantu susun langkah bersama Bito <ChevronRight size={15} />
                 </BitoButton>
               </div>
-            }
-          >
-            <BitoButton
-              type="button"
-              className="board-icon"
-              aria-label="Pilihan proyek"
-              aria-expanded={menu}
-            >
-              <MoreHorizontal size={17} />
-            </BitoButton>
-          </Popover>
+            ) : (
+              milestones
+                .filter(
+                  (m) =>
+                    showCompleted ||
+                    editable ||
+                    m.tasks.some((t) => t.status !== "done"),
+                )
+                .map((m) => (
+                  <TaskListGroup
+                    key={m.id}
+                    groupKey={m.id}
+                    title={m.title}
+                    count={
+                      m.tasks.filter(
+                        (t) => showCompleted || t.status !== "done",
+                      ).length
+                    }
+                    reduced={!!reduced}
+                    disabled={addingGroup === m.id}
+                    headerAction={
+                      <BitoButton
+                        className="board-icon group-settings"
+                        aria-label={`Pengaturan kelompok ${m.title}`}
+                        disabled={
+                          locked || !editable || sessionDirty || captureDirty
+                        }
+                        onClick={() => openMilestone(m.id)}
+                      >
+                        <MoreHorizontal size={16} />
+                      </BitoButton>
+                    }
+                  >
+                    <AnimatePresence initial={false}>
+                      {m.tasks
+                        .map((t) => pendingTasks[t.id]?.task ?? t)
+                        .filter((t) => showCompleted || t.status !== "done")
+                        .map((t, index) => {
+                          const pending = pendingTasks[t.id];
+                          const done = pending?.confirmed
+                            ? t.status !== "done"
+                            : t.status === "done";
+                          const date =
+                            t.dueDate === undefined ? m.targetDate : t.dueDate;
+                          return (
+                            <TaskListRowMotion
+                              key={t.id}
+                              index={index}
+                              reduced={!!reduced}
+                            >
+                              <div
+                                className={`workspace-task-row board-task-row ${done ? "is-done" : ""} ${modal?.kind === "task" && modal.id === t.id ? "is-selected" : ""}`}
+                                data-checked={done}
+                                data-completing={!!pending?.confirmed}
+                                aria-busy={!!pending && !pending.confirmed}
+                              >
+                                <CheckboxInput
+                                  size="sm"
+                                  value={done}
+                                  label={`${t.status === "done" ? "Buka kembali" : "Selesaikan"}: ${t.title}`}
+                                  isLabelHidden
+                                  isReadOnly={!!pending}
+                                  isDisabled={
+                                    locked ||
+                                    !editable ||
+                                    session?.taskId === t.id
+                                  }
+                                  onChange={() => void toggle(t.id)}
+                                />
+                                <BitoButton
+                                  type="button"
+                                  className="workspace-task-open board-task-title"
+                                  aria-pressed={
+                                    modal?.kind === "task" && modal.id === t.id
+                                  }
+                                  aria-controls="project-context-column"
+                                  onClick={() => requestPanel(t.id)}
+                                >
+                                  <span className="task-row-title">
+                                    <span className="task-row-title-text">
+                                      {t.title}
+                                    </span>
+                                  </span>
+                                  <span className="task-row-meta">
+                                    {date && (
+                                      <time
+                                        dateTime={date}
+                                        className={
+                                          date < today && !done && editable
+                                            ? "is-overdue"
+                                            : ""
+                                        }
+                                      >
+                                        <CalendarDays size={12} />
+                                        {date === today
+                                          ? "Hari ini"
+                                          : shortDate(date)}
+                                      </time>
+                                    )}
+                                    {t.priority === 1 && !done && (
+                                      <span className="task-important">
+                                        <Flag size={12} />
+                                        Penting
+                                      </span>
+                                    )}
+                                    {t.status === "blocked" && (
+                                      <span className="task-blocked">
+                                        <Ban size={12} />
+                                        Terhambat
+                                      </span>
+                                    )}
+                                    {session?.taskId === t.id && (
+                                      <span className="task-running">
+                                        <Clock3 size={12} />
+                                        Sesi terbuka
+                                      </span>
+                                    )}
+                                  </span>
+                                </BitoButton>
+                              </div>
+                            </TaskListRowMotion>
+                          );
+                        })}
+                    </AnimatePresence>
+                    {addingGroup === m.id ? (
+                      <TaskComposer
+                        projects={[project]}
+                        initialProjectId={project.id}
+                        initialMilestoneId={m.id}
+                        act={act}
+                        busy={busy}
+                        inline
+                        onDirty={setCaptureDirty}
+                        onSaved={() => {
+                          setAddingGroup(null);
+                          setError("");
+                        }}
+                        onCancel={() => {
+                          setAddingGroup(null);
+                          setError("");
+                        }}
+                      />
+                    ) : (
+                      editable && (
+                        <BitoButton
+                          className="board-add-step"
+                          aria-label={`Tambah tugas ke ${m.title}`}
+                          disabled={
+                            locked ||
+                            addingGroup !== null ||
+                            progress.total >= 40 ||
+                            m.tasks.length >= 12
+                          }
+                          onClick={() => setAddingGroup(m.id)}
+                        >
+                          <Plus size={16} />
+                          Tambah tugas
+                        </BitoButton>
+                      )
+                    )}
+                  </TaskListGroup>
+                ))
+            )}
+            {progress.done > 0 && (
+              <BitoButton
+                className="completed-toggle"
+                aria-pressed={showCompleted}
+                onClick={() => setShowCompleted((v) => !v)}
+              >
+                {showCompleted ? "Sembunyikan" : "Tampilkan"} {progress.done}{" "}
+                tugas selesai
+              </BitoButton>
+            )}
+            {editable && milestones.length >= 8 && (
+              <p className="project-hint">Maksimal 8 kelompok per proyek.</p>
+            )}
+          </div>
         </div>
       </div>
-      <div className="board-project-summary">
-        <span>
-          {progress.done} dari {progress.total} tugas selesai
-        </span>
-        {project.deadline && (
-          <span>
-            <CalendarDays size={13} /> Tenggat {shortDate(project.deadline)}
-          </span>
-        )}
-      </div>
-      <div className="board-main-column">
-        <ProjectSessionBar
-          key={project.id}
-          project={project}
-          projects={state.projects}
-          act={act}
-          busy={locked}
-          onDirty={setSessionDirty}
-          reduced={state.settings.reducedMotion}
-        />
-        {error && !modal && (
-          <p className="board-error" role="alert">
-            {error}
-          </p>
-        )}
-        <div className="board-task-groups">
-          {progress.done > 0 && (
-            <BitoButton
-              className="completed-toggle"
-              aria-pressed={showCompleted}
-              onClick={() => setShowCompleted((v) => !v)}
+      <div
+        className="workspace-context-slot"
+        inert={!contextOpen}
+        aria-hidden={!contextOpen}
+      >
+        <AnimatePresence initial={false}>
+          {contextOpen && (
+            <motion.div
+              className="workspace-context-column"
+              id="project-context-column"
+              initial={{ opacity: 0, x: reduced ? 0 : 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: reduced ? 0 : 10 }}
+              transition={{
+                duration: reduced ? 0 : 0.3,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
-              {showCompleted ? "Sembunyikan" : "Tampilkan"} {progress.done}{" "}
-              tugas selesai
-            </BitoButton>
-          )}
-          {progress.total > 0 &&
-            progress.done === progress.total &&
-            !showCompleted && (
-              <div className="board-all-done">
-                <Check size={24} />
-                <h2>Semua tugas selesai.</h2>
-                <p>
-                  Kerja bagus. Kamu bisa melihat kembali tugasmu kapan saja.
-                </p>
-              </div>
-            )}
-          {!project.plan ? (
-            <div className="board-empty-setup">
-              <h2>Susun langkahnya bareng Bito.</h2>
-              <BitoButton
-                className="project-primary"
-                onClick={onSetup}
-                disabled={locked}
-              >
-                Lanjutkan <ChevronRight size={15} />
-              </BitoButton>
-            </div>
-          ) : (
-            milestones
-              .filter(
-                (m) =>
-                  showCompleted ||
-                  editable ||
-                  m.tasks.some((t) => t.status !== "done"),
-              )
-              .map((m) => (
-                <section
-                  className="board-task-group"
-                  key={m.id}
-                  aria-label={m.title}
-                >
-                  <header>
+              {pendingPanel && (
+                <div className="task-switch-confirm" role="alert">
+                  <p>Ada perubahan yang belum disimpan.</p>
+                  <div>
+                    <BitoButton onClick={() => setPendingPanel(null)}>
+                      Lanjut mengedit
+                    </BitoButton>
                     <BitoButton
-                      disabled={addingGroup === m.id}
-                      aria-expanded={!collapsed.includes(m.id)}
+                      disabled={locked}
                       onClick={() =>
-                        setCollapsed((ids) =>
-                          ids.includes(m.id)
-                            ? ids.filter((id) => id !== m.id)
-                            : [...ids, m.id],
-                        )
+                        applyPanel(pendingPanel.id, pendingPanel.open)
                       }
                     >
-                      <ChevronRight
-                        size={14}
-                        className={
-                          collapsed.includes(m.id) ? "" : "section-expanded"
-                        }
-                      />
-                      {m.title}
-                      <small title="Tugas belum selesai">
-                        {m.tasks.filter((t) => t.status !== "done").length}
-                      </small>
+                      Abaikan perubahan
                     </BitoButton>
-                    <BitoButton
-                      className="board-icon"
-                      aria-label={`Pengaturan kelompok ${m.title}`}
-                      onClick={() => openMilestone(m.id)}
-                    >
-                      <MoreHorizontal size={16} />
-                    </BitoButton>
-                  </header>
-                  {!collapsed.includes(m.id) && (
-                    <>
-                      {m.tasks
-                        .filter((t) => showCompleted || t.status !== "done")
-                        .map((t) => (
-                          <div
-                            className={`board-task-row ${t.status === "done" ? "is-done" : ""}`}
-                            data-priority={t.priority ?? 4}
-                            key={t.id}
-                          >
-                            <CheckboxInput
-                              className="bito-task-checkbox"
-                              size="sm"
-                              value={t.status === "done"}
-                              label={`${t.status === "done" ? "Buka kembali" : "Selesaikan"}: ${t.title}`}
-                              isLabelHidden
-                              isDisabled={
-                                locked || !editable || session?.taskId === t.id
-                              }
-                              onChange={() => toggle(t.id)}
-                            />
-                            <div className="board-task-content">
-                              <BitoButton
-                                className="board-task-title"
-                                onClick={() => {
-                                  setError("");
-                                  setModal({ kind: "task", id: t.id });
-                                }}
-                              >
-                                <span>{t.title}</span>
-                                {t.status === "blocked" && (
-                                  <i
-                                    className="task-blocked-dot"
-                                    aria-label="Terhambat"
-                                  />
-                                )}
-                                {session?.taskId === t.id && (
-                                  <Clock3 size={13} aria-label="Sesi terbuka" />
-                                )}
-                              </BitoButton>
-                              {t.details && (
-                                <p className="task-row-description">
-                                  {t.details}
-                                </p>
-                              )}
-                              <div className="task-row-metadata">
-                                <TaskDatePicker
-                                  value={
-                                    t.dueDate === undefined
-                                      ? m.targetDate
-                                      : t.dueDate
-                                  }
-                                  completed={t.status === "done"}
-                                  inherited={t.dueDate === undefined}
-                                  max={project.deadline}
-                                  disabled={locked || !editable}
-                                  label={`Tanggal tugas ${t.title}`}
-                                  onChange={(date) =>
-                                    void request("project-task-date", {
-                                      id: project.id,
-                                      taskId: t.id,
-                                      version: project.version,
-                                      dueDate: date,
-                                    })
-                                  }
-                                />
-                                {t.priority && t.priority < 4 && (
-                                  <span
-                                    className="task-priority"
-                                    data-priority={t.priority}
-                                  >
-                                    <Flag size={12} />P{t.priority}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      {addingGroup === m.id ? (
-                        <TaskComposer
-                          projects={[project]}
-                          initialProjectId={project.id}
-                          initialMilestoneId={m.id}
-                          act={act}
-                          busy={busy}
-                          inline
-                          onDirty={setCaptureDirty}
-                          onSaved={() => {
-                            setAddingGroup(null);
-                            setError("");
-                          }}
-                          onCancel={() => {
-                            setAddingGroup(null);
-                            setError("");
-                          }}
-                        />
-                      ) : (
-                        editable && (
-                          <BitoButton
-                            className="board-add-step"
-                            aria-label={`Tambah tugas ke ${m.title}`}
-                            disabled={
-                              locked ||
-                              addingGroup !== null ||
-                              progress.total >= 40 ||
-                              m.tasks.length >= 12
-                            }
-                            onClick={() => setAddingGroup(m.id)}
-                          >
-                            <Plus size={16} />
-                            Tambah tugas
-                          </BitoButton>
-                        )
-                      )}
-                    </>
-                  )}
-                </section>
-              ))
-          )}
-          {editable && milestones.length >= 8 && (
-            <p className="project-hint">Maksimal 8 kelompok per proyek.</p>
-          )}
-        </div>
-      </div>
-      <aside className="board-insights" aria-label="Ringkasan proyek">
-        <Card
-          className="board-side-calendar"
-          padding={0}
-          aria-label="Kalender proyek"
-        >
-          <header>
-            <h2>Kalender</h2>
-            <BitoButton
-              className="calendar-today"
-              onClick={() => setAnchor(new Date())}
-            >
-              Hari ini
-            </BitoButton>
-          </header>
-          <div className="side-calendar-navigation">
-            <strong>
-              {week[0].date.toLocaleDateString("id-ID", {
-                month: "long",
-                year: "numeric",
-              })}
-            </strong>
-            <BitoButton
-              className="board-icon"
-              aria-label="Minggu sebelumnya"
-              onClick={() =>
-                setAnchor(
-                  (d) =>
-                    new Date(
-                      d.getFullYear(),
-                      d.getMonth(),
-                      d.getDate() - 7,
-                      12,
-                    ),
-                )
-              }
-            >
-              <ChevronLeft size={16} />
-            </BitoButton>
-            <BitoButton
-              className="board-icon"
-              aria-label="Minggu berikutnya"
-              onClick={() =>
-                setAnchor(
-                  (d) =>
-                    new Date(
-                      d.getFullYear(),
-                      d.getMonth(),
-                      d.getDate() + 7,
-                      12,
-                    ),
-                )
-              }
-            >
-              <ChevronRight size={16} />
-            </BitoButton>
-          </div>
-          <div className="side-calendar-week">
-            {week.map((day) => (
-              <div key={day.key} data-today={day.key === today}>
-                <small>
-                  {day.date.toLocaleDateString("id-ID", { weekday: "short" })}
-                </small>
-                <strong>{day.date.getDate()}</strong>
-                <i
-                  data-event={events.some((event) => event.date === day.key)}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="side-calendar-agenda">
-            {events
-              .filter((event) => week.some((day) => day.key === event.date))
-              .sort((a, b) => a.date.localeCompare(b.date))
-              .map((event) => (
-                <BitoButton
-                  key={event.id}
-                  className={`side-calendar-event ${event.done ? "is-done" : ""}`}
-                  onClick={() =>
-                    event.kind === "deadline"
-                      ? onDetails()
-                      : event.kind === "task"
-                        ? setModal({ kind: "task", id: event.id })
-                        : openMilestone(event.id)
-                  }
+                  </div>
+                </div>
+              )}
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  className="workspace-context-content"
+                  key={modal?.kind === "task" ? modal.id : "summary"}
+                  initial={{ opacity: 0, x: reduced ? 0 : 6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: reduced ? 0 : -4 }}
+                  transition={{ duration: reduced ? 0 : 0.14, ease: "easeOut" }}
                 >
-                  <time>{shortDate(event.date)}</time>
-                  <span>{event.title}</span>
-                  {event.done && <Check size={12} />}
-                </BitoButton>
-              ))}
-          </div>
-          {!events.some((event) =>
-            week.some((day) => day.key === event.date),
-          ) && <p className="board-empty">Tidak ada target minggu ini.</p>}
-          <BitoButton
-            className="side-calendar-connect"
-            disabled={locked || !editable}
-            onClick={() => setCalendarOpen(true)}
-          >
-            <CalendarDays size={14} />
-            Google Calendar
-          </BitoButton>
-        </Card>
-        <ProgressChart project={project} />
-      </aside>
+                  {modal?.kind === "task" ? (
+                    <WorkspaceTaskPanel
+                      embedded
+                      selection={{ id: modal.id, projectId: project.id }}
+                      state={state}
+                      act={act}
+                      busy={busy}
+                      onDirty={setSessionDirty}
+                      onBusy={setPanelBusy}
+                      onClose={() => applyPanel(null)}
+                    />
+                  ) : (
+                    <section aria-label="Progres proyek">
+                      <WorkspaceInsights
+                        items={milestones.flatMap((m) =>
+                          m.tasks.map((t) => ({
+                            id: t.id,
+                            title: t.title,
+                            date:
+                              t.dueDate === undefined
+                                ? m.targetDate
+                                : t.dueDate,
+                            done: t.status === "done",
+                            blocked: t.status === "blocked",
+                            priority: t.priority ?? 4,
+                            projectId: project.id,
+                            projectName: project.name,
+                          })),
+                        )}
+                        today={today}
+                        projects={[project]}
+                        scope={project.name}
+                        showProjects={false}
+                        showCondition={project.status !== "archived"}
+                        reduced={!!reduced}
+                        onSelect={(selection) => requestPanel(selection.id)}
+                        onClose={() => requestPanel(null, false)}
+                        onProject={onDetails}
+                        onAllProjects={onBack || onDetails}
+                        busy={locked}
+                      />
+                    </section>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <AnimatePresence>
-        {calendarOpen && (
-          <ProjectCalendar
-            key={project.id}
-            project={project}
-            connection={state.calendar}
-            act={act}
-            onClose={() => setCalendarOpen(false)}
-            reduced={state.settings.reducedMotion}
-          />
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {modal && (
+        {modal && modal.kind !== "task" && (
           <WorkspaceDialog
             key={modal.kind + ("id" in modal ? modal.id : "")}
             title={
@@ -624,119 +721,53 @@ export function ProjectBoard({
                 {error}
               </p>
             )}
-            {task ? (
-              <div className="board-task-detail">
-                <h3>{task.title}</h3>
-                {task.details && <p>{task.details}</p>}
-                {task.doneWhen && (
-                  <p className="board-done-when">
-                    <Check size={15} />
-                    {task.doneWhen}
-                  </p>
-                )}
-                <span className="board-task-estimate">
-                  {task.estimateMin === task.estimateMax
-                    ? task.estimateMin
-                    : `${task.estimateMin}–${task.estimateMax}`}{" "}
-                  menit
-                </span>
-                <div className="project-form-actions">
-                  <BitoButton
-                    className="project-primary"
-                    disabled={locked || !editable || task.status === "done"}
-                    onClick={async () => {
-                      if (session) {
-                        setModal(null);
-                        onWork();
-                        return;
-                      }
-                      const r = await request("project-assist", {
-                        intent: "start",
-                        begin: true,
-                        id: project.id,
-                        taskId: task.id,
-                        minutes: null,
-                      });
-                      if (r.ok) setModal(null);
-                    }}
-                  >
-                    <Play size={15} />
-                    {session ? "Lanjutkan sesi" : "Mulai sesi"}
-                  </BitoButton>
-                  <BitoButton
-                    className="project-secondary"
-                    disabled={
-                      locked || !editable || session?.taskId === task.id
-                    }
-                    onClick={() => toggle(task.id)}
-                  >
-                    {task.status === "done" ? "Buka kembali" : "Tandai selesai"}
-                  </BitoButton>
-                  <BitoButton
-                    className="project-link"
-                    disabled={locked || !editable || task.status === "done"}
-                    onClick={async () => {
-                      const r = await request("project-assist", {
-                        id: project.id,
-                        taskId: task.id,
-                        intent: "blocked",
-                      });
-                      if (r.ok) setModal(null);
-                    }}
-                  >
-                    Bantu bagian ini
-                  </BitoButton>
-                </div>
+            <form className="project-form" onSubmit={save}>
+              <div className="bito-form-field">
+                Nama kelompok
+                <BitoInput
+                  label="Nama kelompok"
+                  placeholder="Misalnya, Penyusunan Esai Komparatif"
+                  value={groupTitle}
+                  maxLength={200}
+                  autoFocus
+                  disabled={locked || !editable}
+                  onChange={(e) => setGroupTitle(e.target.value)}
+                />
               </div>
-            ) : (
-              <form className="project-form" onSubmit={save}>
-                <div className="bito-form-field">
-                  Nama kelompok
-                  <BitoInput
-                    label="Nama kelompok"
-                    placeholder="Misalnya, Penyusunan Esai Komparatif"
-                    value={groupTitle}
-                    maxLength={200}
-                    autoFocus
-                    disabled={locked || !editable}
-                    onChange={(e) => setGroupTitle(e.target.value)}
-                  />
-                </div>
-                <div className="bito-form-field">
-                  Tanggal kelompok
-                  <BitoDateInput
-                    label="Tanggal target"
-                    value={targetDate}
-                    max={project.deadline || undefined}
-                    disabled={locked || !editable}
-                    onValueChange={(e) => setTargetDate(e ?? "")}
-                  />
-                </div>
-                <p className="project-hint">
-                  Tugas yang punya tanggal sendiri tidak ikut berubah.
-                </p>
-                <div className="project-form-actions">
-                  <BitoButton
-                    className="project-primary"
-                    disabled={locked || !editable || !groupTitle.trim()}
-                  >
-                    {submitting
-                      ? "Menyimpan…"
-                      : modal?.kind === "new-group"
-                        ? "Tambah kelompok"
-                        : "Simpan"}
-                  </BitoButton>
-                  <BitoButton
-                    className="project-link"
-                    type="button"
-                    disabled={submitting}
-                    onClick={closeModal}
-                  >
-                    Batal
-                  </BitoButton>
-                </div>
-              </form>
-            )}
+              <div className="bito-form-field">
+                Tanggal kelompok
+                <BitoDateInput
+                  label="Tanggal target"
+                  value={targetDate}
+                  max={project.deadline || undefined}
+                  disabled={locked || !editable}
+                  onValueChange={(e) => setTargetDate(e ?? "")}
+                />
+              </div>
+              <p className="project-hint">
+                Tugas yang punya tanggal sendiri tidak ikut berubah.
+              </p>
+              <div className="project-form-actions">
+                <BitoButton
+                  className="project-primary"
+                  disabled={locked || !editable || !groupTitle.trim()}
+                >
+                  {submitting
+                    ? "Menyimpan…"
+                    : modal?.kind === "new-group"
+                      ? "Tambah kelompok"
+                      : "Simpan"}
+                </BitoButton>
+                <BitoButton
+                  className="project-link"
+                  type="button"
+                  disabled={submitting}
+                  onClick={closeModal}
+                >
+                  Batal
+                </BitoButton>
+              </div>
+            </form>
           </WorkspaceDialog>
         )}
       </AnimatePresence>
@@ -768,127 +799,5 @@ export function ProjectBoard({
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function ProgressChart({ project }: { project: Project }) {
-  const counts = projectProgress(project);
-  const progress = {
-    ...counts,
-    percent: counts.total ? Math.round((counts.done / counts.total) * 100) : 0,
-  };
-  const history = progressSeries(project);
-  const first = history[0]?.at || project.createdAt;
-  const last = history.at(-1)?.at || first;
-  const point = (row: (typeof history)[number]) => [
-    history.length === 1
-      ? 150
-      : 12 + ((row.at - first) / Math.max(1, last - first)) * 276,
-    110 - row.percent * 0.9,
-  ];
-  const path = history
-    .map((row, i) => `${i ? "L" : "M"}${point(row).join(",")}`)
-    .join(" ");
-  const date = (at: number) =>
-    new Date(at).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-    });
-  return (
-    <Card
-      className="board-progress-chart"
-      padding={0}
-      aria-label="Progres proyek"
-    >
-      <header>
-        <h2>Progres</h2>
-        <strong>{progress.percent}%</strong>
-      </header>
-      <div className="board-chart-counts">
-        <span>
-          <i />
-          {progress.total - progress.done} belum selesai
-        </span>
-        <span>
-          <i />
-          {progress.done} selesai
-        </span>
-      </div>
-      <ProgressBar
-        className="board-progress-meter"
-        label="Tugas selesai"
-        value={progress.percent}
-        isLabelHidden
-      />
-      {history.length > 1 && (
-        <>
-          <svg
-            viewBox="0 0 300 130"
-            role="img"
-            aria-label={
-              history.length
-                ? `Riwayat progres: ${progress.done} dari ${progress.total - progress.done} belum selesai selesai`
-                : "Riwayat progres belum tersedia"
-            }
-          >
-            {[20, 65, 110].map((y) => (
-              <line
-                key={y}
-                x1="12"
-                x2="288"
-                y1={y}
-                y2={y}
-                stroke="var(--bito-hairline)"
-              />
-            ))}
-            {path && (
-              <>
-                {history.length > 1 && (
-                  <path
-                    d={`${path} L${point(history.at(-1)!)[0]},110 L12,110 Z`}
-                    fill="var(--bito-surface-muted)"
-                  />
-                )}
-                <path
-                  d={path}
-                  fill="none"
-                  stroke="var(--bito-ink)"
-                  strokeWidth="2.5"
-                  strokeLinejoin="round"
-                />
-                {history.map((row, i) => (
-                  <circle
-                    key={i}
-                    cx={point(row)[0]}
-                    cy={point(row)[1]}
-                    r="3"
-                    fill="var(--bito-ink)"
-                  >
-                    <title>
-                      {date(row.at)} · {row.done}/{row.total} selesai
-                    </title>
-                  </circle>
-                ))}
-              </>
-            )}
-            {!history.length && (
-              <text
-                x="150"
-                y="70"
-                textAnchor="middle"
-                fill="var(--bito-muted)"
-                fontSize="11"
-              >
-                Progres dicatat saat langkah berubah.
-              </text>
-            )}
-          </svg>
-          <div className="board-chart-dates">
-            <span>{date(first)}</span>
-            <span>{history.length > 1 ? date(last) : ""}</span>
-          </div>
-        </>
-      )}
-    </Card>
   );
 }

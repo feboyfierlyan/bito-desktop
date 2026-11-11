@@ -104,7 +104,7 @@ export function DesktopChat({
 }: {
   state: Snapshot;
   act: Act;
-  panels: { focus: ReactNode; tasks: ReactNode };
+  panels?: { focus: ReactNode; tasks: ReactNode };
 }) {
   const latestAct = useRef(act);
   const latestState = useRef(state);
@@ -1247,7 +1247,7 @@ export function DesktopChat({
             >
               <ArrowLeft size={19} />
             </BitoButton>
-            {panels[panel]}
+            {panels?.[panel]}
           </motion.section>
         )}
         <motion.div

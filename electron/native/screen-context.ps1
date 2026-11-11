@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 public class BitoWindows {
   [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
   [StructLayout(LayoutKind.Sequential)] public struct InputInfo { public uint Size, Tick; }
+  [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
   [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref InputInfo value);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
@@ -19,14 +20,16 @@ public class BitoWindows {
   [DllImport("dwmapi.dll", EntryPoint="DwmGetWindowAttribute")] public static extern int Cloaked(IntPtr h, int a, out int value, int n);
 }
 '@
+try { [void][BitoWindows]::SetProcessDpiAwarenessContext([IntPtr](-4)) } catch { }
 $excluded = [int]$args[0]
-function Read-Window {
+function Read-Window([int]$onlyPid = 0) {
   $result = $null
   for ($h = [BitoWindows]::GetTopWindow([IntPtr]::Zero); $h -ne [IntPtr]::Zero; $h = [BitoWindows]::GetWindow($h, 2)) {
     if (-not [BitoWindows]::IsWindowVisible($h)) { continue }
     [uint32]$owner = 0
     [void][BitoWindows]::GetWindowThreadProcessId($h, [ref]$owner)
     if ($owner -eq $excluded) { continue }
+    if ($onlyPid -gt 0 -and $owner -ne $onlyPid) { continue }
     [int]$cloaked = 0
     [void][BitoWindows]::Cloaked($h, 14, [ref]$cloaked, 4)
     if ($cloaked -ne 0) { continue }
@@ -94,7 +97,7 @@ while ($null -ne ($command = [Console]::ReadLine())) {
     elseif ($command -match '^observe:([0-9]+)$') { $result = Observe-Interface ([int]$Matches[1]) }
     elseif ($command -match '^activate:([0-9]+)$') {
       $targetPid = [int]$Matches[1]
-      $window = Read-Window
+      $window = Read-Window $targetPid
       if ($null -ne $window -and $window.pid -eq $targetPid -and $targetPid -ne $excluded) {
         $result = [BitoWindows]::SetForegroundWindow([IntPtr][long]$window.id)
       }

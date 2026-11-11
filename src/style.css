@@ -1352,27 +1352,91 @@ body[data-motion="reduced"] *:after {
   --bubble-fill: var(--blue);
 }
 
-/* One persistent capsule morphs in both directions, with no opacity crossfade. */
-.pet { position:relative; }
+/* One lightweight optical capsule. CSS only: no duplicate character render,
+   screen capture, native material, or continuous animation loop. */
+.pet { position:relative; cursor:default; }
+.pet[data-direct-hit="true"] { cursor:grab; }
+.pet.dragging { cursor:grabbing; }
 .pet-visual { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 .pet:not(.presenting) .pet-visual { height:calc(100% - 30px); }
-.pet-tools { position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:34px; height:26px; cursor:default; transition:width .38s cubic-bezier(.22,1,.36,1); }
-.pet-idle-handle { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:26px; height:5px; border-radius:16px; background:#0a0a0af2; border:1px solid #ffffff40; transition:width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1); }
-.pet-tool-actions { position:relative; display:flex; align-items:center; justify-content:center; gap:2px; width:110px; height:26px; left:50%; transform:translateX(-50%); clip-path:inset(50% 40% round 16px); pointer-events:none; transition:clip-path .38s cubic-bezier(.22,1,.36,1); }
-.pet:hover .pet-tools,.pet:focus-visible .pet-tools { width:110px; }
-.pet:hover .pet-idle-handle,.pet:focus-visible .pet-idle-handle { width:110px; height:26px; }
-.pet:hover .pet-tool-actions,.pet:focus-visible .pet-tool-actions { clip-path:inset(0 round 16px); pointer-events:auto; }
-.pet-tool-actions button { display:grid; place-items:center; width:32px; height:24px; padding:0; border:0; border-radius:12px; color:var(--bito-hairline); background:transparent; cursor:pointer; }
-.pet-tool-actions button:hover,.pet-tool-actions button:focus-visible { background:#ffffff24; outline:none; }
+.pet-tools {
+  position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+  width:34px; height:30px; cursor:default;
+  transition:width 280ms cubic-bezier(.22,1,.36,1) 65ms;
+}
+.pet-idle-handle {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:28px; height:6px; border-radius:999px; pointer-events:none;
+  /* Opposing bright and dark edges remain readable on both wallpapers.
+     A tinted clear body gives icons contrast without a frosted blur. */
+  background:linear-gradient(180deg,
+    rgba(226,240,255,.96) 0%, rgba(178,211,255,.9) 13%,
+    rgba(123,179,246,.8) 48%, rgba(104,165,231,.8) 55%,
+    rgba(157,203,237,.9) 100%);
+  border:.7px solid rgba(112,167,246,.95);
+  box-shadow:0 0 0 .5px rgba(240,248,255,.7),
+    0 1.5px 2px rgba(33,74,124,.22),
+    inset 0 1px .5px #ffffffeb, inset 0 -1px .7px #4c85c44d;
+  transition:width 280ms cubic-bezier(.22,1,.36,1) 65ms,
+    height 300ms cubic-bezier(.22,1,.36,1) 65ms;
+}
+.pet-idle-handle::before {
+  content:""; position:absolute; inset:1px 4px auto; height:40%;
+  border-radius:999px 999px 55% 55%;
+  background:linear-gradient(180deg,#ffffffb3,#ffffff00);
+  opacity:.72; transition:opacity 240ms ease;
+}
+.pet-glass-edge {
+  position:absolute; inset:0; border-radius:inherit; padding:1.1px;
+  background:linear-gradient(115deg,#ffffffeb 3%,#c6e1ff38 23%,#4a91e678 48%,#ffffffd9 76%,#4d8fd361);
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+}
+.pet-tool-actions {
+  position:relative; display:flex; align-items:center; justify-content:center; gap:2px;
+  width:116px; height:30px; left:50%; transform:translate(-50%,1px) scale(.94);
+  clip-path:inset(40% 38% round 999px); opacity:0; pointer-events:none;
+  transition:clip-path 280ms cubic-bezier(.22,1,.36,1) 40ms,
+    opacity 140ms ease,transform 220ms cubic-bezier(.22,1,.36,1);
+}
+.pet:is([data-pointer-hit="true"],:focus-visible,:has(.pet-tool-actions button:focus-visible)) .pet-tools { width:116px; transition-delay:0ms; }
+.pet:is([data-pointer-hit="true"],:focus-visible,:has(.pet-tool-actions button:focus-visible)) .pet-idle-handle { width:116px; height:30px; transition-delay:0ms; }
+.pet:is([data-pointer-hit="true"],:focus-visible,:has(.pet-tool-actions button:focus-visible)) .pet-idle-handle::before { opacity:1; }
+.pet:is([data-pointer-hit="true"],:focus-visible,:has(.pet-tool-actions button:focus-visible)) .pet-tool-actions {
+  clip-path:inset(0 round 999px); opacity:1; pointer-events:auto;
+  transform:translate(-50%,0) scale(1);
+  transition-duration:280ms,180ms,260ms;
+  transition-delay:0ms,35ms,0ms;
+}
+.pet-tool-actions button {
+  display:grid; place-items:center; width:32px; height:26px; padding:0;
+  border:0; border-radius:999px; color:#fff; background:transparent; cursor:pointer;
+  transition:color 180ms ease,transform 220ms cubic-bezier(.22,1,.36,1);
+}
+.pet-tool-actions button:hover:not(:disabled) { color:#fff; background:transparent; }
+.pet-tool-actions svg {
+  flex:none; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 .65px .5px #285c9b99);
+  transition:transform 220ms cubic-bezier(.22,1,.36,1);
+}
+.pet-tool-actions button:hover:not(:disabled) svg { transform:translateY(-.65px) scale(1.06); }
+.pet-tool-actions button:focus-visible { outline:1.5px solid #fff; outline-offset:-2px; }
 .pet-tool-actions button:disabled { opacity:.4; cursor:default; }
-.pet-tool-actions svg { flex:none; }
-.pet.dragging .pet-tools { width:34px; pointer-events:none; }
-.pet.dragging .pet-idle-handle { width:26px; height:5px; }
-.pet.dragging .pet-tool-actions { clip-path:inset(50% 40% round 16px); pointer-events:none; }
-@media(prefers-reduced-motion:reduce) { .pet-tools,.pet-tool-actions,.pet-idle-handle { transition:none; } }
-
-.pet:has(.pet-tool-actions button:focus-visible) .pet-tools {width:110px;}
-.pet:has(.pet-tool-actions button:focus-visible) .pet-idle-handle {width:110px;height:26px;}
-.pet:has(.pet-tool-actions button:focus-visible) .pet-tool-actions {clip-path:inset(0 round 16px);pointer-events:auto;}
-
-.pet[data-reduced-motion="true"] :is(.pet-tools,.pet-idle-handle,.pet-tool-actions,.pet-sway) {transition:none;}
+.pet.dragging .pet-tools { width:34px; pointer-events:none; transition-delay:0ms; }
+.pet.dragging .pet-idle-handle { width:28px; height:6px; transition-delay:0ms; }
+.pet.dragging .pet-tool-actions { clip-path:inset(40% 38% round 999px); opacity:0; transform:translate(-50%,1px) scale(.94); pointer-events:none; transition-delay:0ms; }
+.pet[data-reduced-motion="true"] .pet-idle-handle::before { transition:none; }
+.pet[data-reduced-motion="true"] :is(.pet-tools,.pet-tools *,.pet-sway) { transition:none; }
+@media (prefers-reduced-motion:reduce) { .pet-tools,.pet-tools *,.pet-idle-handle::before { transition:none; } }
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+  .pet-idle-handle { background:#346cae; border-color:#bcdcff; }
+  .pet-glass-edge,.pet-idle-handle::before { display:none; }
+}
+@media (forced-colors:active) {
+  .pet-idle-handle { background:Canvas; border:1px solid CanvasText; box-shadow:none; }
+  .pet-glass-edge,.pet-idle-handle::before { display:none; }
+  .pet-tool-actions button { color:ButtonText; }
+  .pet-tool-actions button:hover:not(:disabled) { color:ButtonText; }
+  .pet-tool-actions svg { filter:none; }
+  .pet-tool-actions button:focus-visible { outline-color:Highlight; }
+}

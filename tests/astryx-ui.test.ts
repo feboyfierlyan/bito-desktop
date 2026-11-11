@@ -1,4 +1,4 @@
-import { after, test } from "node:test";
+import { after, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 
@@ -9,6 +9,7 @@ const dom = new JSDOM("<!doctype html><html><body></body></html>", {
   pretendToBeVisual: true,
 });
 const win = dom.window;
+beforeEach(() => win.localStorage.clear());
 for (const key of [
   "window",
   "document",
@@ -39,7 +40,9 @@ for (const key of [
 }
 Object.defineProperty(win, "matchMedia", {
   value: (query: string) => ({
-    matches: query.includes("prefers-reduced-motion"),
+    matches:
+      !process.env.BITO_TEST_FULL_MOTION &&
+      query.includes("prefers-reduced-motion"),
     media: query,
     addEventListener() {},
     removeEventListener() {},
@@ -382,6 +385,7 @@ test("workspace dialog supports back, close and native Escape cancellation", asy
 // Workspace regressions mount the production components, including Astryx inputs.
 const { ProjectBoard } = await import("../src/ProjectBoard");
 const { ProjectGallery } = await import("../src/ProjectGallery");
+const { WorkspaceTasks } = await import("../src/WorkspaceTasks");
 const { newProject } = await import("../src/projects");
 const { defaultState } = await import("../electron/core");
 const { projectCommand } = await import("../electron/projects");
@@ -477,20 +481,28 @@ test("project directory searches, opens the matching project and explains an unp
 test("an empty workspace explains the flow and exposes a direct create action", async () => {
   let created = 0;
   await mounted(
-    h(ProjectGallery, {
-      projects: [],
-      name: "",
+    h(WorkspaceTasks, {
+      onAllProjects() {},
+      state: {
+        ...defaultState(),
+        hasKey: false,
+        busy: false,
+        chatOpen: false,
+        dragging: false,
+        projects: [],
+      },
+      act: async () => ({ ok: true }),
+      onDirty: () => {},
       busy: false,
-      archives: false,
-      onOpen: () => assert.fail("No project exists"),
+      onProject: () => assert.fail("No project exists"),
       onCreate: () => {
         created++;
       },
     }),
     async (host) => {
       assert.equal(host.querySelector("input"), null);
-      assert.match(host.textContent!, /Ceritakan tugasmu/);
-      await act(async () => button(host, "Tambah proyek").click());
+      assert.match(host.textContent!, /Belum ada tugas untuk hari ini/);
+      await act(async () => button(host, "Atau buat proyek").click());
       assert.equal(created, 1);
     },
   );
@@ -514,7 +526,7 @@ test("directory filters recover from an empty result and next-step action opens 
       onCreate: () => assert.fail("An existing work item should open"),
     }),
     async (host) => {
-      await act(async () => button(host, "Lihat langkah").click());
+      await act(async () => button(host, "Buka proyek Essay").click());
       assert.equal(opened, planned.id);
       await act(async () => button(host, "Selesai").click());
       const results = host.querySelector(".workspace-project-results")!;
@@ -567,20 +579,28 @@ test("workspace continuation displays the latest checkpoint instead of an obsole
     updatedAt: 2,
   };
   await mounted(
-    h(ProjectGallery, {
-      projects: [p],
-      name: "Raka",
+    h(WorkspaceTasks, {
+      onAllProjects() {},
+      state: {
+        ...defaultState(),
+        hasKey: false,
+        busy: false,
+        chatOpen: false,
+        dragging: false,
+        projects: [p],
+      },
+      act: async () => ({ ok: true }),
+      onDirty: () => {},
       busy: false,
-      archives: false,
       onCreate: () => {},
-      onOpen: () => {},
+      onProject: () => {},
     }),
     async (host) => {
       assert.equal(
-        host.querySelector(".workspace-next h3")?.textContent,
+        host.querySelector(".workspace-focus h3")?.textContent,
         "Periksa bagian kedua",
       );
-      assert.ok(button(host, "Kembali ke sesi"));
+      assert.ok(button(host, "Lanjutkan"));
     },
   );
 });
@@ -590,24 +610,32 @@ test("a blocked workspace opens its existing plan for review instead of asking f
     for (const task of milestone.tasks) task.status = "blocked";
   let opened = "";
   await mounted(
-    h(ProjectGallery, {
-      projects: [p],
-      name: "Raka",
+    h(WorkspaceTasks, {
+      onAllProjects() {},
+      state: {
+        ...defaultState(),
+        hasKey: false,
+        busy: false,
+        chatOpen: false,
+        dragging: false,
+        projects: [p],
+      },
+      act: async () => ({ ok: true }),
+      onDirty: () => {},
       busy: false,
-      archives: false,
       onCreate: () => assert.fail("Blocked work still needs a review path"),
-      onOpen: (project) => {
+      onProject: (project) => {
         opened = project.id;
       },
     }),
     async (host) => {
-      assert.match(host.textContent!, /Belum ada langkah yang siap dikerjakan/);
-      await act(async () => button(host, "Tinjau proyek").click());
+      assert.match(host.textContent!, /Terhambat|terhambat/);
+      await act(async () => button(host, `Tinjau proyek ${p.name}`).click());
       assert.equal(opened, p.id);
     },
   );
 });
-test("workspace shows tasks beside calendar and progress and opens project options", async () => {
+test("workspace keeps tasks central, moves calendar out and preserves project options", async () => {
   const p = workspaceProject();
   const state = {
     ...defaultState(),
@@ -634,7 +662,7 @@ test("workspace shows tasks beside calendar and progress and opens project optio
     }),
     async (host) => {
       assert.equal(host.querySelectorAll('input[type="checkbox"]').length, 1);
-      assert.ok(host.querySelector('[aria-label="Kalender proyek"]'));
+      assert.equal(host.querySelector('[aria-label="Kalender proyek"]'), null);
       assert.ok(host.querySelector('[aria-label="Progres proyek"]'));
       assert.equal(host.querySelector('[role="radiogroup"]'), null);
       await act(async () => button(host, "Tampilkan 1 tugas selesai").click());
@@ -810,7 +838,9 @@ test("group creation and rename use the real command and keep an empty section a
     await typeInto(input, "Review tambahan");
     await act(async () => button(dialog, "Tambah kelompok").click());
     assert.ok(
-      host.querySelector('[aria-label="Review tambahan"]'),
+      [...host.querySelectorAll(".task-group-toggle")].some((el) =>
+        el.textContent?.includes("Review tambahan"),
+      ),
       document.body.textContent || "",
     );
     assert.equal(current.projects[0].plan!.milestones[1].tasks.length, 0);
@@ -827,7 +857,11 @@ test("group creation and rename use the real command and keep an empty section a
       "Review final",
     );
     await act(async () => button(dialog, "Simpan").click());
-    assert.ok(host.querySelector('[aria-label="Review final"]'));
+    assert.ok(
+      [...host.querySelectorAll(".task-group-toggle")].some((el) =>
+        el.textContent?.includes("Review final"),
+      ),
+    );
     await act(async () => button(host, "Tambah tugas ke Review final").click());
     assert.ok(host.querySelector("form.task-composer"));
   });
@@ -848,6 +882,362 @@ Object.defineProperty(globalThis, "localStorage", {
 });
 const { ProjectWindow } = await import("../src/ProjectWindow");
 cssHook.deregister();
+
+test("project task details stay in the context rail and protect drafts when switching tasks", async () => {
+  const project = workspaceProject();
+  const group = project.plan!.milestones[0];
+  group.tasks.push({
+    ...group.tasks[1],
+    id: randomUUID(),
+    title: "Review draft",
+  });
+  const state = {
+    ...defaultState(),
+    projects: [project],
+    activeProjectId: project.id,
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  state.settings.reducedMotion = true;
+  await mounted(
+    h(ProjectBoard, {
+      project,
+      state,
+      busy: false,
+      act: async () => ({ ok: true }),
+      onDirty() {},
+      onDetails() {},
+      onMaterials() {},
+      onWork() {},
+      onSetup() {},
+    }),
+    async (host) => {
+      const rows = () =>
+        host.querySelectorAll<HTMLButtonElement>(".workspace-task-open");
+      await act(async () => rows()[0].click());
+      await waitForUi(
+        () =>
+          !!host.querySelector(".workspace-context-column .task-detail-column"),
+      );
+      assert.equal(host.querySelectorAll(".workspace-dialog[open]").length, 0);
+      await act(async () => button(host, "Edit tugas").click());
+      const input = host.querySelector<HTMLInputElement>(
+        ".task-detail-column input",
+      )!;
+      await typeInto(input, "Keep my draft");
+      await act(async () => rows()[1].click());
+      assert.ok(host.querySelector(".task-switch-confirm"));
+      assert.equal(input.value, "Keep my draft");
+      await act(async () => button(host, "Lanjut mengedit").click());
+      assert.ok(host.contains(input));
+      await act(async () => button(host, "Tutup kolom kanan").click());
+      await act(async () => button(host, "Abaikan perubahan").click());
+      assert.equal(
+        host
+          .querySelector(".workspace-task-columns")
+          ?.getAttribute("data-insights"),
+        "false",
+      );
+      await act(async () => button(host, "Buka ringkasan").click());
+      await waitForUi(() => !!host.querySelector(".workspace-insights"));
+      assert.equal(host.querySelector(".insights-scope")?.textContent, "Essay");
+      assert.doesNotMatch(
+        host.querySelector(".workspace-insights")!.textContent!,
+        /Progres per proyek/,
+      );
+      const toggle =
+        host.querySelector<HTMLButtonElement>(".task-group-toggle")!;
+      const contents = document.getElementById(
+        toggle.getAttribute("aria-controls")!,
+      )!;
+      await act(async () => toggle.click());
+      assert.equal(contents.getAttribute("aria-hidden"), "true");
+      assert.ok(contents.hasAttribute("inert"));
+      await act(async () => toggle.click());
+      assert.equal(contents.getAttribute("aria-hidden"), "false");
+    },
+  );
+});
+
+test(
+  "project checklist waits for persistence and keeps the check visible before its animated exit",
+  { skip: !process.env.BITO_TEST_FULL_MOTION },
+  async () => {
+    let current = {
+      ...defaultState(),
+      projects: [workspaceProject()],
+      hasKey: false,
+      busy: false,
+      chatOpen: false,
+      dragging: false,
+    };
+    current.settings.reducedMotion = false;
+    let resolveSave!: () => void;
+    const saved = new Promise<void>((resolve) => {
+      resolveSave = resolve;
+    });
+    let calls = 0;
+    function Harness() {
+      const [snapshot, setSnapshot] = useState(current);
+      return h(ProjectBoard, {
+        project: snapshot.projects[0],
+        state: snapshot,
+        busy: false,
+        onDirty() {},
+        onDetails() {},
+        onMaterials() {},
+        onWork() {},
+        onSetup() {},
+        act: async (name, payload) => {
+          calls++;
+          await saved;
+          const next = structuredClone(current);
+          const result = projectCommand(next, name, payload);
+          current = next;
+          setSnapshot(next);
+          return result;
+        },
+      });
+    }
+    await mounted(h(Harness), async (host) => {
+      const row = host.querySelector<HTMLElement>(".workspace-task-row")!;
+      const check = row.querySelector<HTMLInputElement>(
+        "input[type=checkbox]",
+      )!;
+      await act(async () => {
+        check.click();
+        check.click();
+      });
+      assert.equal(calls, 1);
+      assert.equal(row.dataset.checked, "false");
+      await act(async () => resolveSave());
+      assert.equal(row.dataset.checked, "true");
+      assert.equal(row.dataset.completing, "true");
+      assert.ok(row.isConnected);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 240));
+      });
+      assert.ok(row.isConnected);
+      await waitForUi(
+        () => !row.isConnected || !!row.closest(".task-row-motion[inert]"),
+        1200,
+      );
+      assert.equal(
+        current.projects[0].plan!.milestones[0].tasks[1].status,
+        "done",
+      );
+      assert.equal(calls, 1);
+    });
+  },
+);
+
+test("schedule shares the task shell and keeps task details inline with guarded date changes", async () => {
+  const { WorkspaceSchedule } = await import("../src/WorkspaceSchedule");
+  const { localDateKey } = await import("../src/project-board");
+  const project = workspaceProject();
+  const today = localDateKey(new Date());
+  project.plan!.milestones[0].targetDate = today;
+  const state = {
+    ...defaultState(),
+    projects: [project],
+    activeProjectId: project.id,
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  state.settings.reducedMotion = true;
+  await mounted(
+    h(WorkspaceSchedule, {
+      state,
+      busy: false,
+      act: async () => ({ ok: true }),
+      onDirty: () => {},
+      onProject: () => {},
+    }),
+    async (host) => {
+      assert.ok(
+        host.querySelector(
+          ".workspace-task-columns .workspace-tasks .tasks-page-header",
+        ),
+      );
+      assert.ok(host.querySelector('[aria-label="Agenda tanggal terpilih"]'));
+      assert.equal(host.querySelectorAll(".schedule-cell").length, 42);
+      await act(async () => button(host, "Minggu").click());
+      assert.equal(host.querySelectorAll(".schedule-cell").length, 7);
+      const openTask = [
+        ...host.querySelectorAll<HTMLButtonElement>(".schedule-event"),
+      ].find((b) => b.textContent?.includes("Write draft"))!;
+      await act(async () => openTask.click());
+      await waitForUi(() => !!host.querySelector(".task-detail-column"));
+      assert.ok(
+        host.querySelector(".workspace-context-column .task-detail-column"),
+      );
+      assert.equal(
+        host.querySelectorAll("dialog[open], .workspace-dialog-backdrop")
+          .length,
+        0,
+        "details never cover calendar",
+      );
+      await act(async () => button(host, "Edit tugas").click());
+      const editor = host.querySelector<HTMLInputElement>(
+        ".task-detail-column input",
+      )!;
+      await typeInto(editor, "Keep schedule draft");
+      await act(async () => button(host, "Bulan").click());
+      assert.equal(host.querySelector(".task-detail-column input"), editor);
+      const date = [
+        ...host.querySelectorAll<HTMLButtonElement>(".schedule-date"),
+      ].find((b) => b.getAttribute("aria-pressed") !== "true")!;
+      await act(async () => date.click());
+      assert.ok(host.querySelector(".task-switch-confirm"));
+      assert.equal(editor.value, "Keep schedule draft");
+      await act(async () => button(host, "Lanjut mengedit").click());
+      assert.equal(host.querySelector(".task-switch-confirm"), null);
+      await act(async () => button(host, "Tutup kolom kanan").click());
+      await act(async () => button(host, "Abaikan perubahan").click());
+      assert.equal(
+        host
+          .querySelector(".workspace-task-columns")!
+          .getAttribute("data-insights"),
+        "false",
+      );
+      await act(async () => button(host, "Buka agenda").click());
+      await waitForUi(
+        () => !!host.querySelector('[aria-label="Agenda tanggal terpilih"]'),
+      );
+      assert.equal(
+        host
+          .querySelector(".schedule-date[aria-pressed=true]")
+          ?.getAttribute("aria-current"),
+        "date",
+        "discarded navigation did not change selected day",
+      );
+      await act(async () =>
+        button(host, "Bulan").dispatchEvent(
+          new win.KeyboardEvent("keydown", { key: "Home", bubbles: true }),
+        ),
+      );
+      assert.equal(
+        button(host, "Minggu").getAttribute("aria-selected"),
+        "true",
+      );
+      assert.equal(document.activeElement, button(host, "Minggu"));
+    },
+  );
+});
+
+test("one Tasks destination preserves the summary and detail editor across views and restores preferences", async () => {
+  const project = workspaceProject();
+  const { localDateKey } = await import("../src/project-board");
+  const today = localDateKey(new Date());
+  project.plan!.milestones[0].targetDate = today;
+  const state = {
+    ...defaultState(),
+    projects: [project],
+    activeProjectId: project.id,
+    tasks: [
+      { id: "later", title: "Future task", done: false, dueDate: "2099-01-01" },
+    ],
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  state.settings.reducedMotion = true;
+  const render = () =>
+    h(ProjectWindow, { state, act: async () => ({ ok: true }) });
+  await mounted(render(), async (host) => {
+    const nav = host.querySelector('[aria-label="Halaman workspace"]')!;
+    assert.equal(
+      nav.querySelectorAll("button").length,
+      2,
+      "only Tasks and Schedule remain",
+    );
+    const todayTab = button(host, "Hari ini"),
+      allTab = button(host, "Semua");
+    assert.equal(todayTab.getAttribute("aria-selected"), "true");
+    assert.doesNotMatch(
+      host.querySelector(".workspace-task-list")!.textContent!,
+      /Future task/,
+    );
+    const summary = host.querySelector(".workspace-insights");
+    await act(async () => allTab.click());
+    assert.equal(
+      host.querySelector(".workspace-insights"),
+      summary,
+      "tab change does not remount summary",
+    );
+    assert.match(
+      host.querySelector(".workspace-task-list")!.textContent!,
+      /Future task/,
+    );
+    const search = host.querySelector<HTMLInputElement>(
+      ".workspace-task-search input",
+    )!;
+    await typeInto(search, "Future");
+    await act(async () => todayTab.click());
+    assert.match(
+      host.querySelector(".workspace-task-list")!.textContent!,
+      /Write draft/,
+      "hidden search cannot filter Today",
+    );
+    await act(async () =>
+      host.querySelector<HTMLButtonElement>(".workspace-task-open")!.click(),
+    );
+    await waitForUi(() => !!host.querySelector(".task-detail-column"));
+    await act(async () => button(host, "Edit tugas").click());
+    const editor = host.querySelector<HTMLInputElement>(
+      ".task-detail-column input",
+    )!;
+    await typeInto(editor, "Keep this draft");
+    await act(async () => allTab.click());
+    assert.equal(host.querySelector(".task-detail-column input"), editor);
+    assert.equal(editor.value, "Keep this draft");
+    // Leave the editor through the existing discard guard, then close the summary.
+    await act(async () => button(host, "Tutup kolom kanan").click());
+    assert.ok(host.querySelector(".task-switch-confirm"));
+    await act(async () => button(host, "Abaikan perubahan").click());
+    assert.equal(
+      host
+        .querySelector(".workspace-task-columns")!
+        .getAttribute("data-insights"),
+      "false",
+    );
+    await act(async () => todayTab.click());
+    assert.equal(
+      host
+        .querySelector(".workspace-task-columns")!
+        .getAttribute("data-insights"),
+      "false",
+    );
+    await act(async () => {
+      todayTab.focus();
+      todayTab.dispatchEvent(
+        new win.KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+      );
+    });
+    assert.equal(document.activeElement, allTab);
+    assert.equal(allTab.getAttribute("aria-selected"), "true");
+    assert.equal(win.localStorage.getItem("bito-task-view"), "all");
+    assert.equal(win.localStorage.getItem("bito-task-panel-open"), "false");
+  });
+  await mounted(render(), async (host) => {
+    assert.equal(button(host, "Semua").getAttribute("aria-selected"), "true");
+    assert.equal(
+      button(host, "Buka ringkasan").getAttribute("aria-expanded"),
+      "false",
+    );
+    await act(async () => button(host, "Buka ringkasan").click());
+    await waitForUi(() => !!host.querySelector(".workspace-insights"));
+    assert.match(
+      host.querySelector(".insights-scope")!.textContent!,
+      /Ringkasan semua tugas/,
+    );
+  });
+});
 
 test("workspace has one project creation action and archive browsing never restores or selects it", async () => {
   const active = workspaceProject();
@@ -881,14 +1271,26 @@ test("workspace has one project creation action and archive browsing never resto
   await mounted(h(Harness), async (host) => {
     assert.equal(
       [...host.querySelectorAll("button")].filter(
-        (b) => b.textContent?.trim() === "Tambah proyek",
+        (b) => b.getAttribute("aria-label") === "Tambah proyek",
       ).length,
       1,
     );
     assert.ok(
-      ![...host.querySelectorAll("button")].some(
+      [...host.querySelectorAll("button")].some(
         (b) => b.textContent?.trim() === "Tambah tugas",
       ),
+    );
+    await act(async () => button(host, "Sempitkan sidebar").click());
+    assert.equal(
+      button(host, "Lebarkan sidebar").getAttribute("aria-expanded"),
+      "false",
+    );
+    await act(async () => button(host, "Tugas").click());
+    assert.ok(host.querySelector('[data-view="tasks"]'));
+    await act(async () => button(host, "Lebarkan sidebar").click());
+    assert.equal(
+      button(host, "Sempitkan sidebar").getAttribute("aria-expanded"),
+      "true",
     );
     await act(async () => button(host, "Tambah proyek").click());
     assert.ok(
@@ -1038,3 +1440,555 @@ test("first area drag stages immediately; a fresh capture resets the previous ge
     assert.equal(submitted[1].session, "second");
   });
 });
+
+test("daily workspace starts a real session without opening chat and saves a partial checkpoint", async () => {
+  const project = workspaceProject();
+  const date = new Date();
+  project.plan!.milestones[0].targetDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  let current = {
+    ...defaultState(),
+    projects: [project],
+    activeProjectId: project.id,
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  const commands: string[] = [];
+  function Harness() {
+    const [state, setState] = useState(current);
+    return h(WorkspaceTasks, {
+      state,
+      busy: false,
+      onDirty() {},
+      onProject() {},
+      onAllProjects() {},
+      onCreate() {},
+      act: async (name, payload) => {
+        commands.push(name);
+        const next = structuredClone(current);
+        const result = projectCommand(next, name, payload);
+        current = next;
+        setState(next);
+        return result;
+      },
+    });
+  }
+  await mounted(h(Harness), async (host) => {
+    await act(async () =>
+      host.querySelector<HTMLButtonElement>(".workspace-task-open")!.click(),
+    );
+    assert.equal(
+      commands.length,
+      0,
+      "Opening details does not start a session",
+    );
+    await waitForUi(() => !!host.querySelector(".task-detail-column"));
+    assert.equal(host.querySelectorAll("dialog").length, 0);
+    assert.equal(host.querySelectorAll(".workspace-insights").length, 0);
+    await act(async () => button(document.body, "Mulai fokus").click());
+    assert.deepEqual(commands, ["project-work-start"]);
+    assert.equal(current.projects[0].sessions?.[0].phase, "running");
+    let dialog = document.querySelector<HTMLElement>(
+      '.task-detail-column[aria-label="Detail tugas"]',
+    )!;
+    assert.ok(dialog);
+    await act(async () => button(dialog, "Simpan progres").click());
+    const note = dialog.querySelector<HTMLTextAreaElement>("textarea")!;
+    await typeInto(note, "Draf pembuka sudah ditulis.");
+    await act(async () => button(dialog, "Simpan hasil").click());
+    assert.equal(current.projects[0].sessions?.[0].phase, "finished");
+    assert.equal(
+      current.projects[0].checkpoint?.lastStop,
+      "Draf pembuka sudah ditulis.",
+    );
+    assert.equal(
+      current.projects[0].plan!.milestones[0].tasks.find(
+        (task) => task.id === current.projects[0].sessions?.[0].taskId,
+      )!.status,
+      "doing",
+    );
+    await act(async () => button(dialog, "Tutup detail tugas").click());
+    assert.match(
+      host.querySelector(".workspace-focus")!.textContent!,
+      /Draf pembuka sudah ditulis/,
+    );
+    assert.ok(button(host, "Lanjutkan"));
+    assert.ok(!commands.includes("project-assist"));
+  });
+});
+
+async function waitForUi(condition: () => boolean, timeout = 600) {
+  for (
+    let attempt = 0;
+    attempt < Math.ceil(timeout / 20) && !condition();
+    attempt++
+  )
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    });
+  assert.ok(condition(), "UI transition completed");
+}
+
+test("task details replace insights and keep unsaved edits when switching tasks", async () => {
+  const p = workspaceProject();
+  p.plan!.milestones[0].tasks[0].status = "todo";
+  const state = {
+    ...defaultState(),
+    projects: [p],
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  await mounted(
+    h(WorkspaceTasks, {
+      state,
+      all: true,
+      busy: false,
+      act: async () => ({ ok: true }),
+      onDirty() {},
+      onProject() {},
+      onAllProjects() {},
+      onCreate() {},
+    }),
+    async (host) => {
+      const rows = host.querySelectorAll<HTMLButtonElement>(
+        ".workspace-task-open",
+      );
+      await act(async () => rows[0].click());
+      await waitForUi(() => !!host.querySelector(".task-detail-column"));
+      assert.equal(host.querySelectorAll("dialog").length, 0);
+      assert.equal(host.querySelectorAll(".workspace-insights").length, 0);
+      await act(async () => button(host, "Edit tugas").click());
+      const title = host.querySelector<HTMLInputElement>(
+        ".task-detail-column input",
+      )!;
+      await typeInto(title, "Unsaved task title");
+      await act(async () => rows[1].click());
+      assert.ok(host.querySelector(".task-switch-confirm"));
+      assert.equal(title.value, "Unsaved task title");
+      await act(async () => button(host, "Lanjut mengedit").click());
+      assert.equal(host.querySelector(".task-switch-confirm"), null);
+      assert.equal(title.value, "Unsaved task title");
+      await act(async () => rows[1].click());
+      await act(async () => button(host, "Abaikan perubahan").click());
+      await waitForUi(
+        () =>
+          host.querySelector(".task-detail-column .workspace-task-panel h2")
+            ?.textContent === "Write draft",
+      );
+      assert.equal(rows[1].getAttribute("aria-pressed"), "true");
+      await act(async () => button(host, "Tutup detail tugas").click());
+      await waitForUi(() => !!host.querySelector(".workspace-insights"));
+      assert.equal(host.querySelector(".task-detail-column"), null);
+    },
+  );
+});
+
+test("task view menu offers direct choices, closes on selection and supports arrow keys", async () => {
+  const { TaskViewMenu } = await import("../src/TaskViewMenu");
+  let selected = "date";
+  let completed = false;
+  function Harness() {
+    const [sort, setSort] =
+      useState<import("../src/workspace-task-model").TaskSort>("date");
+    const [done, setDone] = useState(false);
+    return h(TaskViewMenu, {
+      sort,
+      completed: done,
+      onSort(value) {
+        selected = value;
+        setSort(value);
+      },
+      onCompleted(value) {
+        completed = value;
+        setDone(value);
+      },
+    });
+  }
+  await mounted(h(Harness), async (host) => {
+    await act(async () => button(host, "Atur tampilan").click());
+    let menu = document.querySelector<HTMLElement>('[role="menu"]')!;
+    assert.ok(menu);
+    assert.equal(menu.querySelector("select"), null);
+    await act(async () => button(menu, "Abjad").click());
+    assert.equal(selected, "title");
+    assert.equal(
+      button(host, "Atur tampilan").getAttribute("aria-expanded"),
+      "false",
+    );
+    await act(async () => button(host, "Atur tampilan").click());
+    menu = document.querySelector<HTMLElement>('[role="menu"]')!;
+    await waitForUi(
+      () => document.activeElement === button(menu, "Urutan asli"),
+    );
+    assert.equal(button(menu, "Abjad").getAttribute("aria-checked"), "true");
+    await act(async () => {
+      button(menu, "Abjad").focus();
+      button(menu, "Abjad").dispatchEvent(
+        new win.KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+      );
+    });
+    assert.equal(document.activeElement?.textContent, "Tanggal tugas");
+    await act(async () => button(menu, "Tugas selesai").click());
+    assert.equal(completed, true);
+    assert.equal(
+      button(host, "Atur tampilan").getAttribute("aria-expanded"),
+      "false",
+    );
+  });
+});
+
+test("context column can close, reopen and switch to a task while keeping progress accessible", async () => {
+  const state = {
+    ...defaultState(),
+    projects: [workspaceProject()],
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  state.settings.reducedMotion = true;
+  await mounted(
+    h(WorkspaceTasks, {
+      state,
+      all: true,
+      busy: false,
+      act: async () => ({ ok: true }),
+      onDirty() {},
+      onProject() {},
+      onAllProjects() {},
+      onCreate() {},
+    }),
+    async (host) => {
+      const progress = host.querySelector('[role="progressbar"]')!;
+      assert.equal(progress.getAttribute("aria-valuenow"), "1");
+      assert.equal(progress.getAttribute("aria-valuemax"), "2");
+      assert.equal(host.querySelector(".insight-percent")!.textContent, "50%");
+      const toggle = host.querySelector<HTMLButtonElement>(".insights-toggle")!;
+      await act(async () =>
+        button(
+          host.querySelector(".workspace-insights")!,
+          "Tutup ringkasan",
+        ).click(),
+      );
+      assert.equal(document.activeElement, toggle);
+      assert.ok(
+        host.querySelector(".workspace-context-slot")!.hasAttribute("inert"),
+      );
+      await act(async () => toggle.click());
+      assert.equal(toggle.getAttribute("aria-expanded"), "true");
+      assert.ok(
+        !host.querySelector(".workspace-context-slot")!.hasAttribute("inert"),
+      );
+      await waitForUi(() => !!host.querySelector(".workspace-insights"));
+      await act(async () => toggle.click());
+      await act(async () =>
+        host.querySelector<HTMLButtonElement>(".workspace-task-open")!.click(),
+      );
+      await waitForUi(() => !!host.querySelector(".task-detail-column"));
+      assert.equal(toggle.getAttribute("aria-expanded"), "true");
+      assert.equal(
+        host.querySelectorAll(".workspace-context-column").length,
+        1,
+      );
+      await act(async () => button(host, "Tutup detail tugas").click());
+      await waitForUi(() => !!host.querySelector(".workspace-insights"));
+      assert.equal(host.querySelector(".insight-percent")!.textContent, "50%");
+    },
+  );
+});
+
+test("project insights show four real projects, open the selected one and expose all projects only on overflow", async () => {
+  const { WorkspaceInsights } = await import("../src/WorkspaceInsights");
+  const projects = Array.from({ length: 6 }, (_, i) => ({
+    ...workspaceProject(),
+    name: `Project ${i + 1}`,
+  }));
+  projects[5].status = "archived";
+  let selected = "",
+    allOpened = 0;
+  for (const count of [0, 4, 6]) {
+    await mounted(
+      h(WorkspaceInsights, {
+        items: [],
+        projects: projects.slice(0, count),
+        today: "2026-11-09",
+        reduced: true,
+        onClose() {},
+        onSelect() {},
+        onProject(p) {
+          selected = p.id;
+        },
+        onAllProjects() {
+          allOpened++;
+        },
+      }),
+      async (host) => {
+        const card = host.querySelector(".insight-projects")!;
+        assert.equal(
+          card.querySelectorAll(".insight-project-row").length,
+          Math.min(count, 4),
+        );
+        assert.doesNotMatch(card.textContent!, /Project 6|Riwayat progres/);
+        if (!count) {
+          assert.match(card.textContent!, /Belum ada proyek/);
+          return;
+        }
+        assert.match(card.textContent!, /1 dari 2 selesai/);
+        await act(async () => button(host, "Buka proyek Project 2").click());
+        assert.equal(selected, projects[1].id);
+        const more = card.querySelector<HTMLButtonElement>(
+          ".insight-project-all",
+        );
+        if (count > 4) {
+          assert.ok(more);
+          await act(async () => more.click());
+          assert.equal(allOpened, 1);
+        } else assert.equal(more, null);
+      },
+    );
+  }
+});
+
+test("attention list shows up to five directly and expands additional tasks in place", async () => {
+  const { WorkspaceInsights } = await import("../src/WorkspaceInsights");
+  for (const count of [4, 5, 6]) {
+    let selected = "";
+    const items = Array.from({ length: count }, (_, i) => ({
+      id: `task-${i}`,
+      title: `Tugas ${i + 1}`,
+      date: "2026-11-05",
+      done: false,
+      priority: 4,
+      blocked: false,
+      projectId: null,
+      projectName: "Pribadi",
+    }));
+    await mounted(
+      h(WorkspaceInsights, {
+        projects: [],
+        onProject() {},
+        onAllProjects() {},
+        items,
+        today: "2026-11-09",
+        reduced: true,
+        onClose() {},
+        onSelect(task) {
+          selected = task.id;
+        },
+      }),
+      async (host) => {
+        const toggle = host.querySelector<HTMLButtonElement>(
+          ".insight-more-toggle",
+        );
+        if (count <= 5) {
+          assert.equal(toggle, null);
+          assert.equal(
+            host.querySelectorAll(".insight-attention-task").length,
+            count,
+          );
+          return;
+        }
+        assert.ok(toggle);
+        assert.match(toggle.textContent!, /Tampilkan 1 tugas lagi/);
+        const extra = host.querySelector<HTMLElement>(".insight-more-tasks")!;
+        assert.equal(toggle.getAttribute("aria-controls"), extra.id);
+        assert.ok(extra.hasAttribute("inert"));
+        await act(async () => toggle.click());
+        assert.equal(toggle.getAttribute("aria-expanded"), "true");
+        assert.ok(!extra.hasAttribute("inert"));
+        await act(async () =>
+          extra.querySelector<HTMLButtonElement>("button")!.click(),
+        );
+        assert.equal(selected, "task-5");
+        await act(async () => button(host, "Tampilkan lebih sedikit").click());
+        assert.equal(toggle.getAttribute("aria-expanded"), "false");
+        assert.ok(extra.hasAttribute("inert"));
+      },
+    );
+  }
+});
+
+test("task groups collapse accessibly and task completion preserves the real list flow", async () => {
+  const project = workspaceProject();
+  project.plan!.milestones[0].targetDate = "2020-01-01";
+  let current = {
+    ...defaultState(),
+    projects: [project],
+    activeProjectId: project.id,
+    hasKey: false,
+    busy: false,
+    chatOpen: false,
+    dragging: false,
+  };
+  current.settings.reducedMotion = true;
+  const commands: string[] = [];
+  let rejectUpdate = true;
+  function Harness() {
+    const [state, setState] = useState(current);
+    return h(WorkspaceTasks, {
+      state,
+      all: true,
+      busy: false,
+      onDirty() {},
+      onProject() {},
+      onAllProjects() {},
+      onCreate() {},
+      act: async (name, payload) => {
+        commands.push(name);
+        if (rejectUpdate) return { ok: false, error: "Coba lagi." };
+        const next = structuredClone(current);
+        const result = projectCommand(next, name, payload);
+        if (result.ok) {
+          current = next;
+          setState(next);
+        }
+        return result;
+      },
+    });
+  }
+  await mounted(h(Harness), async (host) => {
+    const heading = host.querySelector<HTMLButtonElement>(
+      ".group-overdue .task-group-toggle",
+    )!;
+    assert.equal(heading.getAttribute("aria-expanded"), "true");
+    const contents = document.getElementById(
+      heading.getAttribute("aria-controls")!,
+    )!;
+    const task = contents.querySelector<HTMLButtonElement>(
+      ".workspace-task-open",
+    )!;
+    heading.focus();
+    await act(async () => heading.click());
+    assert.equal(heading.getAttribute("aria-expanded"), "false");
+    assert.equal(contents.getAttribute("aria-hidden"), "true");
+    assert.ok(contents.hasAttribute("inert"));
+    assert.equal(document.activeElement, heading);
+    assert.equal(commands.length, 0, "Collapsing does not change task data");
+    await act(async () => heading.click());
+    assert.ok(!contents.hasAttribute("inert"));
+    assert.equal(contents.querySelector(".workspace-task-open"), task);
+    await act(async () => task.click());
+    await waitForUi(() => !!host.querySelector(".task-detail-column"));
+    assert.equal(task.getAttribute("aria-pressed"), "true");
+    assert.equal(host.querySelectorAll("dialog").length, 0);
+    await act(async () => button(host, "Tutup detail tugas").click());
+    const checkbox = contents.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    )!;
+    await act(async () => checkbox.click());
+    assert.match(
+      host.querySelector('[role="alert"]')!.textContent!,
+      /Coba lagi/,
+    );
+    assert.ok(
+      host.contains(checkbox),
+      "Failed updates keep the task in the list",
+    );
+    rejectUpdate = false;
+    await act(async () => checkbox.click());
+    await waitForUi(() => !host.querySelector(".group-overdue"));
+    assert.equal(
+      current.projects[0].plan!.milestones[0].tasks[1].status,
+      "done",
+    );
+    assert.deepEqual(commands, ["project-task", "project-task"]);
+    await act(async () => button(host, "Atur tampilan").click());
+    await act(async () => button(document.body, "Tugas selesai").click());
+    await waitForUi(
+      () => host.querySelectorAll(".workspace-task-row.is-done").length === 2,
+    );
+    assert.match(
+      host.querySelector(".workspace-task-list")!.textContent!,
+      /Write draft/,
+    );
+  });
+});
+
+test(
+  "task completion waits for persistence then shows its check before leaving",
+  {
+    skip: !process.env.BITO_TEST_FULL_MOTION,
+  },
+  async () => {
+    const project = workspaceProject();
+    project.plan!.milestones[0].targetDate = "2020-01-01";
+    let current = {
+      ...defaultState(),
+      projects: [project],
+      activeProjectId: project.id,
+      hasKey: false,
+      busy: false,
+      chatOpen: false,
+      dragging: false,
+    };
+    current.settings.reducedMotion = false;
+    let resolveSave!: () => void;
+    const save = new Promise<void>((resolve) => {
+      resolveSave = resolve;
+    });
+    let calls = 0;
+    function Harness() {
+      const [state, setState] = useState(current);
+      return h(WorkspaceTasks, {
+        state,
+        all: true,
+        busy: false,
+        onDirty() {},
+        onProject() {},
+        onAllProjects() {},
+        onCreate() {},
+        act: async (name, payload) => {
+          calls++;
+          await save;
+          const next = structuredClone(current);
+          const result = projectCommand(next, name, payload);
+          current = next;
+          setState(next);
+          return result;
+        },
+      });
+    }
+    await mounted(h(Harness), async (host) => {
+      const row = host.querySelector<HTMLElement>(".workspace-task-row")!;
+      const checkbox = row.querySelector<HTMLInputElement>(
+        'input[type="checkbox"]',
+      )!;
+      await act(async () => {
+        checkbox.click();
+        checkbox.click();
+      });
+      assert.equal(calls, 1, "Repeated clicks cannot submit completion twice");
+      assert.equal(
+        row.dataset.checked,
+        "false",
+        "Pending save does not claim completion",
+      );
+      assert.equal(checkbox.getAttribute("aria-readonly"), "true");
+      await act(async () => resolveSave());
+      assert.equal(
+        current.projects[0].plan!.milestones[0].tasks[1].status,
+        "done",
+      );
+      assert.equal(row.dataset.checked, "true");
+      assert.equal(row.dataset.completing, "true");
+      assert.ok(
+        row.isConnected,
+        "Confirmed task stays visible for the check and strike",
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 240));
+      });
+      assert.ok(row.isConnected, "Check animation gets time before the exit");
+      // JSDOM cannot measure height:auto. Verify entry into the inert exit
+      // phase here; the actual height/fade exit is checked in the browser.
+      await waitForUi(() => {
+        const group = host.querySelector(".group-overdue");
+        return !group || group.hasAttribute("inert");
+      }, 1200);
+      assert.equal(calls, 1);
+    });
+  },
+);

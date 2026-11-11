@@ -345,6 +345,15 @@ export function projectCommand(
     project.plan = candidate;
     if (capture && project.status === "planning") project.status = "active";
     recordProjectProgress(project);
+  } else if (name === "project-task-edit") {
+    const data = z.object({ taskId: z.string().uuid(), version: z.number().int(), changes: taskCaptureSchema }).parse(raw);
+    if (project.version !== data.version) throw Error("Tugas sudah berubah. Buka kembali detailnya.");
+    const candidate = structuredClone(project.plan);
+    const task = candidate?.milestones.flatMap(m => m.tasks).find(t => t.id === data.taskId);
+    if (!task) throw Error("Tugas tidak ditemukan.");
+    Object.assign(task, data.changes);
+    validateProjectPlan(project, candidate);
+    project.plan = candidate;
   } else if (name === "project-task-date") {
     const data = z
       .object({

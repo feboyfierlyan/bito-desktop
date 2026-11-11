@@ -42,3 +42,35 @@ export function taskCaptureCommand(
       }
     : { name: "task-add", payload: data };
 }
+
+/** Edit only task content; completion is a separate operation. Reject stale drafts. */
+export function updateQuickTask(
+  tasks: import("./shared").Task[],
+  raw: unknown,
+) {
+  const data = z
+    .object({
+      id: z.string(),
+      expected: z.string(),
+      changes: taskCaptureSchema,
+    })
+    .parse(raw);
+  const task = tasks.find((t) => t.id === data.id);
+  if (!task) throw Error("Tugas sudah tidak tersedia.");
+  if (taskContentStamp(task) !== data.expected)
+    throw Error("Tugas sudah berubah. Buka kembali detailnya.");
+  Object.assign(task, data.changes);
+}
+export function taskContentStamp(task: {
+  title: string;
+  details?: string;
+  dueDate?: string | null;
+  priority?: number;
+}) {
+  return JSON.stringify([
+    task.title,
+    task.details || "",
+    task.dueDate ?? null,
+    task.priority ?? 4,
+  ]);
+}

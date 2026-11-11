@@ -53,21 +53,26 @@ export class ScreenContext {
       void this.request(`stop-area-shortcut:${token}`).catch(() => {});
     };
   }
+  private shortcutDelay = 1000;
   private armShortcut(token: number) {
     if (this.shortcut?.token !== token) return;
     void this.request(`area-shortcut:${token}`)
       .then((result) => {
-        if (this.shortcut?.token === token && result !== true)
-          this.retryShortcut(token);
+        if (this.shortcut?.token !== token) return;
+        if (result === true) this.shortcutDelay = 1000;
+        else this.retryShortcut(token);
       })
       .catch(() => this.retryShortcut(token));
   }
   private retryShortcut(token: number) {
     if (this.shortcut?.token !== token || this.shortcutRetry) return;
+    // A missing/unsupported helper must not respawn every second forever.
+    const wait = this.shortcutDelay;
+    this.shortcutDelay = Math.min(60_000, wait * 2);
     this.shortcutRetry = setTimeout(() => {
       this.shortcutRetry = undefined;
       this.armShortcut(token);
-    }, 1000);
+    }, wait);
     this.shortcutRetry.unref();
   }
   async captureSelection(displayId: number) {
@@ -104,7 +109,15 @@ export class ScreenContext {
   };
   private queue: Promise<unknown> = Promise.resolve();
   private reading?: Promise<ExternalWindow | null>;
-  constructor(private directory: string) {}
+  private directory: string;
+  constructor(directory: string) {
+    // Executables cannot be spawned from inside app.asar; electron-builder
+    // places them in app.asar.unpacked. Idempotent for already-unpacked paths.
+    this.directory = directory.replace(
+      /app\.asar(?=[/\\])/,
+      "app.asar.unpacked",
+    );
+  }
   read(): Promise<ExternalWindow | null> {
     if (this.reading) return this.reading;
     this.reading = this.request("read")

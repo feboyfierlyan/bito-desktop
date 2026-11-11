@@ -154,8 +154,10 @@ export function SettingsWindow({
           drafts.current.profile.flush(),
           drafts.current.settings.flush(),
         ]).then((results) => {
-          if (results.every(Boolean)) void api.command("settings-close-ready");
-          else {
+          if (results.every(Boolean)) {
+            setClosing(false);
+            void api.command("settings-close-ready");
+          } else {
             setClosing(false);
             setNoticeError(true);
             setNotice(
@@ -166,7 +168,14 @@ export function SettingsWindow({
       }),
     [],
   );
-  useEffect(() => () => cancelAnimationFrame(previewFrame.current), []);
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(previewFrame.current);
+      void drafts.current.profile.flush();
+      void drafts.current.settings.flush();
+    },
+    [],
+  );
   const run = async (name: string, payload?: unknown) => {
     setNotice("");
     setActionBusy(true);
@@ -749,6 +758,13 @@ export function SettingsWindow({
                   {errorFor("reducedTransparency")}
                 </Group>
                 <Group>
+                  <BitoButton
+                    className="pref-link-row"
+                    onClick={() => go("reminders")}
+                  >
+                    <span>Pengingat</span>
+                    <ChevronRight size={16} />
+                  </BitoButton>
                   <BitoButton
                     className="pref-link-row"
                     onClick={() => go("data")}

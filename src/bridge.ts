@@ -1,4 +1,4 @@
-import { parseQuickTask } from "./task-capture";
+import { parseQuickTask, updateQuickTask } from "./task-capture";
 import type { BitoAPI, Snapshot } from "./shared";
 import { projectCommand } from "../electron/projects";
 import { projectCoachAction } from "../electron/project-companion";
@@ -180,6 +180,7 @@ const fallback: BitoAPI = {
     if (name === "focus-end") preview.focus = defaultState().focus;
     if (name === "task-add")
       preview.tasks.push({ id: crypto.randomUUID(), ...parseQuickTask(p), done: false });
+    if (name === "task-update") updateQuickTask(preview.tasks, p);
     if (name === "task-toggle")
       preview.tasks = preview.tasks.map((t) =>
         t.id === p ? { ...t, done: !t.done } : t,

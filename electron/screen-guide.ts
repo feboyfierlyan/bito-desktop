@@ -210,7 +210,20 @@ export class ScreenGuide {
       tour.moving = false;
     }
   }
+  private claimEscape() {
+    if (this.escapeRegistered) return;
+    this.escapeRegistered = globalShortcut.register("Escape", () =>
+      this.cancel("Bantuan layar dihentikan."),
+    );
+  }
+  private releaseEscape() {
+    if (!this.escapeRegistered) return;
+    globalShortcut.unregister("Escape");
+    this.escapeRegistered = false;
+  }
   private async showExplanation(session: Session) {
+    // A passive tour advertises "Esc keluar"; the user is reading, not typing.
+    this.claimEscape();
     const tour = session.guide!.explanation!,
       stop = tour.stops[tour.index];
     const display = screen.getDisplayMatching(session.window!.bounds);
@@ -323,6 +336,7 @@ export class ScreenGuide {
   private pauseGuide(session: Session) {
     this.assertSession(session);
     session.guide!.paused = true;
+    this.releaseEscape(); // The user is working in another app.
     this.overlay?.webContents.send("bito:spotlight", { visible: false });
     session.guide!.text = "Aku tunggu kamu kembali ke aplikasinya, ya.";
     clearTimeout(session.timer);
@@ -698,9 +712,9 @@ export class ScreenGuide {
           "Buka dulu jendela aplikasi yang ingin kamu tanyakan, ya.",
         );
       session.window = window;
-      this.escapeRegistered = globalShortcut.register("Escape", () =>
-        this.cancel("Bantuan layar dihentikan."),
-      );
+      // Escape stops Bito while it works. It is handed back to the target app
+      // whenever a step waits for the user to act there (see acceptGuideResult).
+      this.claimEscape();
       if (options.continueWith) {
         session.guide = {
           context: { goal: options.question, step: 0 },
@@ -1032,6 +1046,9 @@ export class ScreenGuide {
       guide.gate.continueTransition(Date.now());
     }
     guide.activity = view?.activity;
+    // The user now acts in the target app: its menus and dialogs must receive
+    // Escape. Clicking Bito (or moving it) still stops the guide.
+    this.releaseEscape();
     this.guidePhase(session, "talking");
     clearTimeout(session.timer);
     session.timer = setTimeout(
@@ -1115,6 +1132,8 @@ export class ScreenGuide {
     session.unsubscribe = undefined;
     session.guide!.explanation = undefined;
     session.guide!.text = text;
+    // Escape dismisses the final bubble.
+    this.claimEscape();
     await this.ensureOverlay();
     this.assertSession(session);
     const display = screen.getDisplayMatching(
@@ -1243,6 +1262,7 @@ export class ScreenGuide {
       }
       if (!guide.gate.sample(view, pixels, Date.now(), captured.bounds)) return;
       clearTimeout(session.timer);
+      this.claimEscape();
       this.guidePhase(session, "thinking");
       guide.text = "Sebentar, aku cek…";
       this.guideBubble(session);
@@ -1562,10 +1582,7 @@ export class ScreenGuide {
     this.protectedWindows.clear();
     clearTimeout(session.timer);
     clearTimeout(this.watch);
-    if (this.escapeRegistered) {
-      globalShortcut.unregister("Escape");
-      this.escapeRegistered = false;
-    }
+    this.releaseEscape();
     this.overlay?.webContents.send("bito:spotlight", {
       visible: false,
       guide: null,

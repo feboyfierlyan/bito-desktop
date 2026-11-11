@@ -125,6 +125,7 @@ export function TaskComposer({
   projects,
   initialProjectId = "",
   initialMilestoneId = "",
+  initialDueDate = null,
   act,
   onSaved,
   onCancel,
@@ -135,6 +136,7 @@ export function TaskComposer({
   projects: Project[];
   initialProjectId?: string;
   initialMilestoneId?: string;
+  initialDueDate?: string | null;
   act: (name: string, payload?: unknown) => Promise<Reply>;
   onSaved: () => void;
   onCancel: () => void;
@@ -144,7 +146,7 @@ export function TaskComposer({
 }) {
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
-  const [dueDate, setDueDate] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState<string | null>(initialDueDate);
   const [priority, setPriority] = useState("4");
   const [projectId, setProjectId] = useState(initialProjectId);
   const [groupId, setGroupId] = useState(initialMilestoneId);
@@ -159,7 +161,12 @@ export function TaskComposer({
     groups.find((m) => m.tasks.length < 12);
   const locked = busy || pending;
   const dirty =
-    !!title.trim() || !!details.trim() || !!dueDate || priority !== "4";
+    !!title.trim() ||
+    !!details.trim() ||
+    dueDate !== initialDueDate ||
+    priority !== "4" ||
+    projectId !== initialProjectId ||
+    groupId !== initialMilestoneId;
   useEffect(() => {
     onDirty?.(dirty);
     return () => onDirty?.(false);
@@ -208,38 +215,41 @@ export function TaskComposer({
         disabled={locked}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <BitoTextArea
-        className="task-description-input"
-        label="Deskripsi tugas"
-        placeholder="Deskripsi"
-        rows={2}
-        maxLength={1000}
-        value={details}
-        disabled={locked}
-        onChange={(e) => setDetails(e.target.value)}
-      />
-      <div className="task-composer-properties">
-        <TaskDatePicker
-          value={dueDate}
-          onChange={setDueDate}
-          max={project?.deadline}
+      <details className="capture-options">
+        <summary>Detail tambahan</summary>
+        <BitoTextArea
+          className="task-description-input"
+          label="Deskripsi tugas"
+          placeholder="Deskripsi"
+          rows={2}
+          maxLength={1000}
+          value={details}
           disabled={locked}
+          onChange={(e) => setDetails(e.target.value)}
         />
-        <div className="task-property-select" data-priority={priority}>
-          <Flag size={15} />
-          <BitoSelect
-            label="Prioritas tugas"
-            value={priority}
+        <div className="task-composer-properties">
+          <TaskDatePicker
+            value={dueDate}
+            onChange={setDueDate}
+            max={project?.deadline}
             disabled={locked}
-            onValueChange={setPriority}
-          >
-            <option value="4">Tanpa prioritas</option>
-            <option value="1">P1 · Tinggi</option>
-            <option value="2">P2 · Sedang</option>
-            <option value="3">P3 · Rendah</option>
-          </BitoSelect>
+          />
+          <div className="task-property-select" data-priority={priority}>
+            <Flag size={15} />
+            <BitoSelect
+              label="Prioritas tugas"
+              value={priority}
+              disabled={locked}
+              onValueChange={setPriority}
+            >
+              <option value="4">Tanpa prioritas</option>
+              <option value="1">P1 · Tinggi</option>
+              <option value="2">P2 · Sedang</option>
+              <option value="3">P3 · Rendah</option>
+            </BitoSelect>
+          </div>
         </div>
-      </div>
+      </details>
       {error && (
         <p className="task-capture-error" role="alert">
           {error}

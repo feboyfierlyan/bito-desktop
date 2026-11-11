@@ -1,4 +1,4 @@
-import { parseQuickTask } from "../src/task-capture";
+import { parseQuickTask, updateQuickTask } from "../src/task-capture";
 import { isSavedWorkQuery, savedWorkQuery } from "../src/saved-work";
 import { quickTaskRemovalScope, prepareQuickTaskRemoval, confirmQuickTaskRemoval } from "./quick-task-removal";
 import {
@@ -1534,6 +1534,7 @@ function finishPresentation() {
       pet.setAlwaysOnTop(state.settings.alwaysOnTop);
     }
     onboarding = null;
+    studioCanClose = true;
     if (!closing.isDestroyed()) closing.close();
     publish();
     clearTimeout(greetingDelay);
@@ -1577,6 +1578,7 @@ function endDrag(cancel = false) {
   }
 }
 let studioRoute = "settings",
+  pendingStudioRoute: string | undefined,
   studioCanClose = false,
   studioPainted = false,
   studioRevealRequested = false;
@@ -1591,10 +1593,27 @@ function showStudio(route: string) {
     return;
   }
   const fromLogin = studioRoute === "auth" && !!studio;
+  const fromProjects = studioRoute === "projects" && !!studio;
   const login = route === "auth";
   const projects = route === "projects";
   const welcome = route === "onboarding" || route === "welcome";
   if (onboarding?.view.phase === "departing") return;
+  if (
+    studio &&
+    !studio.isDestroyed() &&
+    !studioCanClose &&
+    studioRoute !== route &&
+    !["auth", "welcome", "onboarding"].includes(studioRoute) &&
+    !login &&
+    !welcome
+  ) {
+    pendingStudioRoute = route;
+    studio.show();
+    studio.focus();
+    studio.webContents.send("bito:settings-close");
+    return;
+  }
+  pendingStudioRoute = undefined;
   if (!welcome && !login) cancelPresentation();
   if (login && onboarding?.view.purpose !== "login") {
     cancelPresentation();
@@ -1618,7 +1637,10 @@ function showStudio(route: string) {
     if (projects) studio.setSize(1120, 760);
     else if (login) studio.setContentSize(1040, 740);
     else if (welcome && !fromLogin) studio.setContentSize(1040, 740);
-    else if (!welcome && (fromLogin || studio.getBounds().width === 1040))
+    else if (
+      !welcome &&
+      (fromLogin || fromProjects || studio.getBounds().width === 1040)
+    )
       studio.setSize(780, 580);
     studio.setOpacity(1);
     studio.show();
@@ -1692,11 +1714,16 @@ function showStudio(route: string) {
       !["welcome", "onboarding", "auth"].includes(studioRoute)
     ) {
       event.preventDefault();
+      pendingStudioRoute = undefined;
       studio?.webContents.send("bito:settings-close");
       return;
     }
     if (onboarding?.view.phase !== "departing") cancelPresentation();
-    if (!quitting && ["welcome", "onboarding", "auth"].includes(studioRoute)) {
+    if (
+      !quitting &&
+      !studioCanClose &&
+      ["welcome", "onboarding", "auth"].includes(studioRoute)
+    ) {
       event.preventDefault();
       studioRevealRequested = false;
       studio?.hide();
@@ -1708,20 +1735,41 @@ function showStudio(route: string) {
   load(studio, route);
   studio.on("closed", () => {
     studio = null;
+    pendingStudioRoute = undefined;
     if (studioRoute === "auth" && dev && !cloudLocked() && state.onboarded)
       revealPet();
   });
 }
-function startFocus(minutes: number) {
+function startFocus(minutes: number, postCard = false) {
+  const timerId = id();
   state.sleeping = false;
   state.focus = {
-    id: id(),
+    id: timerId,
     duration: minutes * 60,
     remaining: minutes * 60,
     deadline: Date.now() + minutes * 60000,
     running: true,
     active: true,
   };
+  if (postCard) {
+    state.messages.push({
+      id: id(),
+      role: "assistant",
+      text: `Timer fokus ${minutes} menit dimulai. Aku temani dari sini, ya.`,
+      createdAt: Date.now(),
+      status: "complete",
+      projectId: state.activeProjectId || undefined,
+      cards: [
+        {
+          id: timerId,
+          kind: "timer",
+          timerId,
+          seconds: minutes * 60,
+        },
+      ],
+    });
+    state.messages = state.messages.slice(-500);
+  }
   persist();
 }
 function addReminder(title: string, due: number) {
@@ -1870,7 +1918,7 @@ function contextMenu() {
     {
       label: "Mulai fokus 25 menit",
       click: () => {
-        startFocus(25);
+        startFocus(25, true);
         showChat();
       },
     },
@@ -1946,6 +1994,7 @@ async function sendMessage(
   previewBubbles = false,
   privateProjectContext?: string,
   retryUser?: Message,
+  retryOf?: string,
 ) {
   if (busy) throw Error("Tunggu jawaban selesai, atau tekan hentikan.");
   if (!demoMode() && cloudLocked())
@@ -1983,7 +2032,15 @@ async function sendMessage(
     createdAt: Date.now(),
     projectId: state.activeProjectId || undefined,
   };
+  // A retry replaces the failed turn instead of leaving a dead reply and a
+  // duplicate question in the transcript (and in the model history).
+  const retriedPreviews = retryUser ? messagePreviews[retryUser.id] : undefined;
+  if (retryUser)
+    state.messages = state.messages.filter(
+      (m) => m.id !== retryUser.id && m.id !== retryOf,
+    );
   state.messages.push(user);
+  if (retriedPreviews) keepPreviews(user.id, retriedPreviews);
   if (area) keepPreviews(user.id, [{name: "Area pilihan", kind: "area", thumbnail: area.thumbnail}]);
   if (area && !area.startMessage) area.startMessage = user.id;
   const reply: Message = {
@@ -2730,6 +2787,10 @@ async function command(name: string, payload: any): Promise<Reply> {
         publish();
       }
       break;
+    case "onboarding-finish":
+      if (onboarding?.view.step === 2 && onboarding.view.phase === "ready")
+        finishPresentation();
+      break;
     case "setup-painted": {
       const firstPaint = !studioPainted;
       studioPainted = true;
@@ -2794,8 +2855,16 @@ async function command(name: string, payload: any): Promise<Reply> {
       break;
     }
     case "settings-close-ready":
-      studioCanClose = true;
-      studio?.close();
+      if (pendingStudioRoute) {
+        const nextRoute = pendingStudioRoute;
+        pendingStudioRoute = undefined;
+        studioCanClose = true;
+        showStudio(nextRoute);
+        publish();
+      } else {
+        studioCanClose = true;
+        studio?.close();
+      }
       break;
     case "settings":
     case "settings-patch": {
@@ -2908,13 +2977,13 @@ async function command(name: string, payload: any): Promise<Reply> {
       if (p.retryMessageId) {
         const index = state.messages.findIndex(m => m.id === p.retryMessageId && m.role === "assistant" && m.projectId === (state.activeProjectId || undefined));
         const failed = state.messages[index];
-        if (!failed || !["error", "stopped"].includes(failed.status || "")) throw Error("Pesan ini tidak perlu dicoba ulang.");
+        if (!failed || !["error", "interrupted"].includes(failed.status || "")) throw Error("Pesan ini tidak perlu dicoba ulang.");
         retryUser = state.messages.slice(0,index).reverse().find(m=>m.role === "user" && m.projectId === failed.projectId);
         if (!retryUser) throw Error("Pesan asal tidak ditemukan.");
         if (retryUser.selectedArea) throw Error("Pilih area lagi untuk mengirim ulang pertanyaan.");
       }
       const previousCount = state.messages.length;
-      const response = sendMessage(p.text, attachment, false, undefined, retryUser);
+      const response = sendMessage(p.text, attachment, false, undefined, retryUser, p.retryMessageId);
       // sendMessage records the accepted user turn before its first await.
       if (state.messages.length > previousCount && p.attachmentIds?.length) {keepPreviews(state.messages[previousCount].id, [...(messagePreviews[state.messages[previousCount].id] || []), ...previews]); chatFiles.remove(p.attachmentIds); publish();}
       sending = response
@@ -3016,6 +3085,10 @@ async function command(name: string, payload: any): Promise<Reply> {
         ...parseQuickTask(payload),
         done: false,
       });
+      persist();
+      break;
+    case "task-update":
+      updateQuickTask(state.tasks, payload);
       persist();
       break;
     case "task-toggle": {

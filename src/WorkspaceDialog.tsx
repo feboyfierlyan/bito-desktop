@@ -13,6 +13,7 @@ export function WorkspaceDialog({
   reduced = false,
   wide = false,
   compact = false,
+  side = false,
 }: {
   title: string;
   children: ReactNode;
@@ -21,6 +22,7 @@ export function WorkspaceDialog({
   reduced?: boolean;
   wide?: boolean;
   compact?: boolean;
+  side?: boolean;
 }) {
   const [present, remove] = usePresence();
   useEffect(() => {
@@ -37,7 +39,7 @@ export function WorkspaceDialog({
       width={wide ? 1000 : 540}
       maxHeight="min(84dvh, 900px)"
       padding={0}
-      className={`workspace-dialog bito-dialog ${wide ? "is-wide" : ""} ${compact ? "is-capture" : ""}`}
+      className={`workspace-dialog bito-dialog ${wide ? "is-wide" : ""} ${compact ? "is-capture" : ""} ${side ? "is-side-panel" : ""}`}
       aria-label={title}
     >
       {!compact && (

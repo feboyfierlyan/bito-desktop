@@ -547,7 +547,7 @@ body[data-solid="true"] .desktop-chat-surface {
 .desktop-send:disabled {
   opacity: 1;
   background: var(--bito-surface-muted);
-  color: #ffffffeb;
+  color: var(--bito-muted);
 }
 .desktop-send .bito-button-content > span {
   display: grid;
