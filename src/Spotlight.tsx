@@ -151,10 +151,29 @@ function Spotlight() {
                   : undefined,
               transformOrigin: left ? "100% 75%" : "0% 75%",
             }}
-            role="status"
-            aria-live="polite"
           >
+            <span
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              style={{
+                position: "absolute",
+                width: 1,
+                height: 1,
+                padding: 0,
+                margin: -1,
+                overflow: "hidden",
+                clip: "rect(0,0,0,0)",
+                whiteSpace: "nowrap",
+                border: 0,
+              }}
+            >
+              {bubble.phase === "thinking"
+                ? "Bito sedang memproses langkah panduan"
+                : bubble.text}
+            </span>
             <motion.div
+              aria-hidden="true"
               layout="size"
               transition={{
                 duration: view.reducedMotion ? 0 : 0.24,

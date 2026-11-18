@@ -50,16 +50,23 @@ waktu luang saja tidak mengharuskan review tugas dari awal.
   hanya dibuat atas permintaan pengguna dan waktu yang jelas.
 - Pengambilan bagian bahan teks yang relevan saat cuplikan awal belum cukup.
 
-## Batas versi pertama
+## Batas dan kemampuan bahan & jadwal
 
 Proyek disimpan lokal per akun pada perangkat tersebut. Login di perangkat lain
-belum menyinkronkan ruang proyek. Belum ada integrasi Google Calendar atau
-penjadwalan otomatis dari timeline. Estimasi AI tetap perlu ditinjau pengguna.
+belum menyinkronkan ruang proyek. Jadwal tenggat proyek dan tugas bertanggal
+dapat diekspor kapan saja menjadi berkas standar **`.ics` (iCalendar RFC 5545)**
+dari tampilan Jadwal untuk diimpor ke Apple Calendar, Google Calendar, atau
+Outlook tanpa memerlukan konfigurasi OAuth pihak ketiga. Pengguna juga dapat
+memulai proyek langsung sebagai daftar langkah siap pakai (**Mulai dengan
+checklist kosong**) tanpa harus melewati tahap draf AI terlebih dahulu, serta
+menghapus proyek, langkah, atau melepas rujukan bahan secara langsung.
 
-Importer menerima PDF/gambar maksimal 6 MB serta TXT, Markdown, CSV, JSON, dan LOG
-maksimal 192 KB. Dokumen Office belum didukung. PDF/gambar dikirim ke backend
-terautentikasi dan Gemini untuk dibaca sekali; byte asli tidak disimpan ke log,
-riwayat chat atau tabel job cloud. Yang disimpan lokal adalah hasil ekstraksi AI,
+Importer menerima PDF/gambar maksimal 6 MB, dokumen **Word (`.docx`)** dan
+**Excel (`.xlsx`)** hingga 6 MB yang diekstrak secara lokal di perangkat (biaya
+API \$0 dan tanpa mengirim berkas Office mentah ke cloud), serta TXT, Markdown,
+CSV, JSON, dan LOG maksimal 192 KB. PDF/gambar dikirim ke backend terautentikasi
+dan Gemini untuk dibaca sekali; byte asli tidak disimpan ke log, riwayat chat,
+atau tabel job cloud. Yang disimpan lokal adalah hasil ekstraksi AI,
 bukan salinan lengkap dokumen. Hasil bisa salah/tidak lengkap: periksa catatan
 bagian buram atau ambigu sebelum konfirmasi. Gambar tulisan tangan yang sulit
 dibaca atau PDF terenkripsi dapat gagal; gunakan crop lebih jelas atau teks.

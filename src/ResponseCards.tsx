@@ -1,21 +1,27 @@
 import { BitoDisclosure } from "./ui/BitoDisclosure";
-import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
-import { ProgressBar } from "@astryxdesign/core/ProgressBar";
-import { BitoInput } from "./ui/controls";
-import { Card } from "@astryxdesign/core/Card";
-import { BitoButton } from "./ui/controls";
+import {
+  BitoCheckbox as CheckboxInput,
+  BitoProgressBar as ProgressBar,
+  BitoCard as Card,
+} from "./ui/primitives";
+import { BitoInput, BitoButton } from "./ui/controls";
+import { CRISIS_HELPLINES } from "./crisis-safety";
 import { SavedWorkDirectory } from "./SavedWorkDirectory";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
+  Bookmark,
   Check,
   ChevronDown,
+  ExternalLink,
   FileText,
   FolderOpen,
+  HeartHandshake,
   ListChecks,
   Pause,
   Play,
+  RotateCcw,
   Timer,
   X,
 } from "lucide-react";
@@ -518,6 +524,23 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         {active && !editing && (
           <div className="result-actions">
             <BitoButton
+              type="button"
+              className="result-primary"
+              disabled={pending}
+              onClick={() => void act("reminder-done", card.reminderId)}
+            >
+              <Check size={14} />
+              Selesai
+            </BitoButton>
+            <BitoButton
+              type="button"
+              disabled={pending}
+              onClick={() => void act("reminder-snooze", card.reminderId)}
+            >
+              Tunda 10 mnt
+            </BitoButton>
+            <BitoButton
+              type="button"
               disabled={pending}
               onClick={() => {
                 setReminderTitle(title);
@@ -528,6 +551,7 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
               Ubah
             </BitoButton>
             <BitoButton
+              type="button"
               disabled={pending}
               onClick={() => void action("reminder-cancel")}
             >
@@ -558,24 +582,26 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
                 });
               }}
             >
-              <div className="bito-form-field">
-                Pengingat
+              <label className="bito-form-field">
+                <span>Judul pengingat</span>
                 <BitoInput
+                  label="Judul pengingat"
                   maxLength={240}
                   required
                   value={reminderTitle}
                   onChange={(event) => setReminderTitle(event.target.value)}
                 />
-              </div>
-              <div className="bito-form-field">
-                Waktu
+              </label>
+              <label className="bito-form-field">
+                <span>Waktu pengingat</span>
                 <BitoInput
+                  label="Waktu pengingat"
                   type="datetime-local"
                   required
                   value={reminderDue}
                   onChange={(event) => setReminderDue(event.target.value)}
                 />
-              </div>
+              </label>
               <div className="result-actions">
                 <BitoButton
                   className="result-primary"
@@ -593,6 +619,73 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         </AnimatePresence>
         {notice}
       </>
+    );
+  }
+  if (card.kind === "memory") {
+    const live = state.memories.find((m) => m.id === card.memoryId);
+    return (
+      <>
+        <div className="result-eyebrow">
+          <Bookmark size={15} /> Ingatan Bito{" "}
+          <span className="result-status">
+            {live ? "Tersimpan" : "Diurungkan"}
+          </span>
+        </div>
+        <p className="result-memory-text">{live?.text || card.text}</p>
+        {live && (
+          <div className="result-actions">
+            <BitoButton
+              type="button"
+              disabled={pending}
+              onClick={() => void act("memory-delete", card.memoryId)}
+            >
+              <RotateCcw size={13} />
+              Urungkan simpan
+            </BitoButton>
+            <BitoButton
+              type="button"
+              disabled={pending}
+              onClick={() => void act("show-settings", "you")}
+            >
+              Kelola di Pengaturan
+            </BitoButton>
+          </div>
+        )}
+      </>
+    );
+  }
+  if (card.kind === "crisis-support") {
+    return (
+      <div className="result-crisis" role="region" aria-label="Kontak bantuan krisis">
+        <div className="result-eyebrow result-crisis-eyebrow">
+          <HeartHandshake size={16} /> Bantuan Krisis 24 Jam
+        </div>
+        <h3>Kamu nggak harus menanggung ini sendirian.</h3>
+        <p className="result-detail">
+          Jika kamu sedang merasa tidak aman atau terpikir menyakiti diri
+          sendiri, hubungi layanan profesional gratis atau orang terdekat sekarang.
+        </p>
+        <div className="result-crisis-list">
+          {CRISIS_HELPLINES.map((item) => (
+            <div key={item.id} className="result-crisis-row">
+              <div>
+                <strong>{item.title}</strong>
+                <small>{item.subtitle}</small>
+              </div>
+              {"url" in item && item.url && (
+                <BitoButton
+                  type="button"
+                  variant="primary"
+                  onClick={() => void act("open-link", item.url)}
+                >
+                  {item.actionLabel}
+                  <ExternalLink size={12} />
+                </BitoButton>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     );
   }
   return (
@@ -691,7 +784,11 @@ export function ResponseCards(props: Props) {
                       ? "Konfirmasi hapus tugas singkat"
                       : card.kind === "saved-work"
                         ? "Tugas tersimpan"
-                        : `File ${card.name}`
+                        : card.kind === "memory"
+                          ? "Ingatan Bito"
+                          : card.kind === "crisis-support"
+                            ? "Layanan Bantuan Krisis"
+                            : `File ${card.name}`
           }
           initial={
             props.seen.has(card.id) || props.reduced

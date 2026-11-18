@@ -10,7 +10,7 @@ import {
   Ban,
   List,
 } from "lucide-react";
-import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { BitoCheckbox as CheckboxInput } from "./ui/primitives";
 import { BitoButton, BitoInput } from "./ui/controls";
 import { BitoMascot } from "./ui/BitoMascot";
 import { TaskComposer } from "./TaskComposer";

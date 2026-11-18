@@ -10,6 +10,7 @@ test-results/
 *.sqlite*
 credentials.bin
 session-*.bin*
+calendar-connection.bin*
 device-id
 supabase/.temp/
 supabase/.branches/
@@ -17,6 +18,7 @@ public/rive.wasm
 playwright-report/
 
 .bito-dev-data/
+.bito-qa-data/
 
 # Local UI verification captures
 outputs/

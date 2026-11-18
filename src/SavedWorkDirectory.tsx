@@ -1,8 +1,8 @@
 import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from "@astryxdesign/core/SegmentedControl";
-import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+  BitoSegmentedControl as SegmentedControl,
+  BitoSegmentedItem as SegmentedControlItem,
+  BitoCheckbox as CheckboxInput,
+} from "./ui/primitives";
 import { BitoButton } from "./ui/controls";
 import { TaskComposer } from "./TaskComposer";
 import { taskDateLabel } from "./task-capture";

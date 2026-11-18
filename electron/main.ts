@@ -1,6 +1,7 @@
 import { parseQuickTask, updateQuickTask } from "../src/task-capture";
 import { isSavedWorkQuery, savedWorkQuery } from "../src/saved-work";
 import { quickTaskRemovalScope, prepareQuickTaskRemoval, confirmQuickTaskRemoval } from "./quick-task-removal";
+import * as electronNs from "electron";
 import {
   app,
   BrowserWindow,
@@ -16,6 +17,18 @@ import {
   shell,
   powerMonitor,
 } from "electron";
+const nativeTheme: Pick<
+  typeof Electron.nativeTheme,
+  "themeSource" | "shouldUseDarkColors" | "shouldUseHighContrastColors"
+> = (electronNs as unknown as { nativeTheme?: typeof Electron.nativeTheme })
+  .nativeTheme ?? {
+  themeSource: "system",
+  shouldUseDarkColors: false,
+  shouldUseHighContrastColors: false,
+};
+import { buildBitoIcsCalendar } from "../src/calendar-ics";
+import { crisisFallbackReply, hasCrisisSignal } from "../src/crisis-safety";
+import { webUrl } from "../src/web-search";
 import {
   pointInRegions,
   placeChatPanel,
@@ -128,6 +141,7 @@ import { canTrackGaze, gazeInViewport, neutralGaze } from "../src/gaze";
 import type { GazeTarget } from "../src/shared";
 
 app.setName("Bito");
+if (process.platform === "win32") app.setAppUserModelId("id.bito.companion");
 if (process.env.BITO_DATA_DIR) {
   mkdirSync(process.env.BITO_DATA_DIR, { recursive: true });
   app.setPath("userData", process.env.BITO_DATA_DIR);
@@ -251,6 +265,8 @@ function startDragMotion() {
 }
 let chatHide: ReturnType<typeof setTimeout> | undefined;
 let guideActivity: "thinking" | "talking" | "waiting" | undefined;
+let pendingScreenConfirm: Snapshot["pendingScreenConfirm"];
+let bootReady = false;
 const selectedArea = new SelectedAreaContext();
 // Small previews live only for this process, never in the persisted conversation.
 const messagePreviews: NonNullable<Snapshot["messagePreviews"]> = {};
@@ -575,12 +591,15 @@ function updateChatHit() {
 const dataPath = () => process.env.BITO_DATA_DIR || app.getPath("userData");
 const petSize = () => state.settings.size + 32;
 const demoMode = () => !!dev && !cloud && !cloudConfigError;
+const accountUnlocked = () =>
+  !!cloud &&
+  !!activeAccount &&
+  activeAccount === cloud.view.userId &&
+  (cloud.view.status === "ready" || cloud.view.status === "offline");
 const cloudLocked = () =>
   switchingAccount ||
   !!cloudConfigError ||
-  (cloud
-    ? cloud.view.status !== "ready" || activeAccount !== cloud.view.userId
-    : !dev);
+  (cloud ? !accountUnlocked() : !dev);
 const setupHostActive = () =>
   !!studio &&
   !studio.isDestroyed() &&
@@ -600,7 +619,12 @@ const snapshot = (): Snapshot => ({
   revisionMode: !!dev,
   calendar: { ...(googleCalendar?.view || { configured: false, status: "disconnected" as const }), ...calendarSync?.view },
   loginPreview: dev && !cloud ? loginPreview : undefined,
-  hasKey: !!cloud && !cloudLocked(),
+  hasKey:
+    !!cloud &&
+    !switchingAccount &&
+    !cloudConfigError &&
+    cloud.view.status === "ready" &&
+    activeAccount === cloud.view.userId,
   auth: cloud?.view || {
     configured: false,
     status: "unconfigured",
@@ -617,6 +641,7 @@ const snapshot = (): Snapshot => ({
   replyActivity,
   guideActivity,
   selectedArea: selectedArea.summary(activeAccount),
+  pendingScreenConfirm,
   greeting,
   presentation: onboarding
     ? {
@@ -656,6 +681,7 @@ const id = () => randomUUID();
 function closeAccountSurfaces(keepLogin = false) {
   void areaSelection.cancel();
   selectedArea.clear();
+  pendingScreenConfirm = undefined;
   screenGuide.forgetConversation();
   screenGuide.cancel(undefined, false);
   clearGreetingTimers();
@@ -700,9 +726,10 @@ async function enterAccount(user: { id: string; email: string }, open = true) {
     store.save(state);
     store.close();
     const accountPath = join(dataPath(), "accounts", user.id);
-    await mkdir(accountPath, { recursive: true });
+    await mkdir(accountPath, { recursive: true, mode: 0o700 });
     store = new Store(join(accountPath, "bito.sqlite"));
     state = store.load();
+    nativeTheme.themeSource = state.settings.theme || "system";
     activeAccount = user.id;
     await googleCalendar?.setOwner(user);
     await calendarSync?.setOwner(user.id);
@@ -895,11 +922,19 @@ async function executeCloudTool(
           .object({ text: z.string().trim().min(1).max(500) })
           .strict()
           .parse(call.args);
-        const output = executeTool(call.name, args);
+        const memoryId = id();
+        state.memories.push({ id: memoryId, text: args.text });
+        persist();
         receipt = {
           id: call.id,
-          ok: !output.startsWith("Action failed:"),
-          result: output.slice(0, 2000),
+          ok: true,
+          result: "Memory saved and visible in Settings.",
+          card: {
+            id: call.id,
+            kind: "memory",
+            memoryId,
+            text: args.text,
+          },
         };
       } else throw Error("Tindakan tidak tersedia.");
     }
@@ -1663,7 +1698,7 @@ function showStudio(route: string) {
     maximizable: !login && !welcome,
     fullscreenable: !login && !welcome,
     acceptFirstMouse: true,
-    backgroundColor: "#ffffff",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#121316" : "#F9F8F6",
     title: "Bito",
     show: false,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
@@ -1909,16 +1944,16 @@ function contextMenu() {
   if (onboarding) return;
   Menu.buildFromTemplate([
     { label: "Buka percakapan", click: showChat },
-    { label: "Proyek", click: () => showStudio("projects") },
+    { label: "Ruang Kerja", click: () => showStudio("projects") },
     {
       label: "Tanya area layar…",
       accelerator: areaSelection.shortcut,
       click: () => void areaSelection.start(),
     },
     {
-      label: "Mulai fokus 25 menit",
+      label: "Mulai sesi fokus 15 menit",
       click: () => {
-        startFocus(25, true);
+        startFocus(15, true);
         showChat();
       },
     },
@@ -1940,7 +1975,7 @@ function contextMenu() {
         persist();
       },
     },
-    { label: "Settings…", click: () => showStudio("settings") },
+    { label: "Pengaturan…", click: () => showStudio("settings") },
     ...revisionMenu(),
     {
       label: "Sembunyikan Bito",
@@ -1995,10 +2030,16 @@ async function sendMessage(
   privateProjectContext?: string,
   retryUser?: Message,
   retryOf?: string,
+  screenCaptureDecision?: "once" | "without_screen",
 ) {
   if (busy) throw Error("Tunggu jawaban selesai, atau tekan hentikan.");
   if (!demoMode() && cloudLocked())
-    throw Error("Masuk ke akun demo Bito terlebih dahulu.");
+    throw Error("Masuk ke akun Bito terlebih dahulu.");
+  if (!demoMode() && cloud && cloud.view.status === "offline")
+    throw Error(
+      "Koneksi internet sedang offline. Proyek & tugas lokalmu tetap bisa dikelola, dan balasan AI aktif kembali saat tersambung.",
+    );
+  pendingScreenConfirm = undefined;
   text = retryUser?.displayText || retryUser?.text || text;
   const hasFiles = !!attachment || !!retryUser?.attachments?.length;
   if (retryUser?.selectedArea) throw Error("Pilih area lagi untuk mengirim ulang pertanyaan.");
@@ -2007,12 +2048,12 @@ async function sendMessage(
       ? selectedArea.take(activeAccount)
       : undefined;
   const screenQuestion =
+    screenCaptureDecision === "once" &&
     !area &&
     !hasFiles &&
-    !previewBubbles &&
-    isScreenQuestion(text, screenGuide.hasRecentContext);
-  // Only this user's current screen request can authorize a capture. Model
-  // output, old attachments and project context never grant that permission.
+    !previewBubbles;
+  // BITO-013: Screen capture ONLY proceeds when explicitly confirmed via the
+  // 1-click confirmation pill or AreaSelection, never silently via regex alone.
   if (!screenQuestion) screenGuide.cancel();
   let inspectedScreen = screenQuestion;
   const userText = retryUser?.text || (attachment
@@ -2058,7 +2099,8 @@ async function sendMessage(
   let phaseNeedsPublish = false;
   const delivery = createReplyDelivery({
     signal: controller.signal,
-    reducedMotion: state.settings.reducedMotion,
+    reducedMotion:
+      state.settings.reducedMotion || nativeTheme.shouldUseHighContrastColors,
     verbatim: preserveReplyFormatting(text),
     onPhase: (phase) => {
       if (
@@ -2158,6 +2200,16 @@ async function sendMessage(
       inspect,
       other: (call, signal) => executeCloudTool(call, signal, reply),
     });
+    const crisisDetected = hasCrisisSignal(text);
+    if (crisisDetected) {
+      attachCard(reply, { id: id(), kind: "crisis-support" });
+    }
+    const wantsProjectTools =
+      !!state.activeProjectId ||
+      !!privateProjectContext ||
+      /\b(?:proyek|skripsi|proposal|rencana|milestone|kelompok\s+tugas|pecah\s+tugas|buat(?:kan|in)?\s+proyek)\b/i.test(
+        text,
+      );
     const removalScope = !area && !hasFiles && !privateProjectContext && !previewBubbles ? quickTaskRemovalScope(text) : undefined;
     if (removalScope) {
       const removal = prepareQuickTaskRemoval(state, removalScope);
@@ -2231,11 +2283,13 @@ async function sendMessage(
               ...state.profile,
               project: activeProject(state)?.name || state.profile.project,
             },
-            projectContext: projectModelContext(state),
+            projectContext: wantsProjectTools
+              ? projectModelContext(state)
+              : undefined,
             // Explicit screen questions use the guarded branch above. Ordinary
             // chat must not advertise capture or disclose the foreground title.
             screenGuidance: false,
-            memories: state.memories.map((m) => m.text),
+            memories: state.memories.slice(-12).map((m) => m.text),
             history,
             signal: abort.signal,
             execute,
@@ -2265,10 +2319,12 @@ async function sendMessage(
       reply.status = "interrupted";
     } else {
       reply.status = "error";
-      if (reply.text) {
+      if (hasCrisisSignal(text) && !reply.text) {
+        reply.text = crisisFallbackReply();
+        reply.status = "complete";
+      } else if (reply.text) {
         const bubbles = messageBubbleTexts(reply);
-        bubbles[bubbles.length - 1] +=
-          "\n\n— Koneksi terputus. Coba kirim ulang jika diperlukan.";
+        bubbles[bubbles.length - 1] += `\n\n— ${friendlyError(e)}`;
         reply.bubbles = bubbles;
         reply.text = bubbles.join("\n\n");
       } else {
@@ -2286,7 +2342,11 @@ async function sendMessage(
     state.messages = state.messages.slice(-500);
     persist();
     drainNotices();
-    if (cloud && cloud.view.status !== "ready") {
+    if (
+      cloud &&
+      cloud.view.status !== "ready" &&
+      cloud.view.status !== "offline"
+    ) {
       concealPet();
       chat?.hide();
       showStudio("auth");
@@ -2312,7 +2372,7 @@ async function prepareChatFiles(payload: unknown, selectedPaths?: string[]): Pro
     const isCurrent = () => !quitting && !switchingAccount && state === currentState && activeAccount === account && state.activeProjectId === projectId;
     let paths = selectedPaths;
     if (!paths?.length) {
-      const picked = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"], filters: [{ name: "Bahan tugas", extensions: ["pdf", "png", "jpg", "jpeg", "webp", "txt", "md", "csv", "json", "log"] }] });
+      const picked = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"], filters: [{ name: "Bahan tugas", extensions: ["pdf", "docx", "xlsx", "png", "jpg", "jpeg", "webp", "txt", "md", "csv", "json", "log"] }] });
       if (picked.canceled) return { ok: true, value: [] };
       paths = picked.filePaths;
     }
@@ -2338,6 +2398,26 @@ async function command(name: string, payload: any): Promise<Reply> {
   if (switchingAccount && !loginVisual) throw Error("Sedang mengganti akun.");
   if (cloudLocked() && !name.startsWith("auth-") && !loginVisual)
     throw Error("Masuk ke akun demo Bito terlebih dahulu.");
+  if (name === "calendar-export-ics") {
+    const { ics, eventCount } = buildBitoIcsCalendar({
+      projects: state.projects,
+      tasks: state.tasks,
+    });
+    if (eventCount === 0)
+      throw Error(
+        "Belum ada proyek atau tugas bertanggal untuk diekspor ke kalender.",
+      );
+    const save = await dialog.showSaveDialog({
+      title: "Simpan jadwal Bito (.ics)",
+      defaultPath: "jadwal-bito.ics",
+      filters: [{ name: "iCalendar (.ics)", extensions: ["ics"] }],
+    });
+    if (!save.canceled && save.filePath) {
+      await writeFile(save.filePath, ics, "utf8");
+      return { ok: true, value: { eventCount } };
+    }
+    return { ok: true, value: { cancelled: true } };
+  }
   if (name.startsWith("calendar-")) {
     if (!googleCalendar || !activeAccount || cloud?.view.status !== "ready")
       throw Error("Masuk ke akun Bito untuk menghubungkan Calendar.");
@@ -2449,9 +2529,11 @@ async function command(name: string, payload: any): Promise<Reply> {
             properties: ["openFile"],
             filters: [
               {
-                name: "PDF, gambar, atau teks",
+                name: "PDF, Office (.docx/.xlsx), gambar, atau teks",
                 extensions: [
                   "pdf",
+                  "docx",
+                  "xlsx",
                   "png",
                   "jpg",
                   "jpeg",
@@ -2467,11 +2549,7 @@ async function command(name: string, payload: any): Promise<Reply> {
           });
           return r.canceled ? null : r.filePaths[0] || null;
         },
-        read: async (path) => {
-          if ((await stat(path)).size > 6 * 1024 * 1024)
-            throw Error("Pilih file maksimal 6 MB.");
-          return readFile(path);
-        },
+        read: async (path) => readSelectedFile(path, 6 * 1024 * 1024),
         analyze: async (input) => {
           if (!cloud || demoMode())
             throw Error("Masuk ke akun Bito untuk membaca PDF atau gambar.");
@@ -2690,14 +2768,18 @@ async function command(name: string, payload: any): Promise<Reply> {
       try {
         googleCalendar?.cancel();
         await calendarSync?.setOwner(null);
+        await googleCalendar?.disconnect().catch(() => {});
         abort?.abort();
         await sending;
         closeAccountSurfaces(keepLogin);
+        chatFiles.clear();
+        for (const k of Object.keys(messagePreviews)) delete messagePreviews[k];
         store.save(state);
         store.close();
         store = new Store(join(dataPath(), "guest.sqlite"));
         // Anonymous state remains separate; never expose the previous user's data.
         state = defaultState();
+        nativeTheme.themeSource = "system";
         activeAccount = "";
         await googleCalendar?.setOwner(null);
         await cloud.signOut();
@@ -2705,6 +2787,49 @@ async function command(name: string, payload: any): Promise<Reply> {
         switchingAccount = false;
       }
       if (!keepLogin) showStudio("auth");
+      publish();
+      break;
+    }
+    case "auth-delete-account": {
+      if (!cloud || !activeAccount)
+        throw Error("Masuk ke akun Bito terlebih dahulu.");
+      if (busy) throw Error("Hentikan jawaban yang sedang berjalan dahulu.");
+      const confirm = await dialog.showMessageBox({
+        type: "warning",
+        buttons: ["Batal", "Hapus akun permanen"],
+        defaultId: 0,
+        cancelId: 0,
+        message: `Hapus permanen akun Bito (${cloud.view.email || "akun ini"})?`,
+        detail:
+          "Akun Bito, riwayat kuota/antrean di cloud, koneksi kalender, serta data lokal akun ini di perangkatmu akan dihapus permanen dan tidak dapat dibatalkan.",
+      });
+      if (confirm.response !== 1) return { ok: true, value: { cancelled: true } };
+      const deletingAccountId = activeAccount;
+      switchingAccount = true;
+      try {
+        googleCalendar?.cancel();
+        await calendarSync?.setOwner(null);
+        await googleCalendar?.disconnect().catch(() => {});
+        abort?.abort();
+        await sending;
+        await cloud.deleteAccount();
+        closeAccountSurfaces(false);
+        for (const k of Object.keys(messagePreviews)) delete messagePreviews[k];
+        store.close();
+        const { rm } = await import("node:fs/promises");
+        await rm(join(dataPath(), "accounts", deletingAccountId), {
+          recursive: true,
+          force: true,
+        }).catch(() => {});
+        store = new Store(join(dataPath(), "guest.sqlite"));
+        state = defaultState();
+        nativeTheme.themeSource = "system";
+        activeAccount = "";
+        await googleCalendar?.setOwner(null);
+      } finally {
+        switchingAccount = false;
+      }
+      showStudio("auth");
       publish();
       break;
     }
@@ -2882,6 +3007,7 @@ async function command(name: string, payload: any): Promise<Reply> {
           app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
       }
       state.settings = next;
+      nativeTheme.themeSource = next.theme || "system";
       pet?.setAlwaysOnTop(next.alwaysOnTop);
       chat?.setAlwaysOnTop(next.alwaysOnTop);
       if (pet) {
@@ -2958,6 +3084,9 @@ async function command(name: string, payload: any): Promise<Reply> {
           text: z.string().trim().max(16000),
           attachmentIds: z.array(z.string().uuid()).max(3).optional(),
           retryMessageId: z.string().uuid().optional(),
+          screenCaptureDecision: z
+            .enum(["once", "without_screen"])
+            .optional(),
           attachment: z
             .object({
               name: z.string().max(200),
@@ -2969,6 +3098,19 @@ async function command(name: string, payload: any): Promise<Reply> {
       if (!p.text && !p.attachment && !p.attachmentIds?.length && !p.retryMessageId && !selectedArea.get(activeAccount)) throw Error("Tulis pesan terlebih dahulu.");
       if (busy) throw Error("Tunggu atau hentikan jawaban sebelumnya.");
       if (!demoMode() && cloudLocked()) throw Error("Masuk ke akun Bito dahulu.");
+      // BITO-013: Ask explicit 1-click permission before capturing the screen.
+      if (
+        !p.screenCaptureDecision &&
+        !p.attachment &&
+        !p.attachmentIds?.length &&
+        !p.retryMessageId &&
+        !selectedArea.get(activeAccount) &&
+        isScreenQuestion(p.text, screenGuide.hasRecentContext)
+      ) {
+        pendingScreenConfirm = { id: id(), text: p.text };
+        publish();
+        return { ok: true, value: { confirmScreen: true } };
+      }
       engageProjectCompanion(state);
       const previews = p.attachmentIds?.length ? chatFiles.previews(p.attachmentIds, {account: activeAccount || "preview", projectId: state.activeProjectId}) : [];
       const materials = p.attachmentIds?.length ? await resolveChatMaterials(p.attachmentIds) : null;
@@ -2983,7 +3125,15 @@ async function command(name: string, payload: any): Promise<Reply> {
         if (retryUser.selectedArea) throw Error("Pilih area lagi untuk mengirim ulang pertanyaan.");
       }
       const previousCount = state.messages.length;
-      const response = sendMessage(p.text, attachment, false, undefined, retryUser, p.retryMessageId);
+      const response = sendMessage(
+        p.text,
+        attachment,
+        false,
+        undefined,
+        retryUser,
+        p.retryMessageId,
+        p.screenCaptureDecision,
+      );
       // sendMessage records the accepted user turn before its first await.
       if (state.messages.length > previousCount && p.attachmentIds?.length) {keepPreviews(state.messages[previousCount].id, [...(messagePreviews[state.messages[previousCount].id] || []), ...previews]); chatFiles.remove(p.attachmentIds); publish();}
       sending = response
@@ -2996,7 +3146,16 @@ async function command(name: string, payload: any): Promise<Reply> {
       break;
     }
     case "select-area":
+      pendingScreenConfirm = undefined;
+      publish();
       void areaSelection.start();
+      break;
+    case "dismiss-screen-confirm":
+      pendingScreenConfirm = undefined;
+      publish();
+      break;
+    case "dismiss-greeting":
+      dismissGreeting(true);
       break;
     case "clear-selected-area":
       selectedArea.clear();
@@ -3079,6 +3238,20 @@ async function command(name: string, payload: any): Promise<Reply> {
       persist();
       break;
     }
+    case "reminder-cancel": {
+      const r = state.reminders.find((r) => r.id === payload);
+      if (r) {
+        r.cancelled = true;
+        r.done = true;
+      }
+      persist();
+      break;
+    }
+    case "reminder-delete": {
+      state.reminders = state.reminders.filter((r) => r.id !== payload);
+      persist();
+      break;
+    }
     case "task-add":
       state.tasks.push({
         id: id(),
@@ -3091,6 +3264,15 @@ async function command(name: string, payload: any): Promise<Reply> {
       updateQuickTask(state.tasks, payload);
       persist();
       break;
+    case "task-delete": {
+      const targetId =
+        typeof payload === "string"
+          ? z.string().min(1).parse(payload)
+          : z.object({ id: z.string().min(1) }).parse(payload).id;
+      state.tasks = state.tasks.filter((t) => t.id !== targetId);
+      persist();
+      break;
+    }
     case "task-toggle": {
       const t = state.tasks.find((t) => t.id === payload);
       if (t) t.done = !t.done;
@@ -3104,6 +3286,19 @@ async function command(name: string, payload: any): Promise<Reply> {
       });
       persist();
       break;
+    case "memory-update": {
+      const m = z
+        .object({
+          id: z.string().min(1),
+          text: z.string().trim().min(1).max(500),
+        })
+        .parse(payload);
+      const found = state.memories.find((item) => item.id === m.id);
+      if (!found) throw Error("Ingatan tidak ditemukan.");
+      found.text = m.text;
+      persist();
+      break;
+    }
     case "memory-delete":
       state.memories = state.memories.filter((m) => m.id !== payload);
       persist();
@@ -3190,9 +3385,7 @@ async function command(name: string, payload: any): Promise<Reply> {
       });
       if (result.canceled) return { ok: true };
       const path = result.filePaths[0];
-      const bytes = await readFile(path);
-      if (bytes.length > 192000)
-        throw Error("Pilih dokumen teks di bawah 192 KB.");
+      const bytes = await readSelectedFile(path, 192000);
       const content = bytes.toString("utf8");
       if (content.includes("\u0000"))
         throw Error("File ini bukan dokumen teks.");
@@ -3214,8 +3407,91 @@ async function command(name: string, payload: any): Promise<Reply> {
       if (!result.canceled && result.filePath)
         await writeFile(
           result.filePath,
-          JSON.stringify({ ...state, position: undefined }, null, 2),
+          JSON.stringify(
+            { exportVersion: 2, exportedAt: new Date().toISOString(), ...state, position: undefined },
+            null,
+            2,
+          ),
         );
+      break;
+    }
+    case "import-data": {
+      if (busy) throw Error("Hentikan jawaban yang sedang berjalan dahulu.");
+      const open = await dialog.showOpenDialog({
+        title: "Impor cadangan data Bito (.json)",
+        properties: ["openFile"],
+        filters: [{ name: "Cadangan Bito JSON", extensions: ["json"] }],
+      });
+      if (open.canceled || !open.filePaths[0]) return { ok: true, value: { cancelled: true } };
+      const bytes = await readSelectedFile(open.filePaths[0], 12 * 1024 * 1024);
+      const parsed = JSON.parse(bytes.toString("utf8"));
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+        throw Error("Format berkas cadangan tidak valid.");
+      const confirm = await dialog.showMessageBox({
+        type: "question",
+        buttons: ["Batal", "Pulihkan cadangan"],
+        defaultId: 0,
+        cancelId: 0,
+        message: "Pulihkan data lokal dari berkas cadangan ini?",
+        detail:
+          "Proyek, tugas singkat, pengingat, ingatan, dan riwayat percakapan saat ini akan digantikan oleh isi berkas cadangan.",
+      });
+      if (confirm.response !== 1) return { ok: true, value: { cancelled: true } };
+      const base = defaultState();
+      state = {
+        ...base,
+        projects: Array.isArray(parsed.projects) ? parsed.projects : state.projects,
+        activeProjectId: null,
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : state.tasks,
+        reminders: Array.isArray(parsed.reminders) ? parsed.reminders : state.reminders,
+        memories: Array.isArray(parsed.memories)
+          ? parsed.memories
+              .filter((m: any) => m && typeof m.text === "string")
+              .map((m: any) => ({ id: typeof m.id === "string" ? m.id : id(), text: m.text.slice(0, 500) }))
+          : state.memories,
+        messages: Array.isArray(parsed.messages) ? parsed.messages.slice(-500) : state.messages,
+        profile: parsed.profile ? profileSchema.catch(state.profile).parse(parsed.profile) : state.profile,
+        settings: parsed.settings
+          ? settingsSchema
+              .catch({ ...base.settings, ...state.settings, theme: state.settings.theme || "system" })
+              .parse({ ...base.settings, ...parsed.settings })
+          : state.settings,
+        onboarded: true,
+        onboardingStep: 2,
+        position: state.position,
+      };
+      nativeTheme.themeSource = state.settings.theme || "system";
+      persist();
+      break;
+    }
+    case "reset-local-data": {
+      if (busy) throw Error("Hentikan jawaban yang sedang berjalan dahulu.");
+      const confirm = await dialog.showMessageBox({
+        type: "warning",
+        buttons: ["Batal", "Hapus semua data lokal"],
+        defaultId: 0,
+        cancelId: 0,
+        message: "Hapus seluruh data lokal Bito di komputer ini?",
+        detail:
+          "Seluruh riwayat obrolan, proyek, tugas singkat, pengingat, dan ingatan di perangkat ini akan dihapus permanen. Ekspor cadangan terlebih dahulu jika masih diperlukan.",
+      });
+      if (confirm.response === 1) {
+        const preservedProfile = state.profile;
+        const preservedSettings = state.settings;
+        const preservedPosition = state.position;
+        state = {
+          ...defaultState(),
+          onboarded: state.onboarded,
+          onboardingStep: state.onboardingStep,
+          profile: preservedProfile,
+          settings: preservedSettings,
+          position: preservedPosition,
+        };
+        selectedArea.clear();
+        chatFiles.clear();
+        for (const k of Object.keys(messagePreviews)) delete messagePreviews[k];
+        persist();
+      }
       break;
     }
     case "save-note": {
@@ -3231,30 +3507,42 @@ async function command(name: string, payload: any): Promise<Reply> {
     }
     case "clear-chat": {
       if (busy) throw Error("Hentikan jawaban terlebih dahulu.");
+      const clearAll =
+        typeof payload === "object" &&
+        payload !== null &&
+        (payload as { scope?: string }).scope === "all";
+      const targetProjectId = state.activeProjectId;
       const result = await dialog.showMessageBox({
         type: "question",
-        buttons: ["Batal", "Hapus percakapan"],
+        buttons: ["Batal", clearAll ? "Hapus semua obrolan" : "Hapus obrolan"],
         defaultId: 0,
         cancelId: 0,
-        message: state.activeProjectId
-          ? "Hapus percakapan proyek ini?"
-          : "Hapus obrolan umum?",
-        detail: "Profil, tugas, pengingat, dan memori tetap tersimpan.",
+        message: clearAll
+          ? "Hapus seluruh riwayat obrolan di semua proyek dan chat umum?"
+          : targetProjectId
+            ? "Hapus obrolan proyek ini?"
+            : "Hapus obrolan umum?",
+        detail:
+          "Profil, daftar proyek, tugas singkat, pengingat, dan ingatan tetap tersimpan.",
       });
       if (result.response === 1) {
-        state.messages = state.messages.filter(
-          (m) => (m.projectId || null) !== state.activeProjectId,
-        );
+        state.messages = clearAll
+          ? []
+          : state.messages.filter(
+              (m) => (m.projectId || null) !== targetProjectId,
+            );
         selectedArea.clear();
         persist();
       }
       break;
     }
     case "open-link": {
-      const url = z.string().url().parse(payload);
-      if (!["https:", "http:"].includes(new URL(url).protocol))
-        throw Error("Tautan tidak didukung.");
-      await shell.openExternal(url);
+      const safe = webUrl(typeof payload === "string" ? payload : null);
+      if (!safe)
+        throw Error(
+          "Tautan diblokir demi keamanan. Hanya tautan HTTPS publik yang diizinkan.",
+        );
+      await shell.openExternal(safe);
       break;
     }
     default:
@@ -3571,6 +3859,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on("second-instance", () => {
+    if (!bootReady || !state) return;
     if (cloudLocked()) {
       showStudio("auth");
       return;
@@ -3589,6 +3878,8 @@ if (!app.requestSingleInstanceLock()) {
       join(dataPath(), configured ? "guest.sqlite" : "bito.sqlite"),
     );
     state = store.load();
+    nativeTheme.themeSource = state.settings.theme || "system";
+    registerIPC();
     try {
       deviceId = await readFile(join(dataPath(), "device-id"), "utf8");
       if (!/^[0-9a-f-]{36}$/i.test(deviceId)) throw Error();
@@ -3598,6 +3889,7 @@ if (!app.requestSingleInstanceLock()) {
     }
     await initializeCalendar();
     await initializeCloud();
+    bootReady = true;
     if (
       dev &&
       !cloud &&
@@ -3615,7 +3907,6 @@ if (!app.requestSingleInstanceLock()) {
         m.status = "interrupted";
       }
     }
-    registerIPC();
     areaSelection.install();
     if (dev) {
       const menu = Menu.getApplicationMenu();
@@ -3623,6 +3914,70 @@ if (!app.requestSingleInstanceLock()) {
         menu.append(new MenuItem(revisionMenu()[0]));
         Menu.setApplicationMenu(menu);
       }
+    } else {
+      // BITO-025 / BITO-030: Localized Bahasa Indonesia menu without DevTools leak.
+      Menu.setApplicationMenu(
+        Menu.buildFromTemplate([
+          ...(process.platform === "darwin"
+            ? [
+                {
+                  label: "Bito",
+                  submenu: [
+                    { role: "about" as const, label: "Tentang Bito" },
+                    { type: "separator" as const },
+                    {
+                      label: "Pengaturan…",
+                      accelerator: "Command+,",
+                      click: () => showStudio("settings"),
+                    },
+                    { type: "separator" as const },
+                    { role: "hide" as const, label: "Sembunyikan Bito" },
+                    { role: "hideOthers" as const, label: "Sembunyikan Lainnya" },
+                    { role: "unhide" as const, label: "Tampilkan Semua" },
+                    { type: "separator" as const },
+                    { role: "quit" as const, label: "Keluar dari Bito" },
+                  ],
+                },
+              ]
+            : []),
+          {
+            label: "Edit",
+            submenu: [
+              { role: "undo" as const, label: "Urungkan" },
+              { role: "redo" as const, label: "Ulangi" },
+              { type: "separator" as const },
+              { role: "cut" as const, label: "Potong" },
+              { role: "copy" as const, label: "Salin" },
+              { role: "paste" as const, label: "Tempel" },
+              { role: "selectAll" as const, label: "Pilih Semua" },
+            ],
+          },
+          {
+            label: "Tampilan",
+            submenu: [
+              { role: "zoomIn" as const, label: "Perbesar Teks" },
+              { role: "zoomOut" as const, label: "Perkecil Teks" },
+              { role: "resetZoom" as const, label: "Ukuran Asli" },
+            ],
+          },
+          {
+            label: "Jendela",
+            submenu: [
+              { role: "minimize" as const, label: "Minimalkan" },
+              { role: "close" as const, label: "Tutup Jendela" },
+            ],
+          },
+          {
+            label: "Bantuan",
+            submenu: [
+              {
+                label: "Pengaturan & Bantuan",
+                click: () => showStudio("settings"),
+              },
+            ],
+          },
+        ]),
+      );
     }
     tray = new Tray(
       nativeImage
@@ -3644,13 +3999,13 @@ if (!app.requestSingleInstanceLock()) {
           },
         },
         { label: "Percakapan", click: showChat },
-        { label: "Proyek", click: () => showStudio("projects") },
+        { label: "Ruang Kerja", click: () => showStudio("projects") },
         {
           label: "Tanya area layar…",
           accelerator: areaSelection.shortcut,
           click: () => void areaSelection.start(),
         },
-        { label: "Settings", click: () => showStudio("settings") },
+        { label: "Pengaturan…", click: () => showStudio("settings") },
         ...revisionMenu(),
         { type: "separator" },
         { label: "Keluar", click: () => app.quit() },
@@ -3702,7 +4057,16 @@ if (!app.requestSingleInstanceLock()) {
     });
     let lastGreeting = Date.now();
     setInterval(() => {
+      const hour = new Date().getHours();
+      const startH = state.settings.nudgeStartHour ?? 9;
+      const endH = state.settings.nudgeEndHour ?? 21;
+      const withinHours =
+        startH <= endH
+          ? hour >= startH && hour < endH
+          : hour >= startH || hour < endH;
       if (
+        withinHours &&
+        powerMonitor.getSystemIdleTime() < 300 &&
         !cloudLocked() &&
         !onboarding &&
         !dragging &&

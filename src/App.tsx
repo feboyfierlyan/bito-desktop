@@ -1,5 +1,6 @@
 // Keep the React component boundary separate from the root bootstrap for Fast Refresh.
 import { BitoButton } from "./ui/controls";
+import { applyBitoAppearance } from "./ui/BitoTheme";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
@@ -11,6 +12,9 @@ import {
   MessageCircle,
   ScanLine,
   FolderOpen,
+  MoreHorizontal,
+  Moon,
+  Timer,
 } from "lucide-react";
 import { api, isDesktop } from "./bridge";
 import { appendReplyDelta } from "./reply-bubbles";
@@ -74,11 +78,13 @@ export default function App() {
       document.body.dataset.motion = state.settings.reducedMotion
         ? "reduced"
         : "full";
+      applyBitoAppearance(state.settings.theme || "system");
     }
   }, [
     route,
     state?.settings.reducedTransparency,
     state?.settings.reducedMotion,
+    state?.settings.theme,
   ]);
   useEffect(() => {
     if (!error) return;
@@ -108,12 +114,16 @@ export default function App() {
           />
           <GreetingBubble state={state} />
         </LayoutGroup>
-      ) : route === "projects" ? (
-        <ProjectWindow state={state} act={act} />
+      ) : route === "projects" || route === "focus" ? (
+        <ProjectWindow
+          state={state}
+          act={act}
+          initialView={route === "focus" ? "focus" : "tasks"}
+        />
       ) : (
         <SettingsWindow state={state} initial={route} />
       )}
-      {(error || (state.storageError && route !== "pet")) && (
+      {((error && route !== "projects") || (state.storageError && route !== "pet")) && (
         <motion.div
           role="alert"
           className="toast"
@@ -229,7 +239,10 @@ function Pet({ state }: { state: Snapshot }) {
       onKeyDown={(e) => {
         if (state.presentation || e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") api.toggleChat();
-        if (e.key === "ContextMenu") api.contextMenu();
+        if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+          e.preventDefault();
+          api.contextMenu();
+        }
       }}
       onPointerDown={(e) => {
         if (
@@ -313,16 +326,69 @@ function Pet({ state }: { state: Snapshot }) {
         </PetArtwork>
       </div>
       </div>
-      {!state.presentation && <div className="pet-tools"
-        onPointerDown={e => e.stopPropagation()} onPointerUp={e => e.stopPropagation()}
-        onContextMenu={e => e.stopPropagation()}>
-        <span className="pet-idle-handle" aria-hidden="true"><span className="pet-glass-edge" /></span>
-        <div className="pet-tool-actions">
-          <button aria-label="Ngobrol dengan Bito" title="Ngobrol" onClick={() => api.toggleChat()}><MessageCircle size={17} strokeWidth={1.65}/></button>
-          <button aria-label="Tanya area layar" title="Tanya area layar" disabled={state.busy} onClick={() => void api.command("select-area")}><ScanLine size={17} strokeWidth={1.65}/></button>
-          <button aria-label="Buka proyek" title="Proyek" onClick={() => void api.command("project-open")}><FolderOpen size={17} strokeWidth={1.65}/></button>
-        </div>
-      </div>}
+      {!state.presentation && (
+        <>
+          {(state.settings.dnd || state.focus.running) && (
+            <div className="pet-ambient-badges" aria-hidden="true">
+              {state.focus.running && (
+                <span className="pet-badge pet-badge--focus" title="Sesi fokus aktif">
+                  <Timer size={10} strokeWidth={2.4} />
+                </span>
+              )}
+              {state.settings.dnd && (
+                <span className="pet-badge pet-badge--dnd" title="Jangan ganggu aktif">
+                  <Moon size={10} strokeWidth={2.4} />
+                </span>
+              )}
+            </div>
+          )}
+          <div
+            className="pet-tools"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.stopPropagation()}
+          >
+            <span className="pet-idle-handle" aria-hidden="true">
+              <span className="pet-glass-edge" />
+            </span>
+            <div className="pet-tool-actions">
+              <button
+                type="button"
+                aria-label="Ngobrol dengan Bito"
+                title="Ngobrol"
+                onClick={() => api.toggleChat()}
+              >
+                <MessageCircle size={16} strokeWidth={1.8} />
+              </button>
+              <button
+                type="button"
+                aria-label="Tanya area layar"
+                title="Tanya area layar"
+                disabled={state.busy}
+                onClick={() => void api.command("select-area")}
+              >
+                <ScanLine size={16} strokeWidth={1.8} />
+              </button>
+              <button
+                type="button"
+                aria-label="Buka Ruang Kerja"
+                title="Ruang Kerja"
+                onClick={() => void api.command("project-open")}
+              >
+                <FolderOpen size={16} strokeWidth={1.8} />
+              </button>
+              <button
+                type="button"
+                aria-label="Menu Bito"
+                title="Menu Bito"
+                onClick={() => api.contextMenu()}
+              >
+                <MoreHorizontal size={16} strokeWidth={1.8} />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

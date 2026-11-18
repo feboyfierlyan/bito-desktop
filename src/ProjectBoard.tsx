@@ -1,7 +1,8 @@
-import { BitoDateInput } from "./ui/controls";
-import { BitoButton, BitoInput } from "./ui/controls";
-import { Popover } from "@astryxdesign/core/Popover";
-import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { BitoDateInput, BitoButton, BitoInput } from "./ui/controls";
+import {
+  BitoPopover as Popover,
+  BitoCheckbox as CheckboxInput,
+} from "./ui/primitives";
 import {
   useEffect,
   useRef,
@@ -255,6 +256,7 @@ export function ProjectBoard({
     if (result.ok) setModal(null);
   };
   const [menu, setMenu] = useState(false);
+  const [confirmDeleteProject, setConfirmDeleteProject] = useState(false);
 
   return (
     <div
@@ -294,6 +296,42 @@ export function ProjectBoard({
           </div>
         </header>
         {banner}
+        {confirmDeleteProject && (
+          <WorkspaceDialog
+            title={`Hapus proyek “${project.name}”?`}
+            reduced={!!reduced}
+            onClose={() => setConfirmDeleteProject(false)}
+          >
+            <div className="project-delete-confirm">
+              <p>
+                Proyek ini beserta daftar kelompok, tugas, dan lampirannya akan
+                dihapus permanen dari perangkatmu. Jika hanya ingin
+                menyembunyikannya, pilih Arsipkan proyek.
+              </p>
+              <div className="project-form-actions">
+                <BitoButton
+                  type="button"
+                  variant="danger"
+                  disabled={locked}
+                  onClick={async () => {
+                    const r = await request("project-delete", { id: project.id });
+                    if (r.ok) setConfirmDeleteProject(false);
+                  }}
+                >
+                  Hapus permanen
+                </BitoButton>
+                <BitoButton
+                  type="button"
+                  variant="secondary"
+                  disabled={locked}
+                  onClick={() => setConfirmDeleteProject(false)}
+                >
+                  Batal
+                </BitoButton>
+              </div>
+            </div>
+          </WorkspaceDialog>
+        )}
         <div className="board-view-toolbar">
           <h2 className="board-list-heading">Tugas proyek</h2>
           <div className="board-view-actions">
@@ -313,7 +351,7 @@ export function ProjectBoard({
               </BitoButton>
             )}
             <BitoButton onClick={onMaterials}>
-              <Paperclip size={15} /> Bahan
+              <Paperclip size={15} /> Lampiran
               {project.materials.length ? ` (${project.materials.length})` : ""}
             </BitoButton>{" "}
             <Popover
@@ -322,7 +360,7 @@ export function ProjectBoard({
               onOpenChange={setMenu}
               placement="below"
               alignment="end"
-              width={210}
+              width={224}
               content={
                 <div className="board-project-menu">
                   <BitoButton
@@ -341,6 +379,46 @@ export function ProjectBoard({
                     }}
                   >
                     Edit rencana
+                  </BitoButton>
+                  {project.status === "active" &&
+                    progress.total > 0 &&
+                    progress.done === progress.total && (
+                      <BitoButton
+                        disabled={locked || !!session}
+                        onClick={() => {
+                          setMenu(false);
+                          void request("project-status", {
+                            id: project.id,
+                            status: "completed",
+                          });
+                        }}
+                      >
+                        Tandai proyek selesai
+                      </BitoButton>
+                    )}
+                  {project.status !== "archived" && (
+                    <BitoButton
+                      disabled={locked || !!session}
+                      onClick={() => {
+                        setMenu(false);
+                        void request("project-status", {
+                          id: project.id,
+                          status: "archived",
+                        });
+                      }}
+                    >
+                      Arsipkan proyek
+                    </BitoButton>
+                  )}
+                  <BitoButton
+                    variant="danger"
+                    disabled={locked || !!session}
+                    onClick={() => {
+                      setMenu(false);
+                      setConfirmDeleteProject(true);
+                    }}
+                  >
+                    Hapus proyek…
                   </BitoButton>
                 </div>
               }

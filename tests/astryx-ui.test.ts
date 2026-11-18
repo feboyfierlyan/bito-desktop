@@ -82,9 +82,11 @@ const { BitoButton, BitoInput, BitoTextArea, BitoSelect, BitoDateInput } =
   await import("../src/ui/controls");
 const { BitoDisclosure } = await import("../src/ui/BitoDisclosure");
 const { WorkspaceDialog } = await import("../src/WorkspaceDialog");
-const { CheckboxInput } = await import("@astryxdesign/core/CheckboxInput");
-const { Switch } = await import("@astryxdesign/core/Switch");
-const { AppShell } = await import("@astryxdesign/core/AppShell");
+const {
+  BitoCheckbox: CheckboxInput,
+  BitoSwitch: Switch,
+  BitoAppShell: AppShell,
+} = await import("../src/ui/primitives");
 
 async function mounted(
   element: React.ReactNode,
@@ -1153,8 +1155,8 @@ test("one Tasks destination preserves the summary and detail editor across views
     const nav = host.querySelector('[aria-label="Halaman workspace"]')!;
     assert.equal(
       nav.querySelectorAll("button").length,
-      2,
-      "only Tasks and Schedule remain",
+      3,
+      "Tasks, Schedule, and Focus destinations",
     );
     const todayTab = button(host, "Hari ini"),
       allTab = button(host, "Semua");

@@ -277,3 +277,52 @@ body[data-motion="reduced"] .response-card * {
   color: var(--bito-ink);
   padding: 4px 0;
 }
+
+
+/* v1.0 Memory Undo Card & Crisis Support Card */
+.result-memory-text {
+  margin: 0.45rem 0 0.6rem;
+  font-size: var(--bito-text-base);
+  line-height: 1.5;
+  color: var(--bito-text-primary);
+}
+
+.response-card-crisis-support {
+  background: var(--bito-status-danger-bg);
+  border-color: color-mix(in srgb, var(--bito-status-danger) 30%, transparent);
+}
+
+.result-crisis-eyebrow {
+  color: var(--bito-status-danger);
+  font-weight: 600;
+}
+
+.result-crisis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.result-crisis-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--bito-radius-sm);
+  background: var(--bito-bg-surface);
+  border: 1px solid var(--bito-border-subtle);
+}
+
+.result-crisis-row strong {
+  display: block;
+  font-size: var(--bito-text-sm);
+  color: var(--bito-text-primary);
+}
+
+.result-crisis-row small {
+  display: block;
+  font-size: var(--bito-text-xs);
+  color: var(--bito-text-secondary);
+}

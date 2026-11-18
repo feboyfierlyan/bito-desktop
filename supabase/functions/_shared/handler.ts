@@ -32,6 +32,7 @@ export interface Repository {
     usage?: { input: number; output: number },
   ): Promise<boolean>;
   cancel(uid: string, device: string, id: string): Promise<void>;
+  deleteAccount?(uid: string): Promise<boolean>;
   observeScreen?(
     job: Job,
     callId: string,
@@ -107,14 +108,16 @@ export function createHandler(options: HandlerOptions) {
       if (!bearer || bearer[1].length > 16000)
         throw new ApiError("sign_in_required", 401);
       const user = await db.authenticate(bearer[1]);
-      if (
-        !uuid(user.id) ||
-        !user.confirmed ||
-        !user.email ||
-        !(await db.claim(user))
-      )
+      if (!uuid(user.id) || !user.confirmed || !user.email)
         throw new ApiError("access_denied", 403);
       const p = await readBody(request);
+      if (p.action === "delete_account") {
+        if (!db.deleteAccount) throw new ApiError("server_config", 503);
+        await db.deleteAccount(user.id);
+        return json({ ok: true });
+      }
+      if (!(await db.claim(user)))
+        throw new ApiError("access_denied", 403);
       if (p.action === "session")
         return json({
           user: { id: user.id, email: user.email },

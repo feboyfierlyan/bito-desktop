@@ -1,7 +1,7 @@
 import { BitoButton } from "./ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { X } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import {
   selectedRect,
   validSelection,
@@ -9,6 +9,7 @@ import {
   type AreaPoint,
 } from "./area-selection";
 import type { ScreenRect } from "./grounding";
+
 declare global {
   interface Window {
     bitoArea: {
@@ -21,23 +22,31 @@ declare global {
     };
   }
 }
+
 export function AreaSelect() {
   const [frame, setFrame] = useState<AreaFrame>(),
     [rect, setRect] = useState<ScreenRect>(),
     [editing, setEditing] = useState(false),
+    [keyboardMode, setKeyboardMode] = useState<"move" | "resize" | null>(null),
     [error, setError] = useState(""),
     [closing, setClosing] = useState(false),
     [submitting, setSubmitting] = useState(false);
   const start = useRef<AreaPoint | undefined>(undefined),
     current = useRef(frame),
+    rectRef = useRef(rect),
+    modeRef = useRef(keyboardMode),
     pending = useRef(false);
   current.current = frame;
+  rectRef.current = rect;
+  modeRef.current = keyboardMode;
+
   useEffect(() => {
     const a = window.bitoArea.onFrame((v) => {
       start.current = undefined;
       setFrame(v);
       setRect(undefined);
       setEditing(false);
+      setKeyboardMode(null);
       setError("");
       setClosing(false);
       setSubmitting(false);
@@ -56,38 +65,89 @@ export function AreaSelect() {
       b();
     };
   }, []);
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && current.current)
-        window.bitoArea.cancel(current.current.session);
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, []);
-  if (!frame) return null;
-  const duration = frame.reducedMotion ? 0 : 0.18;
-  const painted = () =>
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => window.bitoArea.painted(frame.session)),
-    );
-  async function submit(selection = rect) {
-    if (!selection || !frame || pending.current) return;
+
+  async function submit(selection = rectRef.current) {
+    const f = current.current;
+    if (!selection || !f || pending.current) return;
     pending.current = true;
     setSubmitting(true);
     setError("");
     const result = await window.bitoArea
-      .submit({ session: frame.session, rect: selection, question: "" })
+      .submit({ session: f.session, rect: selection, question: "" })
       .catch(() => ({
         ok: false,
         error: "Area belum bisa dilampirkan. Coba lagi.",
       }));
-    if (current.current?.session !== frame.session) return;
+    if (current.current?.session !== f.session) return;
     if (!result.ok) {
       pending.current = false;
       setSubmitting(false);
       setError(result.error || "Coba pilih area lagi.");
     }
   }
+
+  // BITO-009 (WCAG 2.2 AA): Full keyboard region selection & adjustment
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      const f = current.current;
+      if (!f || pending.current) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        window.bitoArea.cancel(f.session);
+        return;
+      }
+      const w = f.width || window.innerWidth || 1280;
+      const ht = f.height || window.innerHeight || 800;
+      if (
+        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
+      ) {
+        e.preventDefault();
+        const step = e.shiftKey ? 40 : e.altKey ? 4 : 14;
+        const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
+        const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
+        const base = rectRef.current ?? {
+          x: Math.round(Math.max(0, (w - Math.min(640, w - 48)) / 2)),
+          y: Math.round(Math.max(0, (ht - Math.min(400, ht - 48)) / 2)),
+          width: Math.min(640, w - 48),
+          height: Math.min(400, ht - 48),
+        };
+        const mode = modeRef.current ?? "move";
+        if (!modeRef.current) setKeyboardMode("move");
+        const next: ScreenRect =
+          mode === "resize"
+            ? {
+                x: base.x,
+                y: base.y,
+                width: Math.max(48, Math.min(w - base.x, base.width + dx)),
+                height: Math.max(48, Math.min(ht - base.y, base.height + dy)),
+              }
+            : {
+                x: Math.max(0, Math.min(w - base.width, base.x + dx)),
+                y: Math.max(0, Math.min(ht - base.height, base.y + dy)),
+                width: base.width,
+                height: base.height,
+              };
+        setRect(next);
+        setEditing(true);
+      } else if (e.key === " " && modeRef.current && rectRef.current) {
+        e.preventDefault();
+        setKeyboardMode((m) => (m === "resize" ? "move" : "resize"));
+      } else if (e.key === "Enter" && rectRef.current && modeRef.current) {
+        e.preventDefault();
+        void submit(rectRef.current);
+      }
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
+
+  if (!frame) return null;
+  const duration = frame.reducedMotion ? 0 : 0.18;
+  const painted = () =>
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => window.bitoArea.painted(frame.session)),
+    );
+
   return (
     <motion.main
       className={`area-select${editing ? " area-editing" : ""}`}
@@ -110,6 +170,7 @@ export function AreaSelect() {
         onPointerDown={(e) => {
           if (e.button !== 0 || submitting) return;
           start.current = { x: e.clientX, y: e.clientY };
+          setKeyboardMode(null);
           setEditing(false);
           setError("");
           setRect(undefined);
@@ -157,13 +218,13 @@ export function AreaSelect() {
           <defs>
             <mask id="selection">
               <rect width="100%" height="100%" fill="white" />
-              {rect && <rect {...rect} rx="4" fill="black" />}
+              {rect && <rect {...rect} rx="6" fill="black" />}
             </mask>
           </defs>
           <motion.rect
             width="100%"
             height="100%"
-            fill="rgba(12,19,30,.38)"
+            fill="rgba(12,19,30,.42)"
             mask="url(#selection)"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -172,15 +233,16 @@ export function AreaSelect() {
           {rect && (
             <rect
               {...rect}
-              rx="4"
+              rx="6"
               fill="none"
               stroke="var(--bito-focus)"
-              strokeWidth="1.5"
+              strokeWidth="2"
             />
           )}
         </svg>
       </div>
       <BitoButton
+        type="button"
         className="area-cancel"
         aria-label="Batalkan pilihan area"
         onClick={() => window.bitoArea.cancel(frame.session)}
@@ -188,11 +250,40 @@ export function AreaSelect() {
         <X size={19} />
       </BitoButton>
       <div className="area-instruction" role="status">
-        {submitting
-          ? "Menambahkan cuplikan…"
-          : error || "Seret area yang ingin ditanyakan · Esc untuk batal"}
+        <span>
+          {submitting
+            ? "Menambahkan cuplikan…"
+            : error
+              ? error
+              : keyboardMode
+                ? `Mode keyboard (${keyboardMode === "move" ? "Geser" : "Ubah ukuran"} · Spasi ganti mode · Enter konfirmasi)`
+                : "Seret area layar (atau tekan Panah untuk pilih via keyboard) · Esc batal"}
+        </span>
+        {!submitting && (
+          <BitoButton
+            type="button"
+            variant="secondary"
+            className="area-full-btn"
+            onClick={() => {
+              const full = {
+                x: 0,
+                y: 0,
+                width: frame.width || window.innerWidth,
+                height: frame.height || window.innerHeight,
+              };
+              setRect(full);
+              setEditing(true);
+              void submit(full);
+            }}
+          >
+            <Maximize2 size={13} />
+            Layar penuh
+          </BitoButton>
+        )}
         {error && rect && (
-          <BitoButton onClick={() => void submit()}>Coba lagi</BitoButton>
+          <BitoButton type="button" onClick={() => void submit()}>
+            Coba lagi
+          </BitoButton>
         )}
       </div>
     </motion.main>

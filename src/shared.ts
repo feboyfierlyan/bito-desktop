@@ -69,6 +69,16 @@ export type ResponseCard =
       name: string;
       format: "txt" | "md" | "csv";
       bytes: number;
+    }
+  | {
+      id: string;
+      kind: "memory";
+      memoryId: string;
+      text: string;
+    }
+  | {
+      id: string;
+      kind: "crisis-support";
     };
 export type Reminder = {
   projectId?: string;
@@ -91,6 +101,7 @@ export type Profile = {
 export type Settings = {
   model: string;
   baseURL: string;
+  theme?: "system" | "light" | "dark";
   alwaysOnTop: boolean;
   size: number;
   reducedMotion: boolean;
@@ -178,6 +189,11 @@ export type Snapshot = AppState & {
   };
   guideActivity?: "thinking" | "talking" | "waiting";
   selectedArea?: import("./area-selection").SelectedArea;
+  pendingScreenConfirm?: {
+    id: string;
+    text: string;
+    appName?: string;
+  };
   greeting?: {
     messageId: string;
     phase: "revealing" | "visible" | "dismissing" | "opening";

@@ -1,8 +1,19 @@
 import { BitoDisclosure } from "./ui/BitoDisclosure";
-import { AppShell } from "@astryxdesign/core/AppShell";
-import { BitoDateInput, BitoSelect } from "./ui/controls";
-import { Badge } from "@astryxdesign/core/Badge";
-import { BitoButton, BitoInput, BitoTextArea } from "./ui/controls";
+import {
+  BitoAppShell as AppShell,
+  BitoBadge as Badge,
+  BitoCheckbox,
+  BitoProgressBar,
+  BitoSegmentedControl,
+  BitoSegmentedItem,
+} from "./ui/primitives";
+import {
+  BitoDateInput,
+  BitoSelect,
+  BitoButton,
+  BitoInput,
+  BitoTextArea,
+} from "./ui/controls";
 import { WorkspaceTasks } from "./WorkspaceTasks";
 import { WorkspaceSchedule } from "./WorkspaceSchedule";
 import { SidebarIcon } from "./ui/SidebarIcon";
@@ -20,6 +31,10 @@ import {
   Pencil,
   CalendarDays,
   Sprout,
+  Timer,
+  Play,
+  Pause,
+  RotateCcw,
 } from "lucide-react";
 import { api } from "./bridge";
 import type { Reply, Snapshot } from "./shared";
@@ -65,7 +80,197 @@ const statusLabel = {
   archived: "Arsip",
 };
 type View = "overview" | "understanding" | "plan" | "brief" | "materials";
-export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
+
+function FocusSessionView({
+  state,
+  act,
+  busy,
+}: {
+  state: Snapshot;
+  act: Act;
+  busy: boolean;
+}) {
+  const [preset, setPreset] = useState<"15" | "25" | "45">("25");
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!state.focus.running) return;
+    const id = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, [state.focus.running]);
+
+  const remainingSec = state.focus.running && state.focus.deadline
+    ? Math.max(0, Math.ceil((state.focus.deadline - now) / 1000))
+    : state.focus.active
+      ? Math.max(0, state.focus.remaining)
+      : Number(preset) * 60;
+  const totalSec = state.focus.running || state.focus.active
+    ? Math.max(1, state.focus.duration || Number(preset) * 60)
+    : Number(preset) * 60;
+  const elapsedPct = state.focus.active || state.focus.running
+    ? Math.min(100, Math.max(0, ((totalSec - remainingSec) / totalSec) * 100))
+    : 0;
+  const mins = String(Math.floor(remainingSec / 60)).padStart(2, "0");
+  const secs = String(remainingSec % 60).padStart(2, "0");
+
+  const activeProj = activeProject(state);
+  const projectOpenTasks = (activeProj?.plan?.milestones || []).flatMap((m) =>
+    m.tasks
+      .filter((t) => t.status !== "done")
+      .map((t) => ({
+        id: t.id,
+        title: t.title,
+        done: false,
+        kind: "project" as const,
+        projectId: activeProj!.id,
+        version: activeProj!.version,
+      })),
+  );
+  const quickOpenTasks = state.tasks.slice(0, 6).map((t) => ({
+    id: t.id,
+    title: t.title,
+    done: t.done,
+    kind: "quick" as const,
+  }));
+  const checklist = [...projectOpenTasks.slice(0, 4), ...quickOpenTasks].slice(0, 6);
+
+  return (
+    <section className="focus-session-view" aria-label="Sesi Fokus">
+      <div className="focus-timer-card">
+        <div className="focus-timer-header">
+          <BitoMascot />
+          <div>
+            <h2>Sesi Fokus</h2>
+            <p>
+              {state.focus.running
+                ? "Bito menemani dengan tenang sampai timer selesai."
+                : "Pilih durasi nyamanmu, lalu cicil satu langkah kecil."}
+            </p>
+          </div>
+        </div>
+
+        <BitoSegmentedControl
+          label="Durasi fokus"
+          value={preset}
+          onChange={(val) => {
+            const next = val as "15" | "25" | "45";
+            setPreset(next);
+            if (!state.focus.running && !state.focus.active) {
+              setNow(Date.now());
+            }
+          }}
+        >
+          <BitoSegmentedItem value="15" label="15 menit" disabled={state.focus.running} />
+          <BitoSegmentedItem value="25" label="25 menit" disabled={state.focus.running} />
+          <BitoSegmentedItem value="45" label="45 menit" disabled={state.focus.running} />
+        </BitoSegmentedControl>
+
+        <div className="focus-countdown-readout" aria-live="off">
+          {mins}:{secs}
+        </div>
+
+        <BitoProgressBar
+          label="Progres sesi fokus"
+          value={Math.round(elapsedPct)}
+          max={100}
+        />
+
+        <div className="focus-timer-controls">
+          {state.focus.running ? (
+            <BitoButton
+              type="button"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => void act("focus-pause")}
+            >
+              <Pause size={15} />
+              Jeda sebentar
+            </BitoButton>
+          ) : state.focus.active && state.focus.remaining > 0 && state.focus.remaining < state.focus.duration ? (
+            <BitoButton
+              type="button"
+              variant="primary"
+              disabled={busy}
+              onClick={() => void act("focus-resume")}
+            >
+              <Play size={15} />
+              Lanjutkan fokus
+            </BitoButton>
+          ) : (
+            <BitoButton
+              type="button"
+              variant="primary"
+              disabled={busy}
+              onClick={() => void act("focus-start", Number(preset))}
+            >
+              <Play size={15} />
+              Mulai fokus {preset} menit
+            </BitoButton>
+          )}
+          {(state.focus.running || state.focus.active) && (
+            <BitoButton
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => void act("focus-end")}
+            >
+              <RotateCcw size={15} />
+              Selesai / Reset
+            </BitoButton>
+          )}
+        </div>
+      </div>
+
+      <div className="focus-checklist-card">
+        <h3>Langkah yang bisa dicicil sekarang</h3>
+        <p className="focus-checklist-sub">
+          Centang langsung saat selesai tanpa perlu berpindah halaman.
+        </p>
+        {checklist.length === 0 ? (
+          <div className="focus-checklist-empty">
+            Belum ada tugas aktif. Tambahkan dari menu Tugas di sebelah kiri.
+          </div>
+        ) : (
+          <div className="focus-checklist-items">
+            {checklist.map((item) => (
+              <div key={`${item.kind}-${item.id}`} className="focus-checklist-row">
+                <BitoCheckbox
+                  label={item.title}
+                  value={item.done}
+                  isDisabled={busy}
+                  onChange={() => {
+                    if (item.kind === "quick") {
+                      void act("task-toggle", item.id);
+                    } else {
+                      void act("project-task-status", {
+                        id: item.projectId,
+                        taskId: item.id,
+                        version: item.version,
+                        status: "done",
+                      });
+                    }
+                  }}
+                />
+                <Badge tone={item.kind === "project" ? "success" : "neutral"}>
+                  {item.kind === "project" ? activeProj?.name || "Proyek" : "Singkat"}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export function ProjectWindow({
+  state,
+  act,
+  initialView = "tasks",
+}: {
+  state: Snapshot;
+  act: Act;
+  initialView?: "projects" | "schedule" | "tasks" | "focus";
+}) {
   // Viewing an archive must never change the active chat/project context.
   const [viewedArchiveId, setViewedArchiveId] = useState<string | null>(null);
   const project =
@@ -89,8 +294,8 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
     }
   }, [sidebarCollapsed]);
   const [workspaceView, setWorkspaceView] = useState<
-    "projects" | "schedule" | "tasks"
-  >("tasks");
+    "projects" | "schedule" | "tasks" | "focus"
+  >(initialView);
   const [allTasks, setAllTasks] = useState(() => {
     try {
       return window.localStorage.getItem("bito-task-view") === "all";
@@ -332,6 +537,23 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
               <SidebarIcon name="calendar" />
               <span className="board-nav-label">Jadwal</span>
             </BitoButton>
+            <BitoButton
+              disabled={locked}
+              className={`board-rail-button ${workspaceView === "focus" ? "selected" : ""}`}
+              aria-label="Fokus"
+              title="Sesi Fokus"
+              aria-current={workspaceView === "focus" ? "page" : undefined}
+              onClick={() =>
+                change(() => {
+                  setWorkspaceView("focus");
+                  setQuickView(false);
+                })
+              }
+            >
+              <Timer size={18} />
+              <span className="board-nav-label">Fokus</span>
+              {state.focus.running && <Badge tone="success">Aktif</Badge>}
+            </BitoButton>
           </nav>
           <div className="sidebar-projects">
             <div className="sidebar-section-label">
@@ -512,7 +734,9 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
             </BitoButton>
           </div>
         )}
-        {workspaceView === "schedule" ? (
+        {workspaceView === "focus" ? (
+          <FocusSessionView state={state} act={run} busy={locked} />
+        ) : workspaceView === "schedule" ? (
           <WorkspaceSchedule
             state={state}
             act={run}
@@ -783,6 +1007,30 @@ export function ProjectWindow({ state, act }: { state: Snapshot; act: Act }) {
                                       </li>
                                     ))}
                                   </ol>
+                                  {!project.plan && (
+                                    <div className="project-quick-start-bar">
+                                      <span>
+                                        Ingin langsung mulai tanpa menunggu draf AI?
+                                      </span>
+                                      <BitoButton
+                                        type="button"
+                                        variant="secondary"
+                                        disabled={locked || !editable}
+                                        onClick={async () => {
+                                          const r = await run(
+                                            "project-quick-start",
+                                            { id: project.id },
+                                          );
+                                          if (r.ok) {
+                                            setPreparing(false);
+                                            setDetailOpen(false);
+                                          }
+                                        }}
+                                      >
+                                        Langsung isi daftar tugas
+                                      </BitoButton>
+                                    </div>
+                                  )}
                                   {readyDraft ? (
                                     <Plan
                                       project={project}
@@ -1939,6 +2187,7 @@ function Materials({
                 void act("project-material-remove", {
                   id: project.id,
                   materialId: m.id,
+                  unlinkReferences: true,
                 })
               }
             >

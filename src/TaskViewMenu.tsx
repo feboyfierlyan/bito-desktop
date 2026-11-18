@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ListFilter } from "lucide-react";
-import { Popover } from "@astryxdesign/core/Popover";
+import { BitoPopover as Popover } from "./ui/primitives";
 import { BitoButton } from "./ui/controls";
 import type { TaskSort } from "./workspace-task-model";
 const choices: { value: TaskSort; label: string }[] = [

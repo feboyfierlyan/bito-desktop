@@ -19,7 +19,7 @@ Deno.serve(
     ...providerConfig((name) => Deno.env.get(name)),
     grounding: {
       key: Deno.env.get("GEMINI_API_KEY") || "",
-      model: Deno.env.get("GEMINI_MODEL") || "gemini-3.8-flash",
+      model: Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash",
     },
   }),
 );

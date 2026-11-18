@@ -394,7 +394,7 @@ test("Gemini adapter sends the server key in a header and detects truncated resp
       "server-only-test",
     );
     const body = JSON.parse(init!.body as string);
-    assert.equal(body.generationConfig.maxOutputTokens, 1024);
+    assert.equal(body.generationConfig.maxOutputTokens, 4096);
     return new Response(
       'data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]},"finishReason":"MAX_TOKENS"}]}\n\n',
       { headers: { "Content-Type": "text/event-stream" } },

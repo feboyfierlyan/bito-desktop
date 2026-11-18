@@ -23,15 +23,10 @@
     "release:manifest": "node scripts/release-manifest.mjs"
   },
   "dependencies": {
-    "@astryxdesign/cli": "^0.7.5",
-    "@astryxdesign/core": "^0.7.5",
-    "@astryxdesign/theme-neutral": "^0.7.5",
     "@rive-app/canvas": "2.45.0",
-    "@stylexjs/stylex": "^0.19.1",
     "@supabase/supabase-js": "2.118.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.23.0",
-    "openai": "^6.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
@@ -63,7 +58,8 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*"
     ],
     "asar": true,
     "asarUnpack": [

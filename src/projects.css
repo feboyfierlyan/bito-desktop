@@ -16,7 +16,7 @@ body[data-surface="projects"] #root {
 .projects-app * {
   box-sizing: border-box;
 }
-.projects-app button:not([class*="astryx-"]) {
+.projects-app button:not(.bito-button) {
   font: inherit;
   cursor: pointer;
   border: 0;
@@ -31,11 +31,11 @@ body[data-surface="projects"] #root {
     opacity 0.18s,
     transform 0.18s;
 }
-.projects-app button:not([class*="astryx-"]):disabled {
+.projects-app button:not(.bito-button):disabled {
   opacity: 0.42;
   cursor: default;
 }
-.projects-app button:not([class*="astryx-"]):active:not(:disabled) {
+.projects-app button:not(.bito-button):active:not(:disabled) {
   transform: scale(0.98);
 }
 .projects-app button:focus-visible,
@@ -269,7 +269,7 @@ body[data-surface="projects"] #root {
   gap: 9px;
 }
 .projects-app input.bito-native-input,
-.projects-app textarea:not([class*="astryx-"]) {
+.projects-app textarea:not(.bito-textarea) {
   width: 100%;
   border: 1px solid var(--bito-hairline);
   border-radius: 8px;
@@ -282,7 +282,7 @@ body[data-surface="projects"] #root {
   line-height: 1.55;
 }
 .projects-app input.bito-native-input:focus,
-.projects-app textarea:not([class*="astryx-"]):focus {
+.projects-app textarea:not(.bito-textarea):focus {
   border-color: var(--bito-focus);
   box-shadow: 0 0 0 2px var(--bito-focus-soft);
 }

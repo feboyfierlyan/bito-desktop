@@ -124,6 +124,30 @@ export class SupabaseRepository implements Repository {
       p_id: id,
     });
   }
+  async deleteAccount(uid: string): Promise<boolean> {
+    if (!/^[0-9a-f-]{36}$/i.test(uid)) throw new ApiError("invalid_request");
+    const headers = {
+      apikey: this.serviceKey,
+      ...(!this.serviceKey.startsWith("sb_secret_")
+        ? { Authorization: `Bearer ${this.serviceKey}` }
+        : {}),
+    };
+    await this.fetcher(`${this.url}/rest/v1/demo_members?user_id=eq.${uid}`, {
+      method: "DELETE",
+      headers,
+      signal: AbortSignal.timeout(12000),
+    }).catch(() => {});
+    const res = await this.fetcher(`${this.url}/auth/v1/admin/users/${uid}`, {
+      method: "DELETE",
+      headers,
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!res.ok && res.status !== 404) {
+      await res.body?.cancel();
+      throw new ApiError("server_error", 503);
+    }
+    return true;
+  }
   observeScreen(
     job: Job,
     callId: string,

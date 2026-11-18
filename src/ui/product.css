@@ -561,7 +561,8 @@
   padding: 0 11px;
 }
 .preferences .pref-nav-item.selected {
-  background: #e9e8e4;
+  background: var(--bito-bg-elevated);
+  color: var(--bito-text-primary);
 }
 .preferences .pref-header {
   padding: 26px 28px 20px;
@@ -763,7 +764,7 @@ body[data-motion="reduced"] .desktop-chat-welcome * {
 }
 /* The moving selection surface shares the selected rail tone. */
 .preferences .pref-nav-selection {
-  background: #e9e8e4;
+  background: var(--bito-bg-elevated);
 }
 /* Draw the chat focus ring on its clipped outer surface, not the inner form. */
 .desktop-chat .desktop-composer:focus-within {

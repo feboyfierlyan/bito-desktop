@@ -37,13 +37,13 @@ const candidate = (parts: unknown[], finishReason = "STOP") => ({
   candidates: [{ content: { role: "model", parts }, finishReason }],
 });
 
-test("Gemini 3.8 defaults even with both keys; only owner can choose Qwen", () => {
+test("Gemini 2.5 Flash defaults even with both keys; only owner can choose Qwen", () => {
   const env = (values: Record<string, string>) => (name: string) =>
     values[name];
   const config = providerConfig(
     env({ GEMINI_API_KEY: "gemini", GROQ_API_KEY: "groq" }),
   );
-  assert.equal(config.model, "gemini-3.8-flash");
+  assert.equal(config.model, "gemini-2.5-flash");
   assert.equal(config.key, "gemini");
   assert.equal(config.generate, generateGemini);
   assert.equal(
@@ -62,7 +62,7 @@ test("Flash streams only answer text, preserves bubble markers, and bills thinki
     fetcher: async (url, init) => {
       assert.equal(
         url,
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?alt=sse",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse",
       );
       assert.equal(
         new Headers(init?.headers).get("x-goog-api-key"),
@@ -71,9 +71,9 @@ test("Flash streams only answer text, preserves bubble markers, and bills thinki
       assert.ok(!String(url).includes("test-server-secret"));
       const body = JSON.parse(init?.body as string);
       assert.match(body.systemInstruction.parts[0].text, /^Bito/);
-      assert.equal(body.generationConfig.thinkingConfig.thinkingLevel, "low");
+      assert.equal(body.generationConfig.thinkingConfig.thinkingBudget, 512);
       assert.equal(body.generationConfig.maxOutputTokens, 4096);
-      for (const key of ["temperature", "topP", "topK", "thinkingBudget"]) {
+      for (const key of ["temperature", "topP", "topK", "thinkingLevel"]) {
         assert.equal(body.generationConfig[key], undefined);
       }
       return streamed([

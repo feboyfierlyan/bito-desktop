@@ -1,7 +1,7 @@
-import { Switch } from "@astryxdesign/core/Switch";
+import { BitoSwitch as Switch } from "./ui/primitives";
 import { BitoButton } from "./ui/controls";
 import { useRef, useState } from "react";
-import { CalendarDays, LoaderCircle } from "lucide-react";
+import { CalendarDays, Download, LoaderCircle } from "lucide-react";
 import type { Project } from "./projects";
 import type { Reply } from "./shared";
 import {
@@ -88,10 +88,21 @@ export function ProjectCalendar({
                   ? "Hubungkan ulang"
                   : connection?.configured
                     ? "Hubungkan"
-                    : "Buka Settings"}
+                    : "Buka Pengaturan"}
               </BitoButton>
             )
           )}
+        </div>
+        <div className="calendar-ics-export">
+          <BitoButton
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={() => void run("calendar-export-ics")}
+          >
+            <Download size={14} />
+            Ekspor jadwal (.ics) ke Apple / Google / Outlook
+          </BitoButton>
         </div>
         <Switch
           className="calendar-auto-row bito-calendar-switch"

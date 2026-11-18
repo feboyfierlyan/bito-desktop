@@ -1,7 +1,7 @@
 import { generateGemini } from "./gemini.ts";
 import { generateGroq, GROQ_MODEL } from "./groq.ts";
 
-export const GEMINI_MODEL = "gemini-3.8-flash";
+export const GEMINI_MODEL = "gemini-2.5-flash";
 
 /** Owner configuration only. Gemini is the default; Qwen stays available by
  * explicit opt-in. Never switch provider automatically after an error. */

@@ -1,4 +1,4 @@
-import { ProgressBar } from "@astryxdesign/core/ProgressBar";
+import { BitoProgressBar as ProgressBar } from "./ui/primitives";
 import { Check, Circle, Flag } from "lucide-react";
 import { dailyProjectProgress, type Project } from "./projects";
 import { dayNumber, projectDashboard } from "./project-work";

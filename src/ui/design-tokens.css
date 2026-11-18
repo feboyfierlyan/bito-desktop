@@ -1,5 +1,4 @@
-/* Bito application design system, adapted from the supplied DESIGN.md.
-   Bundle the supplied xVf font: no network request or OS-font dependency. */
+/* Bito v1.0 Canonical Design System — Warm Paper Light & Cozy Obsidian Dark */
 @font-face {
   font-family: "Bito Sans";
   src: url("/fonts/bito-sans-variable.woff2") format("woff2");
@@ -7,40 +6,239 @@
   font-weight: 100 900;
   font-display: swap;
 }
-:root {
-  --bito-font: "Bito Sans", "Segoe UI", sans-serif;
-  --bito-ink: #0a0a0a;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Typography */
+  --bito-font-sans: "Bito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bito-font-mono: "SF Mono", "Cascadia Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --bito-font: var(--bito-font-sans);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 600;
+
+  /* 7-step rem scale (>= 11px hard floor) */
+  --bito-text-2xs: 0.6875rem;
+  --bito-text-xs: 0.75rem;
+  --bito-text-sm: 0.8125rem;
+  --bito-text-base: 0.875rem;
+  --bito-text-md: 1rem;
+  --bito-text-lg: 1.25rem;
+  --bito-text-xl: 1.5rem;
+
+  /* 4px Spacing Scale */
+  --bito-space-1: 0.25rem;
+  --bito-space-2: 0.5rem;
+  --bito-space-3: 0.75rem;
+  --bito-space-4: 1rem;
+  --bito-space-5: 1.25rem;
+  --bito-space-6: 1.5rem;
+  --bito-space-7: 2rem;
+  --bito-space-8: 2.5rem;
+
+  /* Radius Scale */
+  --bito-radius-xs: 6px;
+  --bito-radius-sm: 8px;
+  --bito-radius-md: 12px;
+  --bito-radius-lg: 16px;
+  --bito-radius-xl: 22px;
+  --bito-radius-pill: 9999px;
+
+  /* Semantic Light Palette (WCAG 2.2 AA/AAA Verified) */
+  --bito-bg-canvas: #f9f8f6;
+  --bito-bg-surface: #ffffff;
+  --bito-bg-muted: #efefed;
+  --bito-bg-subtle-hover: #e7e6e2;
+  --bito-bg-elevated: rgba(255, 255, 255, 0.94);
+
+  --bito-text-primary: #0a0a0a;
+  --bito-text-secondary: #52555a;
+  --bito-text-muted: #5e6268;
+  --bito-text-on-accent: #ffffff;
+
+  --bito-border-subtle: #e2e1dd;
+  --bito-border-control: #75787e;
+  --bito-rim-glass: rgba(10, 10, 10, 0.1);
+
+  --bito-accent-primary: #0a0a0a;
+  --bito-accent-hover: #26292e;
+  --bito-focus-ring: #005cc5;
+  --bito-focus-tint: rgba(0, 92, 197, 0.16);
+  --bito-pet-pill-bg: #1f5fa8;
+  --bito-pet-pill-border: rgba(255, 255, 255, 0.34);
+
+  --bito-status-success: #1e6a39;
+  --bito-status-success-bg: #ecf6ef;
+  --bito-status-warning: #85530e;
+  --bito-status-warning-bg: #fff8eb;
+  --bito-status-danger: #b42318;
+  --bito-status-danger-bg: #fff1f0;
+
+  /* Elevation */
+  --bito-shadow-none: none;
+  --bito-shadow-popover: 0 10px 28px -6px rgba(10, 10, 10, 0.14), 0 2px 6px rgba(10, 10, 10, 0.06);
+  --bito-shadow-floating: 0 18px 48px -10px rgba(10, 10, 10, 0.2), 0 4px 14px rgba(10, 10, 10, 0.06);
+
+  /* Backwards-compatible semantic aliases */
+  --bito-ink: var(--bito-text-primary);
   --bito-ink-soft: #2e3033;
-  --bito-secondary: #6c6c6c;
-  --bito-muted: #686c72;
-  --bito-hairline: #e1e1e1;
-  --bito-surface: #ffffff;
-  --bito-surface-warm: #f9f8f6;
-  --bito-surface-muted: #efefed;
+  --bito-secondary: var(--bito-text-secondary);
+  --bito-muted: var(--bito-text-muted);
+  --bito-hairline: var(--bito-border-subtle);
+  --bito-surface: var(--bito-bg-surface);
+  --bito-surface-warm: var(--bito-bg-canvas);
+  --bito-surface-muted: var(--bito-bg-muted);
   --bito-stone: #d7d1c9;
-  --bito-focus: #005cc5;
-  --bito-focus-soft: #005cc533;
-  --bito-error: #b42318;
-  --bito-error-surface: #fff1f0;
-  --bito-warning: #875b17;
-  --bito-warning-surface: #fff8eb;
-  --bito-success: #287242;
-  --bito-success-surface: #eef6ef;
-  --bito-shadow-floating: 0 16px 48px -8px #00000038;
-  font-family: var(--bito-font);
+  --bito-focus: var(--bito-focus-ring);
+  --bito-focus-soft: var(--bito-focus-tint);
+  --bito-error: var(--bito-status-danger);
+  --bito-error-surface: var(--bito-status-danger-bg);
+  --bito-warning: var(--bito-status-warning);
+  --bito-warning-surface: var(--bito-status-warning-bg);
+  --bito-success: var(--bito-status-success);
+  --bito-success-surface: var(--bito-status-success-bg);
+
+  /* Motion Primitives (transitions.dev + glimm.dev curves) */
+  --bito-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --bito-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --bito-ease-spring: cubic-bezier(0.34, 1.48, 0.64, 1);
+  --bito-duration-instant: 80ms;
+  --bito-duration-fast: 140ms;
+  --bito-duration-normal: 210ms;
+  --bito-duration-panel: 280ms;
+
+  font-family: var(--bito-font-sans);
   font-synthesis: none;
   font-optical-sizing: auto;
 }
-/* These also reach portalled menus and the separate area/guide renderers. */
-:root,
-[data-astryx-theme="neutral"] {
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 500;
-  --font-weight-bold: 500;
-  --font-family-code: var(--bito-font);
+
+/* Cozy Obsidian Dark Mode (Amie / Linear inspired, >= 4.5:1 AA verified) */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bito-bg-canvas: #121316;
+  --bito-bg-surface: #1a1c20;
+  --bito-bg-muted: #24272d;
+  --bito-bg-subtle-hover: #2d3139;
+  --bito-bg-elevated: rgba(26, 28, 34, 0.94);
+
+  --bito-text-primary: #f4f4f2;
+  --bito-text-secondary: #b4b8c0;
+  --bito-text-muted: #969ba5;
+  --bito-text-on-accent: #121316;
+
+  --bito-border-subtle: #2c3038;
+  --bito-border-control: #7d838f;
+  --bito-rim-glass: rgba(255, 255, 255, 0.11);
+
+  --bito-accent-primary: #f4f4f2;
+  --bito-accent-hover: #dcdcd8;
+  --bito-focus-ring: #58a6ff;
+  --bito-focus-tint: rgba(88, 166, 255, 0.22);
+  --bito-pet-pill-bg: #2563eb;
+  --bito-pet-pill-border: rgba(255, 255, 255, 0.28);
+
+  --bito-status-success: #4ade80;
+  --bito-status-success-bg: #132a1c;
+  --bito-status-warning: #fbbf24;
+  --bito-status-warning-bg: #2c210b;
+  --bito-status-danger: #f87171;
+  --bito-status-danger-bg: #2d1618;
+
+  --bito-ink-soft: #d5d8de;
+  --bito-stone: #3a3f4a;
+  --bito-shadow-popover: 0 12px 32px -6px rgba(0, 0, 0, 0.58), 0 2px 8px rgba(0, 0, 0, 0.36);
+  --bito-shadow-floating: 0 22px 56px -10px rgba(0, 0, 0, 0.72), 0 4px 16px rgba(0, 0, 0, 0.42);
 }
+
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  [data-theme="light"],
+  [data-theme="dark"] {
+    --bito-bg-elevated: var(--bito-bg-surface);
+  }
+}
+
+body[data-solid="true"] {
+  --bito-bg-elevated: var(--bito-bg-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bito-duration-instant: 0ms;
+    --bito-duration-fast: 0ms;
+    --bito-duration-normal: 0ms;
+    --bito-duration-panel: 0ms;
+  }
+}
+
+body[data-motion="reduced"],
+[data-reduced-motion="true"] {
+  --bito-duration-instant: 0ms;
+  --bito-duration-fast: 0ms;
+  --bito-duration-normal: 0ms;
+  --bito-duration-panel: 0ms;
+}
+
 strong,
 b {
-  font-weight: 500;
+  font-weight: 600;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--bito-font-mono);
+  font-variant-ligatures: none;
+}
+
+/* Global accessible focus-visible ring (BITO-009: zero outline stripping) */
+:where(button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--bito-focus-ring);
+  outline-offset: 2px;
+}
+
+@keyframes bito-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bito-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes bito-border-beam {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

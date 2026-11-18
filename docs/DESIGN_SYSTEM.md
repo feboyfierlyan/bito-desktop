@@ -1,58 +1,36 @@
-# Bito interface · Astryx
+# Bito Design System v1.0
 
-Bito uses Astryx 0.7.5 for shared controls, surfaces, selection, and modal behaviour. The interface stays light, with Bito blue (`#007AFF`), white surfaces, and the existing green character and artwork.
+Bito uses a custom, zero-lock-in UI component and token system (`src/ui/`) tailored for a calm desktop companion across macOS and Windows. Third-party StyleX/Astryx runtime dependencies have been removed so Bito owns its exact DOM semantics, WCAG 2.2 AA contrast ratios, keyboard navigation, and compositor-safe motion.
 
-## References
+## Visual Tokens & Dual Theme (`src/ui/design-tokens.css`)
 
-The implementation follows the official [Astryx documentation](https://astryx.atmeta.com/) and [source](https://github.com/meta/astryx). The template study covered Library/Card Grid, Project Status Dashboard, Settings, Login Card, AI Chat, AI Chat Landing, Form Wizard Dialog, and Detail Page. Templates inform composition; they do not add unrelated features to Bito.
+- **Warm Paper Light Mode (`:root`, `:root[data-theme="light"]`):** Warm canvas (`#F9F8F6`), crisp elevated task/chat sheets (`#FFFFFF`), ink primary (`#16181A`), WCAG AA secondary/tertiary text (`#525860` / `#687078`), companion sage (`#2F7D4A`), and Bito focus blue (`#0066DC`).
+- **Cozy Obsidian Dark Mode (`:root[data-theme="dark"]`):** Deep obsidian canvas (`#121316`), elevated surfaces (`#181A1F` / `#20232A`), soft off-white ink (`#F2F3F5`), muted hairline borders (`rgba(255, 255, 255, 0.08)`), and calibrated dark-mode sage/blue accents.
+- **Typography & Tabular Numerals:** Scalable `rem` type scale (`--bito-text-2xs` through `--bito-text-2xl`), weights `400`, `500`, and `600`, plus `--bito-font-mono` with `font-variant-numeric: tabular-nums` on focus timers and counters to prevent horizontal layout jitter.
+- **Appearance Sync (`src/ui/BitoTheme.tsx`):** Synchronizes `system | light | dark` preference with `document.documentElement.dataset.theme`, `color-scheme`, and Electron `nativeTheme.themeSource`.
 
-## Shared foundation
+## Custom Primitives & Controls (`src/ui/primitives.tsx`, `src/ui/controls.tsx`)
 
-- `src/ui/BitoTheme.tsx` provides the compiled neutral theme in light mode to each renderer. Using the published CSS avoids a second runtime styling pipeline.
-- `src/ui/astryx-bito.css` sets Bito tokens and the public Astryx component treatments. Overrides use stable `astryx-*` classes and Bito's own classes, never generated StyleX class names.
-- `src/ui/controls.tsx` adapts Astryx Button, Text Input, Text Area, Date Input, and Selector to Bito's existing form and event contracts. Composition events, input refs, native required validation, and text length limits remain supported.
-- `src/ui/BitoDisclosure.tsx` uses Collapsible and measured layout animation for optional detail.
+- **Form Controls (`controls.tsx`):** `BitoButton`, `BitoTextInput`, `BitoTextArea`, `BitoDateInput`, and `BitoSelector` preserve native form submission, IME composition events, refs, required validation, length limits, and keyboard arrow/Escape handling.
+- **Interactive Primitives (`primitives.tsx`):**
+  - `BitoCard`, `BitoBadge`, `BitoProgressBar` (GPU `scaleX` transform fill).
+  - `BitoCheckbox` (accessible native checkbox with `aria-readonly` pending guard and animated check stroke) and `BitoSwitch`.
+  - `BitoSegmentedControl` & `BitoSegmentedItem` (radiogroup arrow-key navigation with spring-animated sliding pill indicator).
+  - `BitoPopover` (viewport-clamped, origin-aware floating surface with synchronous focus handoff and Escape return).
+  - `BitoCalendar` (Bahasa Indonesia month grid with min/max ISO date guards).
+  - `BitoAppShell` (warm paper navigation rail paired with an elevated workspace sheet) and `BitoChatComposer` (contained hairline prompt box with an active-only `bito-border-beam` shimmer while Bito is thinking or streaming, consuming 0% GPU when idle).
+- **Accessible Disclosure & Dialogs:** `BitoDisclosure.tsx` provides CSS `grid-template-rows` height disclosure without layout jumps, and `WorkspaceDialog.tsx` wraps native `<dialog>` with Escape, backdrop click, back navigation, and unsaved-draft guards.
 
-## Screen composition
+## Screen Composition & Motion Discipline
 
-- **Projects:** App Shell with labeled navigation, searchable project rows, and grouped task lists. Tasks stay in the main column; Calendar and Progress remain visible in a right-hand rail (stacked below on narrow windows). Bito’s session action remains available above the list.
-- **Project editing:** Dialog, Dialog Header, Date Input, Selector, and text fields. Back, Escape, focus return, and unsaved-change guards remain connected to the existing flow.
-- **Settings:** grouped Cards, Switch, Segmented Control, Selector, Slider, and shared fields. Existing draft persistence and validation remain in place.
-- **Desktop chat:** Chat Composer with Bito's input and send/stop slots, shared buttons, project selector, response Cards, progress bars, and checkboxes. Messages keep their iMessage-style blue/gray bubbles.
-- **Login and onboarding:** the same theme, Card and shared controls, with the existing artwork, persistent Rive character, cursor gaze, and drag-to-desktop transition.
-- **Saved work and response cards:** Segmented Control, Cards, progress, checkboxes, shared fields, and disclosures.
-- **Screen selection and highlighting:** the same theme and action controls, while retaining the native overlay and input behaviour needed for screen coordinates and keyboard shortcuts.
-
-## Motion and desktop boundaries
-
-Text inputs, date inputs and selectors show no coloured focus ring or glow. Buttons retain keyboard focus feedback. Astryx owns selection and dialog behaviour; Bito's existing Motion transitions own the character, shared panel movement, chat reflow, and resize gestures. Reduced motion remains respected.
-
-The entire chat content stays inside its animated, clipped panel. The desktop project picker remains inside that surface instead of moving to a body portal, so Electron's transparent-window hit regions still match what the user sees.
-
-The weekly schedule and progress graph remain data-driven Bito visualisations; Astryx does not supply a replacement chart primitive. Character rendering, screenshot coordinates, and native window geometry remain separate from the design system.
+- **Desktop Pet Overlay (`src/App.tsx`, `src/style.css`):** High-contrast floating quick-action bar (Chat, Pilih Area, Fokus, Ruang Kerja) with status badges for Fokus and Jangan Ganggu.
+- **Desktop Chat (`src/DesktopChat.tsx`, `src/ResponseCards.tsx`):** Contained bottom composer, inline message copy/save actions on hover and `:focus-within`, 1-click screen-capture confirmation pill before sending desktop pixels, undoable memory cards, and dedicated crisis helpline cards.
+- **Workspace (`src/ProjectWindow.tsx`, `src/WorkspaceTasks.tsx`, `src/ProjectBoard.tsx`):** Unified workspace for quick tasks, multi-step projects (with 1-step checklist quick-start or AI draft review), `.ics` calendar export, and dedicated Focus Timer view (`FocusSessionView`) with companion presence and tabular countdown.
+- **Settings (`src/SettingsWindow.tsx`):** Grouped preference cards with explicit `Tampilan` (`Mengikuti sistem / Terang / Gelap`), companion hours, memory management, local data controls, and 2-step account deletion.
+- **Onboarding (`src/Onboarding.tsx`):** Three-step introduction with step indicator dots and a keyboard-accessible `"Lanjut ke desktop"` primary button alongside the optional drag-to-desktop gesture.
+- **Motion & Accessibility:** Every interactive element exposes a clear `:focus-visible` ring (`2px solid var(--bito-focus-ring)`), minimum hit targets, and immediate `0ms` collapse when `prefers-reduced-motion: reduce` or `settings.reducedMotion` is active.
 
 ## Verification
 
-`tests/astryx-ui.test.ts` mounts real controls to check form submission, disabled actions, text editing, IME composition, refs, required validation, length limits, selectors, dates, reversible checkboxes, disclosure behaviour, main-region semantics, and dialog navigation. The existing domain tests continue to cover project progress, calendar sync, chat, and screen assistance.
-
-Use `npm run dev` for local revision mode, `npm run check` for TypeScript, and `npm test` for automated tests. Packaging and release publishing are separate from this UI migration.
-
-## Todoist task-flow study · 4 November 2026
-
-The Mobbin references inspected were [Todoist task capture and due date](https://mobbin.com/flows/b6bea42f-cfe5-4774-b28b-43fa0aa57dbb?tab=screens) and [Todoist grouped project work](https://mobbin.com/screens/46dab991-e521-44bc-984a-c936e31610a8). Bito adopts the compact title/description capture, date and priority controls, labeled sidebar, grouped rows and add action within each group. “Tambah kelompok” has one entry in the project toolbar; groups can start empty and their title/date can be edited without rebuilding the AI plan. It retains Astryx controls, Indonesian copy, the blue action color and the green companion.
-
-`TaskComposer` is shared by quick add, grouped project tasks and Tugas singkat. A task can have its own date and P1–P4 priority. Clearing its date explicitly leaves it undated; old tasks without an individual date continue to inherit their group date. Date changes do not count as task completion. AI revisions preserve dates and priorities for retained task IDs. Quick tasks appear in the local schedule; Google Calendar synchronization continues to apply to project entries.
-
-Inline capture remains under its group and pins the destination to that group. Failed submissions retain input, concurrent submissions are guarded, and leaving populated forms requires an explicit discard.
-
-## Whole-app audit · 5 November 2026
-
-The second Mobbin study inspected the Todoist references above, [inline task capture](https://mobbin.com/flows/1a8b1a3a-5b67-49b1-a047-32086af027d5?tab=screens), and [Linear's grouped settings](https://mobbin.com/screens/9ac66835-aa7f-469f-ace3-a915c2cf2dfd). These are composition references, not evidence that copying every control would improve Bito. The implemented decisions are:
-
-- **One action per scope:** the sidebar creates projects, the project toolbar creates groups, and each group creates its own tasks. Remove duplicate project/group entry points and repeated group summaries in the rail. Inline capture does not ask users to choose the destination they just clicked.
-- **Honest state:** viewing an archived project is read-only and does not restore it or change chat context. Restoration is explicit. Progress always shows completion counts and a bar; a historical graph appears only when there are at least two observations.
-- **Useful metadata:** overdue incomplete tasks use a distinct date color; inherited dates have explanatory titles; the weekly schedule includes month/year. Default task priority is named “Tanpa prioritas.” Project forms say “Nama proyek.”
-- **Predictable feedback:** failed preference saves keep users on their current page. Shared dialog/calendar labels use Indonesian. Chat shows a writing placeholder and a folder icon for opening projects; switching chat context remains a separate overlay action.
-- **Quiet focus:** remove colored glow from every chat composer layer, including the library's layout wrapper and the outer reveal container. Buttons retain keyboard focus indication.
-
-No new navigation destinations, analytics cards, or decorative controls were added solely to resemble the references. Astryx remains the component base.
+- `npm run check` runs strict TypeScript validation across renderer, Electron main, and shared Edge Function schemas.
+- `npm test` runs `tests/astryx-ui.test.ts`, `tests/composer-style.test.ts`, `tests/sprint1-remediation.test.ts`, and domain suites covering controls, keyboard navigation, workspace flows, security boundaries, and persistence.

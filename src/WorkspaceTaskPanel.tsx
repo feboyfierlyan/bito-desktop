@@ -1,5 +1,5 @@
-import { X, Pencil, Info, Check, RotateCcw, MessageCircle } from "lucide-react";
-import { Popover } from "@astryxdesign/core/Popover";
+import { X, Pencil, Info, Check, RotateCcw, MessageCircle, Trash2 } from "lucide-react";
+import { BitoPopover as Popover } from "./ui/primitives";
 import { useEffect, useRef, useState } from "react";
 import { BitoButton, BitoInput, BitoTextArea } from "./ui/controls";
 import { WorkspaceDialog } from "./WorkspaceDialog";
@@ -45,6 +45,7 @@ export function WorkspaceTaskPanel({
   const [sessionDirty, setSessionDirty] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [criteriaOpen, setCriteriaOpen] = useState(false);
   const [discard, setDiscard] = useState(false);
   const held = useRef(false);
   const baseline = useRef({
@@ -135,7 +136,7 @@ export function WorkspaceTaskPanel({
         <p>Tugas sudah tidak tersedia.</p>
       ) : (
         <div className="workspace-task-panel">
-          <small>{project?.name || "Tugas pribadi"}</small>
+          <small>{project?.name || "Tugas singkat"}</small>
           {editing ? (
             <form
               onSubmit={async (e) => {
@@ -247,6 +248,8 @@ export function WorkspaceTaskPanel({
                 {"doneWhen" in task && task.doneWhen && (
                   <Popover
                     label="Kriteria selesai"
+                    isOpen={criteriaOpen}
+                    onOpenChange={setCriteriaOpen}
                     placement="below"
                     alignment="end"
                     width={260}
@@ -330,6 +333,30 @@ export function WorkspaceTaskPanel({
                   >
                     <MessageCircle size={16} />
                     Minta bantuan Bito
+                  </BitoButton>
+                )}
+                {editable && !sameSession && (
+                  <BitoButton
+                    type="button"
+                    variant="danger"
+                    className="task-delete-action"
+                    disabled={locked || sessionDirty}
+                    onClick={async () => {
+                      const r = await run(
+                        project ? "project-task-delete" : "task-delete",
+                        project
+                          ? {
+                              id: project.id,
+                              taskId: task.id,
+                              version: project.version,
+                            }
+                          : task.id,
+                      );
+                      if (r.ok) onClose();
+                    }}
+                  >
+                    <Trash2 size={15} />
+                    Hapus tugas
                   </BitoButton>
                 )}
               </div>

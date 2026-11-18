@@ -943,7 +943,8 @@
   .project-workspace:is(
     [data-view="today"],
     [data-view="tasks"],
-    [data-view="schedule"]
+    [data-view="schedule"],
+    [data-view="focus"]
   )
   > .project-topbar {
   display: none;
@@ -2474,4 +2475,38 @@
 }
 .workspace-directory .project-list-status[data-status="completed"] {
   color: var(--task-accent);
+}
+
+
+/* v1.0 Workspace Enhancements: 1-Click Quick Plan, Empty CTA, Calendar .ics & Delete Confirm */
+.workspace-first-actions {
+  margin-top: 1.25rem;
+}
+
+.project-quick-start-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-radius: var(--bito-radius-md);
+  background: var(--bito-bg-canvas);
+  border: 1px solid var(--bito-border-subtle);
+  font-size: var(--bito-text-sm);
+  color: var(--bito-text-secondary);
+}
+
+.calendar-ics-export {
+  margin: 0.5rem 0 0.75rem;
+}
+
+.project-delete-confirm {
+  padding: 1rem 1.15rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: var(--bito-text-base);
+  line-height: 1.55;
+  color: var(--bito-text-secondary);
 }

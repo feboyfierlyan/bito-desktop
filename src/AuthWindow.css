@@ -21,6 +21,10 @@
   pointer-events: none;
   user-select: none;
 }
+:root[data-theme="dark"] .auth-artwork {
+  opacity: 0.14;
+  filter: invert(0.92) hue-rotate(180deg);
+}
 .auth-drag-area {
   position: absolute;
   inset: 0 0 auto;
@@ -209,4 +213,19 @@
 }
 body[data-motion="reduced"] .auth-spinner {
   animation: none;
+}
+
+
+.auth-privacy-note {
+  margin: 0.65rem 0 0;
+  font-size: var(--bito-text-2xs);
+  line-height: 1.45;
+  color: var(--bito-text-secondary);
+  text-align: center;
+}
+
+.auth-privacy-note a {
+  color: var(--bito-focus-ring);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { InternationalizationProvider } from "@astryxdesign/core/i18n";
-import { Popover } from "@astryxdesign/core/Popover";
-import { Calendar, type ISODateString } from "@astryxdesign/core/Calendar";
+import {
+  BitoCalendar as Calendar,
+  BitoPopover as Popover,
+  type ISODateString,
+} from "./ui/primitives";
 import {
   CalendarDays,
   Sun,
@@ -78,22 +80,12 @@ export function TaskDatePicker({
             );
           })}
           <div className="task-calendar-grid">
-            <InternationalizationProvider
-              locale="id-ID"
-              overrides={{
-                "id-ID": {
-                  "@astryx.calendar.previousMonth": "Bulan sebelumnya",
-                  "@astryx.calendar.nextMonth": "Bulan berikutnya",
-                },
-              }}
-            >
-              <Calendar
-                value={(value || null) as ISODateString | null}
-                max={(max || undefined) as ISODateString | undefined}
-                weekStartsOn="mon"
-                onChange={(date) => choose(date)}
-              />
-            </InternationalizationProvider>
+            <Calendar
+              value={(value || null) as ISODateString | null}
+              max={(max || undefined) as ISODateString | undefined}
+              weekStartsOn="mon"
+              onChange={(date) => choose(date)}
+            />
           </div>
           <BitoButton type="button" onClick={() => choose(null)}>
             <X size={15} />

@@ -76,20 +76,30 @@ export function ProjectGallery({
             <ol>
               <li>
                 <span>01</span>
-                <h3>Ceritakan tugasmu</h3>
-                <p>Tulis tujuan atau lampirkan instruksinya.</p>
+                <h3>Ceritakan tujuanmu</h3>
+                <p>Tulis target atau lampirkan dokumen (.pdf, .docx, .xlsx).</p>
               </li>
               <li>
                 <span>02</span>
-                <h3>Susun langkah bersama</h3>
-                <p>Tinjau rencana Bito sebelum mulai.</p>
+                <h3>Pecah jadi kelompok & tugas</h3>
+                <p>Langsung isi daftar tugas atau minta Bito bantu menyusun.</p>
               </li>
               <li>
                 <span>03</span>
-                <h3>Lanjut sedikit demi sedikit</h3>
-                <p>Simpan progres dan lanjutkan kapan siap.</p>
+                <h3>Mulai sesi fokus 15 menit</h3>
+                <p>Cicil satu langkah kecil dulu tanpa beban.</p>
               </li>
             </ol>
+            <div className="workspace-first-actions">
+              <BitoButton
+                type="button"
+                variant="primary"
+                disabled={busy}
+                onClick={onCreate}
+              >
+                Buat proyek pertama
+              </BitoButton>
+            </div>
           </section>
         ) : (
           <section

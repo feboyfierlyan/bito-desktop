@@ -307,7 +307,9 @@ body[data-motion="reduced"] .setup-word {
 .setup-character {
   display: block;
   padding: 0;
-  background: none;
+  background: var(--bito-bg-surface);
+  border: 1px solid var(--bito-border-subtle);
+  overflow: hidden;
   cursor: pointer;
   border-radius: 36px;
 }
@@ -353,7 +355,8 @@ body[data-motion="reduced"] .setup-word {
   flex-shrink: 0;
   overflow: hidden;
   margin-inline: -13px;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 64px, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 14px, #000 72px, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 14px, #000 72px, #000 100%);
 }
 .setup-transcript-stack {
   position: absolute;
@@ -398,12 +401,23 @@ body[data-motion="reduced"] .setup-word {
 .setup-character-ready:active {
   cursor: grabbing;
 }
-.setup-character:focus,
 .setup-character:focus-visible,
-.pet.presenting:focus,
 .pet.presenting:focus-visible {
-  outline: none;
-  box-shadow: none;
+  outline: 2px solid var(--bito-focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--bito-radius-md);
+}
+
+.setup-desktop-cta {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.35rem;
+}
+
+.setup-finish-btn {
+  border-radius: var(--bito-radius-pill);
+  padding: 0.55rem 1.2rem;
+  min-height: 2.5rem;
 }
 .setup-navigation {
   z-index: 10;

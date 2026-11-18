@@ -5,6 +5,9 @@ export type Cipher = {
   encrypt: (value: string) => Promise<Uint8Array>;
   decrypt: (value: Buffer) => Promise<string>;
 };
+
+const VERIFIED_USER_KEY = "bito:verified-user";
+
 // Supabase's session AND PKCE verifier stay in the main process, encrypted by
 // the operating system. Writes are serialized and atomic; no plaintext fallback.
 export class EncryptedSessionStorage implements SupportedStorage {
@@ -25,6 +28,8 @@ export class EncryptedSessionStorage implements SupportedStorage {
           );
       }
     })();
+    // Prevent unhandled-rejection noise before a caller awaits getItem/setItem.
+    this.loaded.catch(() => {});
   }
   async getItem(key: string) {
     await this.loaded;
@@ -40,10 +45,51 @@ export class EncryptedSessionStorage implements SupportedStorage {
     delete this.values[key];
     await this.save();
   }
+  async getVerifiedUser(): Promise<{ id: string; email: string } | null> {
+    try {
+      const raw = await this.getItem(VERIFIED_USER_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (
+        parsed &&
+        typeof parsed.id === "string" &&
+        /^[0-9a-f-]{36}$/i.test(parsed.id) &&
+        typeof parsed.email === "string" &&
+        parsed.email.includes("@")
+      ) {
+        return { id: parsed.id, email: parsed.email };
+      }
+    } catch {
+      /* Invalid or locked cache simply falls back to sign-in. */
+    }
+    return null;
+  }
+  async setVerifiedUser(user: { id: string; email: string } | null) {
+    if (!user) {
+      await this.removeItem(VERIFIED_USER_KEY);
+      return;
+    }
+    await this.setItem(
+      VERIFIED_USER_KEY,
+      JSON.stringify({ id: user.id, email: user.email }),
+    );
+  }
   async clear() {
-    await this.loaded;
+    // BITO-022: Sign-out / clear MUST succeed even if initial keychain decryption
+    // rejected at boot, so a user with a changed/locked keychain is never trapped.
+    await this.loaded.catch(() => {});
     this.values = {};
-    await this.save();
+    this.loaded = Promise.resolve();
+    const next = this.writes
+      .catch(() => {})
+      .then(async () => {
+        await unlink(`${this.path}.tmp`).catch(() => {});
+        await unlink(this.path).catch((e) => {
+          if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+        });
+      });
+    this.writes = next;
+    await next;
   }
   private save() {
     const snapshot = JSON.stringify(this.values);
@@ -52,7 +98,7 @@ export class EncryptedSessionStorage implements SupportedStorage {
       .then(async () => {
         if (snapshot === "{}") {
           await unlink(this.path).catch((e) => {
-            if (e.code !== "ENOENT") throw e;
+            if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
           });
           return;
         }

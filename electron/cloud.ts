@@ -68,42 +68,68 @@ export class CloudError extends Error {
 export function cloudErrorText(code: string): string {
   const messages: Record<string, string> = {
     access_denied:
-      "Akun ini belum mendapat akses demo Bito. Hubungi pemilik demo.",
+      "Akun ini belum terdaftar di gelombang akses awal Bito. Gunakan akun lain yang sudah terdaftar.",
     sign_in_required: "Sesi masuk berakhir. Silakan masuk lagi.",
-    daily_limit: "Jatah demo hari ini sudah habis. Coba lagi besok.",
-    rate_limit: "Bito sedang menerima beberapa permintaan. Coba sebentar lagi.",
+    daily_limit:
+      "Kuota chat AI harianmu sudah penuh. Tugas & pengingat lokal tetap aktif—kuota terisi lagi besok.",
+    rate_limit:
+      "Terlalu banyak permintaan dalam waktu singkat. Tunggu sekitar 30 detik lalu coba lagi.",
     search_unavailable:
-      "Aku belum berhasil memastikan hasil pencariannya. Coba lagi sebentar, ya.",
+      "Pencarian web sedang tidak merespons. Coba lagi sebentar atau lanjutkan tanpa pencarian web.",
     provider_limit:
-      "Kuota layanan AI sedang tercapai. Coba lagi sebentar lagi.",
-    busy: "Ada permintaan yang masih berjalan. Coba sebentar lagi.",
-    demo_paused: "Demo sedang dijeda oleh pemiliknya.",
-    server_config: "Layanan Bito belum selesai disiapkan oleh pemilik demo.",
+      "Layanan AI sedang padat sementara. Tunggu sebentar lalu coba lagi.",
+    provider_error:
+      "Server AI sedang mengalami gangguan sementara (koneksi internetmu aman). Coba kirim ulang sebentar lagi.",
+    server_error:
+      "Layanan cloud Bito sedang mengalami kendala sementara. Coba lagi beberapa saat.",
+    busy: "Masih ada permintaan yang sedang berjalan. Tunggu selesai atau klik Hentikan.",
+    demo_paused: "Layanan AI cloud sedang dalam pemeliharaan sementara.",
+    server_config: "Layanan cloud Bito belum selesai dikonfigurasi.",
     invalid_job:
-      "Tindakan ini sudah selesai atau kedaluwarsa. Kirim permintaan baru.",
+      "Permintaan ini sudah selesai atau kedaluwarsa. Kirim pesan baru.",
     request_exists: "Permintaan ini sudah diterima. Tindakan tidak diulang.",
+    invalid_request: "Format permintaan belum sesuai. Coba kirim ulang.",
+    method_not_allowed: "Metode permintaan tidak didukung.",
+    request_too_large:
+      "Pesan atau lampiran terlalu besar untuk satu kiriman. Kurangi ukuran file lalu coba lagi.",
     context_too_large:
       "Pesan atau dokumen terlalu panjang. Coba bagian yang lebih pendek.",
     response_limit:
-      "Jawaban mencapai batas demo. Minta Bito melanjutkan bagian yang diperlukan.",
+      "Jawaban berhenti karena mencapai batas panjang pesan. Ketik 'Lanjutkan' untuk meneruskan bagian berikutnya.",
+    response_too_large:
+      "Balasan terlalu panjang untuk satu putaran. Minta Bito memecahnya menjadi bagian lebih kecil.",
+    incomplete_response:
+      "Balasan AI terhenti sebelum selesai dari sisi server. Klik Coba lagi untuk mengulang.",
+    empty_response:
+      "AI belum menghasilkan jawaban untuk pesan ini. Klik Coba lagi atau perjelas pertanyaanmu.",
+    invalid_stream:
+      "Aliran balasan AI terputus dari server. Klik Coba lagi untuk mengulang.",
+    invalid_tool:
+      "Tindakan otomatis gagal diproses. Ulangi permintaan dengan kalimat yang lebih spesifik.",
+    invalid_tool_result:
+      "Hasil tindakan lokal belum terbaca oleh AI. Coba kirim ulang permintaanmu.",
     blocked:
-      "Bito belum bisa menjawab permintaan ini. Coba susun ulang pesannya.",
+      "Maaf, Bito belum bisa memproses pesan tersebut karena batasan keamanan topik. Jika kamu sedang mengalami situasi berat atau darurat, hubungi Kemenkes Healing119 di 119 ext. 8 (healing119.id) atau darurat 112.",
     interrupted: "Jawaban dihentikan.",
-    screen_unavailable: "Bantuan layar belum tersedia. Coba lagi sebentar, ya.",
+    screen_unavailable:
+      "Panduan layar sedang tidak merespons. Coba lagi sebentar.",
     invalid_material:
-      "File belum bisa dibaca. Gunakan PDF/gambar yang valid, maksimal 6 MB.",
+      "Lampiran belum terbaca. Gunakan PDF, DOCX, XLSX, gambar (maks. 6 MB), atau teks (maks. 192 KB).",
     material_read_failed:
-      "Bahan belum berhasil dibaca. Coba file yang lebih jelas atau beberapa halaman pentingnya.",
+      "Lampiran belum berhasil dibaca. Coba file yang tidak terkunci sandi atau bagian halamannya.",
     invalid_grounding:
-      "Aku belum bisa memastikan bagian layarnya. Coba tanyakan lebih spesifik, ya.",
+      "Bagian layar belum berhasil dikenali. Coba pilih area yang lebih spesifik.",
     oauth_timeout: "Waktu masuk habis. Silakan coba lagi.",
     oauth_port:
-      "Jendela masuk masih dipakai aplikasi lain. Tutup lalu coba lagi.",
+      "Jendela masuk masih dipakai proses lain. Tutup lalu coba lagi.",
+    oauth_cancelled: "Proses masuk dengan Google dibatalkan.",
     oauth_failed: "Belum berhasil masuk dengan Google. Coba lagi.",
+    offline:
+      "Koneksi internet terputus. Proyek & tugas lokalmu tetap bisa dibuka.",
   };
   return (
     messages[code] ||
-    "Bito belum bisa terhubung. Periksa internet, lalu coba lagi."
+    "Bito belum bisa terhubung ke server. Periksa koneksi internet, lalu coba lagi."
   );
 }
 
@@ -123,7 +149,13 @@ export class BitoCloud {
     async () => {};
   constructor(
     readonly config: CloudConfig,
-    private storage: SupportedStorage & { clear?: () => Promise<void> | void },
+    private storage: SupportedStorage & {
+      clear?: () => Promise<void> | void;
+      getVerifiedUser?: () => Promise<{ id: string; email: string } | null>;
+      setVerifiedUser?: (
+        user: { id: string; email: string } | null,
+      ) => Promise<void>;
+    },
     private fetcher: typeof fetch = fetch,
     private completionAssets: CompletionAssets = {},
   ) {
@@ -178,7 +210,23 @@ export class BitoCloud {
     if (error || !data.session) return;
     try {
       return await this.check();
-    } catch {
+    } catch (e) {
+      if (
+        e instanceof CloudError &&
+        ["access_denied", "sign_in_required"].includes(e.code)
+      )
+        return;
+      // BITO-007: Unlock verified local vault when cold-booting offline.
+      const cached = await this.storage.getVerifiedUser?.().catch(() => null);
+      if (cached && (!data.session.user?.id || cached.id === data.session.user.id)) {
+        this.set({
+          status: "offline",
+          userId: cached.id,
+          email: cached.email,
+          error: cloudErrorText("offline"),
+        });
+        return cached;
+      }
       return;
     }
   }
@@ -233,18 +281,30 @@ export class BitoCloud {
         if (!user?.id || !user.email) throw new CloudError("server_error");
         if (this.signedOut || generation !== this.loginGeneration)
           throw new CloudError("sign_in_required");
+        await this.storage.setVerifiedUser?.(user).catch(() => {});
         this.set({ status: "ready", userId: user.id, email: user.email });
         return user;
       } catch (e) {
-        if (!(
+        if (
           e instanceof CloudError &&
           ["access_denied", "sign_in_required"].includes(e.code)
-        ))
+        ) {
+          await this.storage.setVerifiedUser?.(null).catch(() => {});
+          if (e.code === "access_denied") {
+            const session = await this.client.auth
+              .getSession()
+              .catch(() => ({ data: { session: null } }));
+            const rejectedEmail = session.data.session?.user?.email;
+            if (rejectedEmail)
+              this.set({ status: "denied", email: rejectedEmail, error: e.message });
+          }
+        } else {
           this.set({
             status: "offline",
             error:
               e instanceof CloudError ? e.message : cloudErrorText("offline"),
           });
+        }
         throw e;
       } finally {
         this.refreshing = undefined;
@@ -270,6 +330,15 @@ export class BitoCloud {
       ) {
         response.writeHead(404);
         response.end();
+        return;
+      }
+      if (callback.searchParams.get("error")) {
+        this.cancelLogin();
+        this.set({
+          status: "signed-out",
+          error: cloudErrorText("oauth_cancelled"),
+        });
+        void this.finishLoginPage(response, "error");
         return;
       }
       const code = callback.searchParams.get("code");
@@ -367,10 +436,18 @@ export class BitoCloud {
   async signOut() {
     this.cancelLogin();
     this.signedOut = true;
-    // Clear locally even if the network is offline. Tokens are never returned to UI.
+    // Attempt server token revocation with short timeout, then always wipe local storage.
+    await Promise.race([
+      this.client.auth.signOut().catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
     await this.client.auth.signOut({ scope: "local" }).catch(() => {});
     await this.storage.clear?.();
     this.set({ status: "signed-out", email: undefined, userId: undefined });
+  }
+  async deleteAccount() {
+    await this.request({ action: "delete_account" });
+    await this.signOut();
   }
   async analyzeMaterial(options: {
     requestId: string;

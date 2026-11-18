@@ -58,12 +58,14 @@
   position: absolute;
   inset: 0;
   border-radius: 8px;
-  background: var(--bito-surface-warm);
+  background: var(--bito-bg-elevated);
+  border: 1px solid var(--bito-border-subtle);
+  box-shadow: var(--bito-shadow-xs);
   z-index: -1;
 }
 .pref-version {
   margin-top: auto;
-  padding: 20px 12px 0;
+  padding: 20px 12px 22px;
   font-size: 10px;
   color: var(--bito-secondary);
 }
@@ -434,4 +436,37 @@
   .pref-spinner {
     animation: none;
   }
+}
+
+
+/* v1.0 Settings Enhancements: Inline Memory Edit & Actions */
+.pref-version {
+  font-size: var(--bito-text-2xs);
+}
+
+.pref-memory-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pref-memory-inactive {
+  font-size: var(--bito-text-2xs);
+  color: var(--bito-text-muted);
+}
+
+.pref-memory-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.pref-memory-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
 }

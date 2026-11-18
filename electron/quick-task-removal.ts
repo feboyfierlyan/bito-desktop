@@ -10,15 +10,15 @@ export function quickTaskRemovalScope(text: string): "all" | "done" | undefined 
   // "remove semua tugas yang ada di quick task". Requiring both a leading
   // action and the named list avoids interpreting questions or project edits
   // as deletion requests. Scope is still reviewed in a confirmation card.
-  const action = /^(?:bito[, ]+)?(?:(?:tolong|please|aku mau|bantu|bisa|boleh)\s+)*(?:hapus(?:kan|in)?|remove|delete|bersihkan|clear)\s+(.+)$/.exec(request);
+  const action = /^(?:bito[, ]+)?(?:(?:tolong|please|(?:aku|saya|gue|gw|gua)\s+(?:mau|pengen|ingin)|bantu(?:in)?|bisa|boleh)\s+)*(?:hapus(?:kan|in)?|remove|delete|bersih(?:kan|in)|clear)\s+(.+)$/.exec(request);
   if (!action) return;
-  let target = action[1].replace(/(?:\s+(?:dong|ya|please|sekarang))+$/g, "");
-  const done = /\b(?:sudah selesai|udah selesai|selesai|completed|done)\b/.test(target);
+  let target = action[1].replace(/(?:\s+(?:dong|ya|please|sekarang|ku|aku|saya|gue|gw|gua))+$/g, "");
+  const done = /\b(?:sudah selesai|udah selesai|udah kelar|sudah kelar|selesai|kelar|completed|done)\b/.test(target);
   const all = /\b(?:semua(?:nya)?|seluruh|all)\b/.test(target);
   target = target
-    .replace(/\b(?:semua(?:nya)?|seluruh|all|sudah selesai|udah selesai|selesai|completed|done)\b/g, " ")
+    .replace(/\b(?:semua(?:nya)?|seluruh|all|sudah selesai|udah selesai|udah kelar|sudah kelar|selesai|kelar|completed|done|yg|yang)\b/g, " ")
     .replace(/\s+/g, " ").trim();
-  if (!/^(?:(?:tugas|tasks?|item)\s+)?(?:(?:yang\s+)?(?:ada\s+)?(?:di|dalam|dari|in|from)\s+)?(?:daftar\s+)?(?:quick[ -]?tasks?|tugas singkat)(?:\s+(?:yang|nya))?$/.test(target)) return;
+  if (!/^(?:(?:tugas|tasks?|item)\s+)?(?:(?:ada\s+)?(?:di|dalam|dari|in|from)\s+)?(?:daftar\s+)?(?:quick[ -]?tasks?|tugas singkat)(?:\s+(?:ku|aku|saya|gue|gw|gua|nya))?$/.test(target)) return;
   return done ? "done" : all ? "all" : undefined;
 }
 

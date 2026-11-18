@@ -22,15 +22,22 @@ export function savedWork(state: ProjectState & { tasks: Task[] }) {
 
 // Only direct inventory requests bypass generation. Advice, edits, screen
 // questions and task creation still go through the normal assistant flow.
+const SELF_POSSESSIVE = "(?:ku| aku| saya| gue| gw| gua)";
+const SELF_SUBJECT = "(?:aku|saya|gue|gw|gua)";
+
+const TIME_SCOPE = "(?: sekarang)?";
+
 function legacyInventory(text: string) {
   const t = text
     .toLowerCase()
     .replace(/[?!.,]/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  return /^(?:(?:bito[, ]+)?(?:tugas(?:ku| aku| saya)?|proyek(?:ku| aku| saya)?) (?:ada )?apa (?:aja|saja)(?: sekarang)?|apa (?:aja|saja) (?:tugasku|tugas aku|tugas saya|proyekku)|(?:lihat|tampilkan|cek|daftar)(?:in)? (?:semua )?(?:tugas(?:ku| aku| saya)?|proyek(?:ku| aku| saya)?))$/.test(
-    t,
-  );
+  return new RegExp(
+    `^(?:(?:bito[, ]+)?(?:tugas${SELF_POSSESSIVE}?|proyek${SELF_POSSESSIVE}?) (?:ada )?apa (?:aja|saja)${TIME_SCOPE}|` +
+      `apa (?:aja|saja) (?:tugas${SELF_POSSESSIVE}|proyek${SELF_POSSESSIVE})${TIME_SCOPE}|` +
+      `(?:lihat|tampilkan|cek|daftar)(?:in)? (?:semua )?(?:tugas${SELF_POSSESSIVE}?|proyek${SELF_POSSESSIVE}?)${TIME_SCOPE})$`,
+  ).test(t);
 }
 
 export type SavedWorkView = "tasks" | "schedule" | "priority";
@@ -43,21 +50,21 @@ export function savedWorkQuery(text: string): SavedWorkView | null {
     .replace(/^bito /, "");
   if (
     legacyInventory(t) ||
-    /^(?:aku|saya) (?:ada |punya )?tugas apa (?:aja|saja)(?: sekarang)?$/.test(
-      t,
-    )
+    new RegExp(
+      `^${SELF_SUBJECT} (?:ada |punya )?tugas apa (?:aja|saja)${TIME_SCOPE}$`,
+    ).test(t)
   )
     return "tasks";
   if (
-    /^(?:(?:lihat|tampilkan|cek) )?(?:jadwal|kalender)(?: tugas(?:ku| aku| saya)?)?(?:ku| aku| saya)?(?: sekarang)?$/.test(
-      t,
-    )
+    new RegExp(
+      `^(?:(?:lihat|tampilkan|cek) )?(?:jadwal|kalender)(?: tugas${SELF_POSSESSIVE}?)?${SELF_POSSESSIVE}?${TIME_SCOPE}$`,
+    ).test(t)
   )
     return "schedule";
   if (
-    /^(?:(?:lihat|tampilkan|cek) )?(?:prioritas tugas(?:ku| aku| saya)?|tugas mana (?:yang )?(?:paling mendesak|perlu didahulukan))$/.test(
-      t,
-    )
+    new RegExp(
+      `^(?:(?:lihat|tampilkan|cek) )?(?:prioritas tugas${SELF_POSSESSIVE}?|tugas mana (?:yang )?(?:paling mendesak|perlu didahulukan))$`,
+    ).test(t)
   )
     return "priority";
   return null;

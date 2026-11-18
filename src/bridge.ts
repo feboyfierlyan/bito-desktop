@@ -9,6 +9,7 @@ let preview: Snapshot = {
   ...defaultState(),
   ...JSON.parse(localStorage.getItem("bito-preview") || "{}"),
   hasKey: false,
+  demoMode: true,
   busy: false,
   chatOpen: true,
   dragging: false,
@@ -201,9 +202,31 @@ const fallback: BitoAPI = {
     if (name === "memory-delete")
       preview.memories = preview.memories.filter((m) => m.id !== p);
     if (name === "sleep") preview.sleeping = p;
+    if (name === "send") {
+      const text = (typeof p === "string" ? p : p?.text || "").trim();
+      if (!text) return { ok: false, error: "Tulis pesan terlebih dahulu." };
+      const now = Date.now();
+      preview.messages.push({
+        id: crypto.randomUUID(),
+        projectId: preview.activeProjectId || undefined,
+        role: "user",
+        text,
+        createdAt: now,
+        status: "complete",
+      });
+      preview.messages.push({
+        id: crypto.randomUUID(),
+        projectId: preview.activeProjectId || undefined,
+        role: "assistant",
+        text: `Siap${preview.profile.name ? `, ${preview.profile.name}` : ""}! Mau kita pecah jadi langkah kecil di Ruang Kerja atau bahas bagian pentingnya dulu? (Pratinjau lokal)`,
+        createdAt: now + 1,
+        status: "complete",
+      });
+      emit();
+      return { ok: true };
+    }
     if (
       [
-        "send",
         "api-key",
         "test-ai",
         "read-document",

@@ -1441,8 +1441,9 @@
 }
 .project-topbar,
 .pref-header {
-  background: #ffffffd9;
+  background: color-mix(in srgb, var(--bito-bg-surface) 94%, transparent);
   backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bito-border-subtle);
 }
 
 .pref-nav-item.selected {

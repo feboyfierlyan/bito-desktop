@@ -5,6 +5,10 @@ import { randomUUID } from "node:crypto";
 import { newProject } from "../src/projects";
 import type { AppState } from "../src/shared";
 import { importProjectMaterial } from "./project-import";
+import {
+  extractLocalOfficeText,
+  isLocalOfficeExtension,
+} from "./local-documents";
 
 type Material = ReturnType<typeof newProject>["materials"][number];
 export type ChatFile = Pick<Material, "name" | "kind" | "warnings"> & {
@@ -61,16 +65,21 @@ export class ChatFiles {
     const name = basename(path)
       .replace(/[\u0000-\u001f]/g, "")
       .slice(0, 160);
-    const text = [".txt", ".md", ".csv", ".json", ".log"].includes(
-      extname(path).toLowerCase(),
-    );
-    if (bytes.length > (text ? 192000 : 6 * 1024 * 1024))
-      throw Error(text ? "File teks maksimal 192 KB." : "File maksimal 6 MB.");
+    const ext = extname(path).toLowerCase();
+    const plainText = [".txt", ".md", ".csv", ".json", ".log"].includes(ext);
+    const officeDoc = isLocalOfficeExtension(ext);
+    const text = plainText || officeDoc;
+    if (bytes.length > (plainText ? 192000 : 6 * 1024 * 1024))
+      throw Error(
+        plainText ? "File teks maksimal 192 KB." : "File maksimal 6 MB.",
+      );
     let excerpt: string | undefined;
-    if (text) {
+    if (plainText) {
       excerpt = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
       if (excerpt.includes("\0")) throw Error("File ini bukan dokumen teks.");
       excerpt = excerpt.slice(0, 160);
+    } else if (officeDoc) {
+      excerpt = extractLocalOfficeText(ext, bytes, 400).content.slice(0, 160);
     }
     const kind = text
       ? "text"
@@ -156,6 +165,9 @@ export class ChatFiles {
   }
   remove(ids: string[]) {
     for (const id of ids) this.files.delete(id);
+  }
+  clear() {
+    this.files.clear();
   }
   private prune() {
     for (const [id, value] of this.files)

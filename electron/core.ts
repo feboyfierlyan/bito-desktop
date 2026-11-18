@@ -10,6 +10,7 @@ export const defaultState = (): AppState => ({
   settings: {
     model: "gpt-4.1-mini",
     baseURL: "https://api.openai.com/v1",
+    theme: "system",
     alwaysOnTop: true,
     size: 180,
     reducedMotion: false,
@@ -58,6 +59,7 @@ export const settingsSchema = z.object({
       );
     }, "Gunakan HTTPS, atau HTTP localhost untuk model lokal."),
   alwaysOnTop: z.boolean(),
+  theme: z.enum(["system", "light", "dark"]).default("system"),
   size: z.number().int().min(130).max(260),
   reducedMotion: z.boolean(),
   reducedTransparency: z.boolean(),

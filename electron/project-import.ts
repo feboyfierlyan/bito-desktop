@@ -7,6 +7,10 @@ import {
   parseMaterialAnalysis,
   type MaterialAnalysis,
 } from "../src/task-material";
+import {
+  extractLocalOfficeText,
+  isLocalOfficeExtension,
+} from "./local-documents";
 import { newProject, type Project } from "../src/projects";
 import { projectCommand } from "./projects";
 export async function importProjectMaterial(options: {
@@ -54,11 +58,8 @@ export async function importProjectMaterial(options: {
   let content: string,
     warnings: string[] = [],
     kind: "text" | "pdf" | "image" = "text";
-  if (
-    [".txt", ".md", ".csv", ".json", ".log"].includes(
-      extname(path).toLowerCase(),
-    )
-  ) {
+  const ext = extname(path).toLowerCase();
+  if ([".txt", ".md", ".csv", ".json", ".log"].includes(ext)) {
     if (bytes.length > 192000) throw Error("File teks maksimal 192 KB.");
     const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     if (text.includes("\u0000")) throw Error("File ini bukan dokumen teks.");
@@ -67,6 +68,13 @@ export async function importProjectMaterial(options: {
       warnings = [
         "Hanya 48.000 karakter awal yang disimpan. Tambahkan bagian lainnya sebagai bahan terpisah bila diperlukan.",
       ];
+  } else if (isLocalOfficeExtension(ext)) {
+    if (bytes.length > MAX_TASK_FILE_BYTES)
+      throw Error("Pilih dokumen Office maksimal 6 MB.");
+    const extracted = extractLocalOfficeText(ext, bytes, 48000);
+    content = extracted.content;
+    warnings = extracted.warnings;
+    kind = "text";
   } else {
     if (bytes.length > MAX_TASK_FILE_BYTES)
       throw Error("Pilih PDF atau gambar maksimal 6 MB.");

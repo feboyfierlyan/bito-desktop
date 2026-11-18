@@ -2,7 +2,7 @@
 
 ## Download
 
-Unduh **Bito v0.6.0**, rilis Latest, dari [GitHub Releases](https://github.com/feboyfierlyan/bito-desktop/releases/latest). Installer tersedia publik; login aplikasi tetap memerlukan akun Google yang diizinkan oleh pengelola Bito.
+Unduh **Bito v0.6.3**, rilis Latest, dari [GitHub Releases](https://github.com/feboyfierlyan/bito-desktop/releases/latest). Installer tersedia publik; login aplikasi memakai akun Google yang terdaftar pada layanan Bito.
 
 - Mac M1/M2/M3/M4 dan chip Apple yang lebih baru: pilih **macOS-arm64**.
 - Mac Intel: pilih **macOS-x64**. Jenis chip terlihat di menu Apple → About This Mac.
@@ -16,18 +16,18 @@ Unduh **Bito v0.6.0**, rilis Latest, dari [GitHub Releases](https://github.com/f
 
 ## Windows
 
-1. Jalankan **Bito-0.6.0-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
+1. Jalankan **Bito-0.6.3-Windows-x64-Setup.exe**, lalu ikuti petunjuk instalasi.
 2. Installer Windows belum memiliki tanda tangan penerbit. Jika SmartScreen muncul, pastikan unduhan berasal dari repo tim sebelum memilih **More info → Run anyway**. Perangkat yang dikelola kampus mungkin memerlukan bantuan administrator.
 3. Buka Bito dari shortcut setelah instalasi selesai.
 
 ## Kenalan dengan Bito
 
-Masuk dengan Google menggunakan akun demo yang sudah diizinkan. Browser akan terbuka untuk login, lalu kamu kembali ke Bito. Beri nama panggilan, pilih gaya bicara, lalu seret Bito keluar jendela perkenalan ke desktop.
+Masuk dengan Google melalui browser sistem, lalu kamu kembali otomatis ke Bito. Beri nama panggilan, pilih gaya bicara, lalu seret Bito ke desktop atau tekan tombol **Lanjut ke desktop** (mendukung navigasi keyboard penuh).
 
-- **Klik:** buka/tutup chat.
+- **Klik / Bar Aksi Cepat:** buka chat, pilih area layar, mulai sesi fokus, atau buka Ruang Kerja.
 - **Seret:** pindahkan Bito; melepas drag tidak membuka chat.
-- **Klik kanan:** buka pilihan atau Settings.
-- **Ikon tray/menu bar:** tampilkan kembali Bito atau keluar dari aplikasi.
+- **Klik kanan:** buka menu cepat (Chat, Pilih Area, Fokus, Jangan Ganggu, Ruang Kerja, Pengaturan).
+- **Ikon tray/menu bar:** tampilkan kembali Bito, buka Ruang Kerja/Pengaturan, atau keluar dari aplikasi.
 
 Pengguna tidak perlu menambahkan API key. Jika akses ditolak, hubungi pemilik demo. Jika kuota AI sedang penuh, coba lagi nanti. Pengingat memerlukan Bito tetap berjalan.
 

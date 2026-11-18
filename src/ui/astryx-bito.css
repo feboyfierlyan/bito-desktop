@@ -1,909 +1,892 @@
-/* Bito's light theme. Public Astryx tokens and owned classes only. */
-html[data-astryx-theme="neutral"],
-[data-astryx-theme="neutral"] {
-  color-scheme: light;
-  --font-family-body: var(--bito-font);
-  --font-family-heading: var(--font-family-body);
-  --color-accent: var(--bito-ink);
-  --color-on-accent: var(--bito-surface);
-  --color-accent-muted: var(--bito-surface-muted);
-  --color-accent-hover: var(--bito-ink-soft);
-  --color-text-primary: var(--bito-ink);
-  --color-text-secondary: var(--bito-secondary);
-  --color-text-tertiary: var(--bito-muted);
-  --color-text-disabled: var(--bito-muted);
-  --color-text-accent: var(--bito-ink);
-  --color-icon-accent: var(--bito-ink);
-  --color-background: var(--bito-surface);
-  --color-background-surface: var(--bito-surface);
-  --color-background-body: var(--bito-surface-warm);
-  --color-background-popover: var(--bito-surface);
-  --color-background-card: var(--bito-surface);
-  --color-background-muted: var(--bito-surface-warm);
-  --color-background-blue: var(--bito-surface-muted);
-  --color-background-green: var(--bito-surface-muted);
-  --color-neutral: var(--bito-surface-muted);
-  --color-border: var(--bito-hairline);
-  --color-border-emphasized: var(--bito-stone);
-  --color-border-blue: var(--bito-hairline);
-  --color-success: var(--bito-success);
-  --color-success-muted: var(--bito-success-surface);
-  --color-error: var(--bito-error);
-  --radius-inner: 6px;
-  --radius-element: 8px;
-  --radius-container: 12px;
-  --radius-page: 16px;
-  --text-body-size: 0.875rem;
-  --text-body-leading: 1.5;
-  --text-label-size: 0.8125rem;
-  --text-supporting-size: 0.75rem;
-  --size-element-sm: 28px;
-  --size-element-md: 36px;
-  --size-element-lg: 44px;
-  --duration-fast: 140ms;
-  --duration-medium: 240ms;
-  --duration-slow: 440ms;
-  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --shadow-low: none;
-  --shadow-med: none;
-  --shadow-high: var(--bito-shadow-floating);
-  --blue: var(--bito-ink);
-  --blue-hover: var(--bito-ink-soft);
-  --line: var(--bito-surface-muted);
-  --muted: var(--bito-secondary);
-}
-/* The provider must not paint or alter native transparent-window geometry. */
-#root > [data-astryx-theme] {
+/* Bito v1.0 Custom Primitive Components — Zero !important, WCAG 2.2 AA */
+
+.bito-theme-root {
   display: contents;
+  color: var(--bito-text-primary);
+  font-family: var(--bito-font-sans);
 }
-/* Slot children keep the original flex layout; Astryx keeps its loading/live region. */
-.bito-button > span:has(.bito-button-content),
-.bito-button span:has(> .bito-button-content),
+
+/* -------------------------------------------------------------------------- */
+/* BitoButton (:where base layer so screen classes override without wars)     */
+/* -------------------------------------------------------------------------- */
+:where(.bito-button) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 2rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--bito-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--bito-text-primary);
+  font: 500 var(--bito-text-sm) / 1.3 var(--bito-font-sans);
+  letter-spacing: -0.004em;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition:
+    background-color var(--bito-duration-fast) var(--bito-ease-out),
+    border-color var(--bito-duration-fast) var(--bito-ease-out),
+    color var(--bito-duration-fast) var(--bito-ease-out),
+    transform var(--bito-duration-instant) var(--bito-ease-out);
+}
+
+:where(.bito-button):active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+:where(.bito-button):disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
 .bito-button-content {
   display: contents;
 }
-.bito-button {
-  height: auto;
-  min-height: 28px;
-  white-space: normal;
-  font-family: inherit;
-  font-size: inherit;
-  letter-spacing: inherit;
-  -webkit-app-region: no-drag;
-  transition:
-    background-color 140ms,
-    color 140ms,
-    border-color 140ms,
-    box-shadow 200ms;
+
+.bito-button-spinner {
+  animation: bito-spin 0.8s linear infinite;
+  flex-shrink: 0;
 }
-.bito-button:focus-visible {
-  outline: 2px solid var(--bito-focus);
-  outline-offset: 3px;
+
+.bito-button--primary {
+  background: var(--bito-accent-primary);
+  color: var(--bito-text-on-accent);
+  border-color: var(--bito-accent-primary);
 }
-.bito-button:disabled {
-  cursor: default;
+
+.bito-button--primary:hover:not(:disabled) {
+  background: var(--bito-accent-hover);
+  border-color: var(--bito-accent-hover);
 }
-.bito-button:active:not(:disabled) {
-  /* Press feedback is immediate; click still commits on release. */
-  filter: brightness(0.9);
-  transition-duration: 0ms;
+
+.bito-button--secondary {
+  background: var(--bito-bg-surface);
+  color: var(--bito-text-primary);
+  border-color: var(--bito-border-subtle);
 }
-.bito-button.primary,
-.bito-button.project-primary,
-.bito-button.board-primary {
-  background: var(--bito-ink);
-  color: var(--bito-surface);
-  border: 1px solid var(--bito-hairline);
-  box-shadow: none;
+
+.bito-button--secondary:hover:not(:disabled) {
+  background: var(--bito-bg-muted);
+  border-color: var(--bito-border-control);
 }
-.bito-button.primary:hover:not(:disabled),
-.bito-button.project-primary:hover:not(:disabled) {
-  background: var(--bito-ink);
+
+:where(.bito-button--ghost):hover:not(:disabled),
+:where(.bito-button--subtle):hover:not(:disabled) {
+  background: var(--bito-bg-muted);
 }
-.bito-button.secondary {
-  background: var(--bito-surface-warm);
-  color: var(--bito-ink-soft);
-  border: 1px solid var(--bito-hairline);
+
+.bito-button--danger {
+  background: var(--bito-status-danger-bg);
+  color: var(--bito-status-danger);
+  border-color: color-mix(in srgb, var(--bito-status-danger) 28%, transparent);
 }
-.bito-button.primary:disabled,
-.bito-button.project-primary:disabled {
-  background: var(--bito-surface-muted);
-  border-color: transparent;
-  color: var(--bito-surface);
+
+.bito-button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bito-status-danger) 16%, var(--bito-status-danger-bg));
 }
+
+/* -------------------------------------------------------------------------- */
+/* Form Fields: BitoInput, BitoTextArea, BitoSelect, BitoDateInput            */
+/* -------------------------------------------------------------------------- */
 .bito-field {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
   min-width: 0;
-  gap: 0;
 }
-.bito-field-control {
-  min-height: 40px;
-  height: auto;
-  border: 1px solid var(--bito-hairline);
-  border-radius: 8px;
-  background: var(--bito-surface);
-  padding: 9px 12px;
-  box-shadow: none;
+
+.bito-field-control,
+.bito-native-input {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--bito-radius-sm);
+  border: 1px solid var(--bito-border-subtle);
+  background: var(--bito-bg-surface);
+  color: var(--bito-text-primary);
+  font: 400 var(--bito-text-base) / 1.45 var(--bito-font-sans);
   transition:
-    border-color 160ms,
-    box-shadow 160ms,
-    background-color 160ms;
+    border-color var(--bito-duration-fast) var(--bito-ease-out),
+    box-shadow var(--bito-duration-fast) var(--bito-ease-out),
+    background-color var(--bito-duration-fast) var(--bito-ease-out);
 }
-.bito-field-control:focus-within {
-  box-shadow: none;
+
+.bito-field-control::placeholder,
+.bito-native-input::placeholder {
+  color: var(--bito-text-muted);
+  opacity: 1;
 }
-.bito-field.bito-field.bito-field input,
-.bito-field.bito-field.bito-field textarea {
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  height: auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
-  color: var(--bito-ink);
-  font: inherit;
+
+.bito-field-control:hover:not(:disabled),
+.bito-native-input:hover:not(:disabled) {
+  border-color: var(--bito-border-control);
+}
+
+.bito-field-control:focus-visible,
+.bito-native-input:focus-visible {
+  outline: 2px solid var(--bito-focus-ring);
+  outline-offset: 0;
+  border-color: var(--bito-focus-ring);
+  box-shadow: 0 0 0 3px var(--bito-focus-tint);
+}
+
+.bito-field-control[aria-invalid="true"],
+.bito-native-input[aria-invalid="true"] {
+  border-color: var(--bito-status-danger);
+}
+
+.bito-textarea-control {
+  min-height: 4.5rem;
+  resize: vertical;
   line-height: 1.55;
 }
-.bito-field.bito-field textarea {
-  resize: vertical;
-}
-.bito-field-control input::placeholder,
-.bito-field-control textarea::placeholder {
-  color: var(--bito-muted);
-}
-.bito-area-field .bito-field-control {
-  min-height: 96px;
-  align-items: stretch;
-}
-.bito-native-input {
-  accent-color: var(--bito-ink);
-}
-.bito-native-input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-}
-.bito-native-input[type="range"] {
-  padding: 0;
-  border: 0;
-}
-.bito-form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.bito-form-field > span {
-  font-size: 12px;
-  color: var(--bito-secondary);
-}
-.bito-select-field .bito-field-control {
-  width: 100%;
+
+/* Select Combobox & Listbox */
+.bito-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   text-align: left;
-}
-.bito-date-field {
-  min-width: 126px;
+  cursor: pointer;
 }
 
-/* Desktop workspace: one rail, one reading surface, details only when needed. */
-.projects-app.projects-board {
-  background: var(--bito-surface-warm);
-  color: var(--bito-ink);
-  padding: 14px 14px 14px 0;
-}
-.projects-app.astryx-app-shell {
-  flex-direction: column;
-}
-.projects-app > .astryx-layout {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-}
-.projects-app .astryx-layout-content {
-  display: flex;
-  padding: 0;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: transparent;
-}
-.projects-app .astryx-app-shell-sidenav {
-  padding: 0;
-  background: transparent;
-}
-.projects-app .board-rail {
-  height: 100%;
-}
-.projects-board .board-rail {
-  width: 72px;
-  gap: 14px;
-}
-.projects-board .board-rail-button,
-.projects-board .board-rail-profile {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  color: var(--bito-secondary);
-}
-.projects-board .board-rail-button.selected {
-  background: var(--bito-surface);
-  color: var(--bito-ink);
-  box-shadow: none;
-}
-.projects-board .board-rail-profile {
-  background: var(--bito-surface-muted);
-  border-radius: 50%;
-}
-.projects-board .project-workspace {
-  border-color: var(--bito-hairline);
-  border-radius: 16px;
-  box-shadow: none;
-}
-.projects-board .project-topbar {
-  padding: 22px 28px 18px;
-  min-height: 78px;
-}
-.projects-board .project-topbar h1 {
-  font-size: 23px;
-  letter-spacing: -0.65px;
-  font-weight: 500;
-}
-.board-gallery {
-  padding: 4px 28px 28px;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-}
-.projects-board .board-project-card {
-  border-color: var(--bito-hairline);
-  border-radius: 16px;
-  box-shadow: none;
-}
-.projects-board .board-project-card:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: var(--bito-hairline);
-  box-shadow: none;
-}
-.board-project-cover {
-  height: 138px;
-  background: var(--bito-surface-warm);
-}
-.board-project-cover.cover-1 {
-  background: var(--bito-surface-warm);
-}
-.board-project-cover.cover-2 {
-  background: var(--bito-surface-warm);
-}
-.board-project-cover.cover-3 {
-  background: var(--bito-surface-warm);
-}
-.cover-checklist {
-  transform: none;
-  top: 38px;
-  gap: 12px;
-  font-size: 11px;
-}
-.board-project-caption {
-  padding: 16px;
-  gap: 8px;
-}
-.board-project-caption strong {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-.board-project-caption > span {
-  font-size: 11px;
-  color: var(--bito-secondary);
-}
-.projects-board .board-project-add {
-  min-height: 64px;
-  border-radius: 16px;
-  border: 1px dashed var(--bito-hairline);
-  background: var(--bito-surface-warm);
-  color: var(--bito-secondary);
-}
-.projects-board .board-project-add:hover {
-  color: var(--bito-ink);
-  background: var(--bito-surface-muted);
-  border-color: var(--bito-hairline);
-}
-.bito-gallery-progress {
-  margin-top: 5px;
-}
-.bito-gallery-progress .astryx-progress-bar-track,
-.bito-gallery-progress .astryx-progress-bar-fill {
-  height: 4px;
-}
-.project-board-layout {
-  padding-inline: 28px;
-  gap: 24px;
-}
-.board-calendar,
-.board-progress-chart,
-.board-milestones {
-  border-color: var(--bito-hairline);
-  border-radius: 12px;
-  background: var(--bito-surface);
-}
-.board-calendar {
-  box-shadow: none;
-}
-.board-calendar header {
-  border-bottom-color: var(--bito-hairline);
-}
-.board-task-group {
-  margin-top: 24px;
-}
-.board-task-row {
-  border-color: var(--bito-hairline);
-  transition: background-color 160ms;
-}
-.board-task-row:hover {
-  background: var(--bito-surface-muted);
-}
-.board-checkbox {
-  border-radius: 6px;
-}
-.board-task-row.is-done .board-checkbox {
-  background: var(--bito-ink);
-  border-color: var(--bito-hairline);
-  color: var(--bito-surface);
-}
-.board-task-title {
-  line-height: 1.5;
-}
-.board-progress-chart h2,
-.board-milestones h2 {
-  font-weight: 500;
-}
-.bito-empty-state {
-  grid-column: 1 / -1;
-  min-height: 220px;
-  align-self: center;
-}
-
-/* Settings share the same controls, density and focus treatment. */
-.preferences {
-  color: var(--bito-ink);
-  background: var(--bito-surface);
-}
-.pref-sidebar {
-  background: var(--bito-surface-warm);
-  border-color: var(--bito-hairline);
-}
-.pref-nav-item {
-  height: 40px;
-  justify-content: flex-start;
-  color: var(--bito-secondary);
-}
-.pref-nav-item:hover {
-  background: var(--bito-surface-muted);
-}
-.pref-nav-selection {
-  background: var(--bito-surface-warm);
-}
-.pref-header {
-  padding-bottom: 22px;
-}
-.pref-group h2 {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--bito-secondary);
-}
-.pref-group-body {
-  background: var(--bito-surface);
-  border: 1px solid var(--bito-hairline);
-  border-radius: 12px;
-  box-shadow: none;
-}
-.bito-preference-switch {
-  padding: 16px;
-  min-height: 62px;
-}
-.bito-preference-switch + .bito-preference-switch {
-  border-top: 1px solid var(--bito-hairline);
-}
-.bito-preference-switch .astryx-switch-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--bito-ink-soft);
-}
-.bito-preference-switch .astryx-switch {
-  flex: none;
-}
-.preferences .pref-field {
-  padding: 16px;
-}
-.preferences .pref-field > span {
-  color: var(--bito-secondary);
-}
-.pref-personality-grid .bito-button {
-  border-radius: 12px;
-}
-
-/* Auth and onboarding retain their shared, already-loaded character. */
-.auth-google.bito-button {
-  border-radius: 12px;
-  background: var(--bito-surface-warm);
-  color: var(--bito-ink);
-  border: 1px solid var(--bito-hairline);
-  box-shadow: none;
-}
-.auth-google.bito-button:hover:not(:disabled) {
-  background: var(--bito-surface-muted);
-  border-color: var(--bito-hairline);
-}
-.auth-card {
-  border-color: var(--bito-hairline);
-  box-shadow: none;
-}
-.onboarding .bito-button,
-.onboard .bito-button {
-  font-family: inherit;
-}
-.setup-composer > .bito-field {
-  flex: 1;
-  min-width: 0;
-}
-.setup-composer .bito-field-control {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  min-height: 0;
-}
-.setup-composer .bito-field input {
-  font-size: inherit;
-}
-
-/* Chat remains a single clipped surface so content follows the panel motion. */
-.desktop-chat {
-  --desktop-blue: var(--bito-ink);
-}
-.desktop-chat-panel {
-  border-radius: 16px;
-}
-.desktop-chat-surface {
-  background: #fffffffc;
-  border: 1px solid var(--bito-hairline);
-  box-shadow: inset 0 1px 0 #ffffff80;
-}
-.desktop-chat .desktop-message.assistant .bubble {
-  --bubble-fill: var(--bito-surface-warm);
-  color: var(--bito-ink);
-}
-.desktop-chat .desktop-message.user .bubble {
-  --bubble-fill: var(--bito-ink);
-}
-.desktop-chat .response-card {
-  border-radius: 12px;
-  border-color: var(--bito-hairline);
-  box-shadow: none;
-}
-.desktop-chat .desktop-composer {
-  background: var(--bito-surface-warm);
-  border-color: var(--bito-hairline);
-  border-radius: 22px;
-}
-.desktop-chat .desktop-composer:focus-within {
-  box-shadow: none;
-}
-.desktop-send.bito-button {
-  background: var(--bito-ink);
-  color: var(--bito-surface);
-}
-.desktop-send.bito-button:disabled {
-  background: var(--bito-surface-muted);
-}
-.desktop-more.bito-button {
-  color: var(--bito-secondary);
-}
-.desktop-more.bito-button:hover {
-  background: var(--bito-surface-muted);
-}
-.desktop-chat .project-selector-trigger {
-  border-radius: 8px;
-}
-.desktop-chat .response-card .bito-button {
-  font-size: 12px;
-}
-/* The custom input and public actions occupy one grid row. Library stack
-   wrappers are layout-neutral; sizing belongs to the owned controls. */
-.desktop-composer > .bito-chat-composer {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 36px;
-  align-items: end;
-  gap: 4px;
-  flex: 1;
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.bito-chat-composer > div,
-.bito-chat-composer > div > div,
-.bito-chat-composer > div > div:last-child > div {
-  display: contents;
-  outline: none;
-  box-shadow: none;
-  border: 0;
-}
-.desktop-chat .desktop-composer .bito-chat-composer textarea {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
-  min-width: 0;
-  -webkit-app-region: no-drag;
-}
-.bito-chat-composer .desktop-more {
-  grid-column: 1;
-  grid-row: 1;
-}
-.bito-chat-composer .desktop-send {
-  grid-column: 3;
-  grid-row: 1;
-}
-.desktop-more.bito-button,
-.desktop-send.bito-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 36px;
-  min-width: 36px;
-  max-width: 36px;
-  height: 36px;
-  min-height: 36px;
-  max-height: 36px;
-  aspect-ratio: 1;
-  padding: 0;
-  border-radius: 50%;
-}
-.desktop-send .bito-button-content > span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.bito-button svg.lucide {
-  display: block;
-  flex: none;
-}
-.desktop-popover .bito-button {
-  justify-content: flex-start;
-  align-items: center;
-  height: auto;
-  line-height: 1.45;
-}
-.desktop-popover .bito-button-content > span {
-  flex: 1;
-  min-width: 0;
-}
-.desktop-project-context.bito-button {
-  height: 24px;
-  min-height: 24px;
-  justify-content: flex-start;
-  white-space: nowrap;
-}
-.desktop-project-context .bito-button-content > span {
-  min-width: 0;
+.bito-select-value {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.desktop-chat .desktop-message.user .bubble-content,
-.desktop-chat
-  .desktop-message.user
-  .bubble-content
-  :where(p, span, strong, em, li, a, code) {
-  color: var(--bito-surface);
+
+.bito-select-chevron {
+  color: var(--bito-text-secondary);
+  flex-shrink: 0;
 }
-.setup-composer .bito-field.bito-field input,
-.setup-composer .bito-field.bito-field input:focus {
-  height: 34px;
-  padding: 0 4px 0 12px;
-  border: 0;
-  border-radius: 20px;
-  outline: none;
-  box-shadow: none;
-  background: transparent;
+
+.bito-popover-anchor {
+  display: inline-flex;
+  align-items: center;
 }
-.setup-composer .bito-field-control:focus-within {
-  outline: none;
-  border: 0;
-  box-shadow: none;
+
+.bito-popover-surface {
+  z-index: 9000;
+  background: var(--bito-bg-surface);
+  color: var(--bito-text-primary);
+  border: 1px solid var(--bito-border-subtle);
+  border-radius: var(--bito-radius-md);
+  box-shadow: var(--bito-shadow-popover);
+  padding: 0.35rem;
+  animation: bito-pop-in var(--bito-duration-fast) var(--bito-ease-out);
 }
-.setup-send.bito-button {
+
+.bito-select-listbox {
+  max-height: 17.5rem;
+  overflow-y: auto;
+}
+
+.bito-select-option {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.625rem;
+  border-radius: var(--bito-radius-xs);
+  font: 400 var(--bito-text-sm) / 1.35 var(--bito-font-sans);
+  color: var(--bito-text-primary);
+  cursor: pointer;
+}
+
+.bito-select-option:hover:not(.is-disabled),
+.bito-select-option[data-highlighted="true"] {
+  background: var(--bito-bg-muted);
+}
+
+.bito-select-option.is-selected {
+  font-weight: 500;
+}
+
+.bito-select-option.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Date Field & Calendar Grid */
+.bito-date-field {
+  position: relative;
+}
+
+.bito-date-field .bito-date-native {
+  padding-right: 2.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bito-date-picker-btn {
+  position: absolute;
+  right: 0.3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  flex: none;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  padding: 0;
-  aspect-ratio: 1;
-  border-radius: 50%;
-}
-.setup-choices .bito-button {
-  height: 36px;
-  min-height: 36px;
-  padding: 0 10px;
-  white-space: nowrap;
-  border-radius: 20px;
-}
-
-/* Native modal surface. Astryx owns focus, dismissal and enter/exit timing. */
-.workspace-dialog.bito-dialog {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  padding: 0;
-  width: min(var(--dialog-width, 540px), calc(100dvw - 48px));
-  height: fit-content;
-  max-width: calc(100dvw - 48px);
-  max-height: min(84dvh, 900px);
-  border: 1px solid var(--bito-hairline);
-  border-radius: 16px;
-  background: var(--bito-surface);
-  color: var(--bito-ink);
-  overflow: hidden;
-  box-shadow: var(--bito-shadow-floating);
-}
-.workspace-dialog.bito-dialog.is-wide {
-  --dialog-width: 1000px;
-}
-.workspace-dialog.bito-dialog[open] {
-  display: flex;
-  flex-direction: column;
-}
-.workspace-dialog.bito-dialog > div {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  max-height: min(84dvh, 900px);
-  overflow: hidden;
-}
-.workspace-dialog.bito-dialog::backdrop {
-  background: #0a0a0a42;
-  backdrop-filter: blur(5px);
-}
-.bito-dialog .workspace-dialog-body {
-  padding: 22px 24px 24px;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-.bito-dialog .astryx-dialog-header {
-  padding: 20px 24px;
-  border-bottom-color: var(--bito-hairline);
-}
-.bito-dialog .astryx-dialog-header h2 {
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.35px;
-}
-.bito-dialog .astryx-dialog-header button {
-  flex: none;
-}
-
-@media (max-width: 900px) {
-  .board-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 16px;
-  }
-  .projects-board .project-topbar {
-    padding-inline: 20px;
-  }
-  .project-board-layout {
-    padding-inline: 20px;
-    gap: 18px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bito-button,
-  .bito-field-control,
-  .board-task-row {
-    transition-duration: 0ms;
-  }
-}
-
-/* Intrinsic height lets cards and wrapped labels grow without clipping. */
-.board-project-card.bito-button {
-  flex-shrink: 0;
-}
-.board-project-cover {
-  flex-shrink: 0;
-}
-.bito-task-checkbox {
-  flex: none;
-  padding: 4px 2px;
-}
-.bito-project-progress {
-  margin: 14px 0 8px;
-}
-.bito-work-views {
-  margin-bottom: 12px;
-}
-.calendar-auto-row.astryx-switch-field {
-  width: 100%;
-  padding: 12px 0;
-}
-.calendar-auto-row .astryx-switch-label {
-  font-size: 14px;
-  font-weight: 500;
-}
-.calendar-auto-row .astryx-field-description {
-  font-size: 12px;
-  color: var(--bito-secondary);
-  line-height: 1.5;
-}
-.pref-memory-input > .bito-field {
-  flex: 1;
-}
-
-/* Disclosure buttons use one chevron and Astryx's shared layout glide. */
-.bito-disclosure > .astryx-collapsible-trigger {
-  min-height: 34px;
-  height: auto;
-  padding: 8px 0;
-  gap: 10px;
-  font: inherit;
-  font-weight: 500;
-  color: var(--bito-secondary);
-  background: transparent;
+  width: 1.65rem;
+  height: 1.65rem;
   border: 0;
-  border-radius: 6px;
-  box-shadow: none;
-}
-.bito-disclosure > .astryx-collapsible-trigger::after {
-  content: none;
-}
-.bito-disclosure > .astryx-collapsible-trigger:hover {
-  color: var(--bito-ink);
-}
-.bito-disclosure > .astryx-collapsible-content {
-  font-size: inherit;
-  line-height: inherit;
-}
-.bito-result-progress {
-  margin-block: 12px 4px;
-}
-.bito-result-progress .astryx-progress-bar-track {
-  height: 5px;
+  border-radius: var(--bito-radius-xs);
+  background: transparent;
+  color: var(--bito-text-secondary);
+  cursor: pointer;
 }
 
-/* Input focus changes the caret only, without a coloured ring or glow. */
-.bito-field.bito-field .bito-field-control:focus-within {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: var(--bito-focus);
-}
-.bito-field :is(input, textarea, [role="combobox"], [role="spinbutton"]):focus,
-.bito-field
-  :is(input, textarea, [role="combobox"], [role="spinbutton"]):focus-visible,
-.bito-field-control:focus-within::before,
-.bito-field-control:focus-within::after,
-.bito-select-field:focus-within,
-.bito-select-field:focus-within::after {
-  outline: none !important;
-  box-shadow: none !important;
-}
-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
-body textarea:focus,
-body select:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-body .setup-composer:focus-within,
-body .desktop-chat .desktop-composer:focus-within,
-body .composer:focus-within {
-  outline: none;
-  box-shadow: none;
-  border-color: var(--bito-focus);
+.bito-date-picker-btn:hover:not(:disabled) {
+  background: var(--bito-bg-muted);
+  color: var(--bito-text-primary);
 }
 
-/* Shared action treatments. Icon buttons and draggable mascots keep their geometry. */
-[data-astryx-theme="neutral"] button.bito-button[data-bito-variant="primary"],
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="secondary"] {
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.5;
-  box-shadow: none;
+.bito-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.35rem;
 }
-[data-astryx-theme="neutral"] button.bito-button[data-bito-variant="primary"] {
-  background: var(--bito-ink);
-  color: var(--bito-surface);
-  border: 1px solid transparent;
+
+.bito-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="primary"]:hover:not(:disabled) {
-  background: var(--bito-ink-soft);
-  border-color: transparent;
+
+.bito-calendar-title {
+  font: 600 var(--bito-text-sm) / 1.3 var(--bito-font-sans);
+  text-transform: capitalize;
 }
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="secondary"] {
-  background: var(--bito-surface-muted);
-  color: var(--bito-ink);
-  border: 1px solid transparent;
+
+.bito-calendar-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--bito-border-subtle);
+  border-radius: var(--bito-radius-xs);
+  background: var(--bito-bg-surface);
+  color: var(--bito-text-primary);
+  cursor: pointer;
 }
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="secondary"]:hover:not(:disabled) {
-  background: var(--bito-hairline);
+
+.bito-calendar-nav:hover {
+  background: var(--bito-bg-muted);
 }
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="primary"]:disabled,
-[data-astryx-theme="neutral"]
-  button.bito-button[data-bito-variant="secondary"]:disabled {
-  background: var(--bito-surface-muted);
-  color: var(--bito-muted);
-  border-color: transparent;
+
+.bito-calendar-weekdays,
+.bito-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  text-align: center;
 }
-.bito-button:focus-visible,
-.bito-field-control:focus-within {
-  outline: 2px solid var(--bito-focus);
+
+.bito-calendar-weekdays span {
+  font: 500 var(--bito-text-2xs) / 1.4 var(--bito-font-sans);
+  color: var(--bito-text-muted);
+  padding: 0.2rem 0;
+}
+
+.bito-calendar-day {
+  height: 2rem;
+  border: 0;
+  border-radius: var(--bito-radius-xs);
+  background: transparent;
+  color: var(--bito-text-primary);
+  font: 400 var(--bito-text-xs) / 1 var(--bito-font-sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.bito-calendar-day:hover:not(:disabled) {
+  background: var(--bito-bg-muted);
+}
+
+.bito-calendar-day.is-today {
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--bito-focus-ring);
+}
+
+.bito-calendar-day.is-selected {
+  background: var(--bito-accent-primary);
+  color: var(--bito-text-on-accent);
+  font-weight: 600;
+}
+
+.bito-calendar-day:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* -------------------------------------------------------------------------- */
+/* BitoCheckbox & BitoSwitch (Tactile micro-interactions)                     */
+/* -------------------------------------------------------------------------- */
+.bito-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--bito-text-primary);
+  font: 400 var(--bito-text-base) / 1.45 var(--bito-font-sans);
+}
+
+.bito-checkbox.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bito-checkbox-input,
+.bito-switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.bito-checkbox-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.12rem;
+  flex-shrink: 0;
+  border-radius: var(--bito-radius-xs);
+  border: 1.5px solid var(--bito-border-control);
+  background: var(--bito-bg-surface);
+  color: #ffffff;
+  transition:
+    background-color var(--bito-duration-fast) var(--bito-ease-out),
+    border-color var(--bito-duration-fast) var(--bito-ease-out),
+    transform var(--bito-duration-fast) var(--bito-ease-spring);
+}
+
+.bito-checkbox-mark {
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity var(--bito-duration-fast) var(--bito-ease-out),
+    transform var(--bito-duration-fast) var(--bito-ease-spring);
+}
+
+.bito-checkbox.is-checked .bito-checkbox-box {
+  background: var(--bito-status-success);
+  border-color: var(--bito-status-success);
+}
+
+.bito-checkbox.is-checked .bito-checkbox-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bito-checkbox-input:focus-visible + .bito-checkbox-box {
+  outline: 2px solid var(--bito-focus-ring);
   outline-offset: 2px;
 }
-/* Primary authentication action uses the same treatment as the rest of the app. */
-.auth-window .auth-google.bito-button {
-  min-height: 44px;
-  border-radius: 9999px;
-  font-size: 14px;
+
+.bito-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
 }
-/* Elevation is reserved for floating menus and dialogs, not resting cards. */
-.astryx-popover {
-  border: 1px solid var(--bito-hairline);
+
+.bito-switch.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bito-switch-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.bito-switch-title {
+  font: 500 var(--bito-text-base) / 1.4 var(--bito-font-sans);
+  color: var(--bito-text-primary);
+}
+
+.bito-switch-desc {
+  font: 400 var(--bito-text-xs) / 1.45 var(--bito-font-sans);
+  color: var(--bito-text-secondary);
+}
+
+.bito-switch-control {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.bito-switch-track {
+  display: inline-flex;
+  align-items: center;
+  width: 2.35rem;
+  height: 1.35rem;
+  padding: 2px;
+  border-radius: var(--bito-radius-pill);
+  border: 1px solid var(--bito-border-control);
+  background: var(--bito-bg-muted);
+  transition:
+    background-color var(--bito-duration-fast) var(--bito-ease-out),
+    border-color var(--bito-duration-fast) var(--bito-ease-out);
+}
+
+.bito-switch-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--bito-duration-fast) var(--bito-ease-spring);
+}
+
+.bito-switch.is-checked .bito-switch-track {
+  background: var(--bito-status-success);
+  border-color: var(--bito-status-success);
+}
+
+.bito-switch.is-checked .bito-switch-thumb {
+  transform: translateX(0.95rem);
+}
+
+.bito-switch-input:focus-visible + .bito-switch-track {
+  outline: 2px solid var(--bito-focus-ring);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* BitoSlider & BitoSegmentedControl                                          */
+/* -------------------------------------------------------------------------- */
+.bito-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.bito-slider-input {
+  width: 100%;
+  accent-color: var(--bito-accent-primary);
+  cursor: pointer;
+}
+
+.bito-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--bito-radius-sm);
+  background: var(--bito-bg-muted);
+  border: 1px solid var(--bito-border-subtle);
+}
+
+.bito-segmented[data-layout="fill"] {
+  display: flex;
+  width: 100%;
+}
+
+.bito-segmented-item {
+  position: relative;
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.85rem;
+  padding: 0.25rem 0.65rem;
+  border: 0;
+  border-radius: var(--bito-radius-xs);
+  background: transparent;
+  color: var(--bito-text-secondary);
+  font: 500 var(--bito-text-xs) / 1.2 var(--bito-font-sans);
+  cursor: pointer;
+}
+
+.bito-segmented-item.is-selected {
+  color: var(--bito-text-primary);
+}
+
+.bito-segmented-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--bito-radius-xs);
+  background: var(--bito-bg-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bito-segmented-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* BitoCard, BitoBadge, BitoProgressBar, BitoDisclosure                       */
+/* -------------------------------------------------------------------------- */
+.bito-card {
+  background: var(--bito-bg-surface);
+  border: 1px solid var(--bito-border-subtle);
+  border-radius: var(--bito-radius-md);
+  color: var(--bito-text-primary);
+}
+
+.bito-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--bito-radius-pill);
+  background: var(--bito-bg-muted);
+  color: var(--bito-text-secondary);
+  font: 500 var(--bito-text-2xs) / 1.35 var(--bito-font-sans);
+}
+
+.bito-badge[data-tone="success"] {
+  background: var(--bito-status-success-bg);
+  color: var(--bito-status-success);
+}
+
+.bito-badge[data-tone="warning"] {
+  background: var(--bito-status-warning-bg);
+  color: var(--bito-status-warning);
+}
+
+.bito-badge[data-tone="danger"] {
+  background: var(--bito-status-danger-bg);
+  color: var(--bito-status-danger);
+}
+
+.bito-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.bito-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: var(--bito-text-xs);
+  color: var(--bito-text-secondary);
+}
+
+.bito-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--bito-radius-pill);
+  background: var(--bito-bg-muted);
+  overflow: hidden;
+}
+
+.bito-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--bito-radius-pill);
+  background: var(--bito-status-success);
+  transform-origin: left center;
+  transition: transform var(--bito-duration-normal) var(--bito-ease-out);
+}
+
+.bito-disclosure {
+  display: flex;
+  flex-direction: column;
+}
+
+.bito-disclosure-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.25rem;
+  border: 0;
+  border-radius: var(--bito-radius-xs);
+  background: transparent;
+  color: var(--bito-text-secondary);
+  font: 500 var(--bito-text-xs) / 1.4 var(--bito-font-sans);
+  cursor: pointer;
+  text-align: left;
+}
+
+.bito-disclosure-trigger:hover {
+  color: var(--bito-text-primary);
+}
+
+.bito-disclosure-chevron {
+  transition: transform var(--bito-duration-fast) var(--bito-ease-out);
+  flex-shrink: 0;
+}
+
+.bito-disclosure.is-open .bito-disclosure-chevron {
+  transform: rotate(90deg);
+}
+
+.bito-disclosure-inner {
+  padding-top: 0.35rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/* BitoDialog & BitoAppShell & BitoChatComposer (Border-Beam active state)    */
+/* -------------------------------------------------------------------------- */
+.bito-dialog {
+  margin: auto;
+  width: calc(100vw - 2rem);
+  padding: 0;
+  border: 1px solid var(--bito-border-subtle);
+  border-radius: var(--bito-radius-lg);
+  background: var(--bito-bg-surface);
+  color: var(--bito-text-primary);
   box-shadow: var(--bito-shadow-floating);
+  animation: bito-pop-in var(--bito-duration-normal) var(--bito-ease-out);
 }
 
-/* A flat, full-width row should respond without shrinking the whole layout. */
-.bito-button:is(
-    .board-project-card,
-    .board-rail-button,
-    .pref-nav-item,
-    .sidebar-project
-  ):active:not(:disabled) {
-  transform: none;
-  background: var(--bito-surface-muted);
-  filter: none;
+.bito-dialog::backdrop {
+  background: rgba(10, 12, 16, 0.42);
+  backdrop-filter: blur(3px);
 }
 
-/* Preserve information and focus when the OS requests simpler materials. */
-@media (prefers-reduced-transparency: reduce) {
-  .desktop-chat-surface,
-  .astryx-popover {
-    background: var(--bito-surface);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  .workspace-dialog.bito-dialog::backdrop {
-    backdrop-filter: none;
-    background: #0a0a0a66;
+.bito-dialog-surface {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+}
+
+.bito-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid var(--bito-border-subtle);
+}
+
+.bito-dialog-header-start {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.bito-dialog-header h2 {
+  margin: 0;
+  font: 600 var(--bito-text-md) / 1.35 var(--bito-font-sans);
+}
+
+.bito-app-shell {
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  background: var(--bito-bg-canvas);
+  color: var(--bito-text-primary);
+  overflow: hidden;
+}
+
+.bito-app-sidenav {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.bito-app-main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bito-bg-surface);
+}
+
+/* Contained Prompt Composer Box with optional libraries.dev/beam glow */
+.bito-composer-box {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.25rem;
+  border-radius: var(--bito-radius-pill);
+  border: 1px solid var(--bito-border-subtle);
+  background: var(--bito-bg-surface);
+  transition:
+    border-color var(--bito-duration-fast) var(--bito-ease-out),
+    box-shadow var(--bito-duration-fast) var(--bito-ease-out);
+}
+
+.bito-composer-box:focus-within {
+  border-color: var(--bito-border-control);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.bito-composer-box[data-active-beam="true"] {
+  border-color: var(--bito-focus-ring);
+  background-image:
+    linear-gradient(var(--bito-bg-surface), var(--bito-bg-surface)),
+    linear-gradient(110deg, var(--bito-focus-ring), var(--bito-status-success), var(--bito-focus-ring));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 220% 220%;
+  animation: bito-border-beam 2.8s ease infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bito-composer-box[data-active-beam="true"] {
+    animation: none;
   }
 }
-@media (prefers-contrast: more) {
-  :root {
-    --bito-secondary: #343434;
-    --bito-muted: #454545;
-    --bito-hairline: #767676;
-    --bito-stone: #767676;
-  }
-  .desktop-chat-surface,
-  .astryx-popover {
-    background: var(--bito-surface);
-    border-color: var(--bito-ink);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-  .bito-button:focus-visible {
-    outline-width: 3px;
-  }
+
+.bito-composer-input-slot {
+  grid-column: 2;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.desktop-chat .desktop-composer .bito-chat-composer textarea,
+.bito-chat-composer textarea,
+.bito-composer-box textarea {
+  width: 100%;
+  grid-column: 2;
+}
+
+.bito-composer-actions-start {
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.bito-composer-actions-end {
+  grid-column: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Dedicated Focus Timer View (Tiimo / Structured inspired) */
+.focus-session-view {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 1.75rem 2rem 2.25rem;
+  background: var(--bito-bg-canvas);
+  overflow-y: auto;
+}
+
+.focus-timer-card,
+.focus-checklist-card {
+  width: min(640px, 100%);
+  background: var(--bito-bg-surface);
+  border: 1px solid var(--bito-border-subtle);
+  border-radius: var(--bito-radius-xl);
+  padding: 1.75rem;
+  box-shadow: var(--bito-shadow-xs);
+}
+
+.focus-timer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.15rem;
+}
+
+.focus-timer-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.focus-timer-header .bito-mascot {
+  width: 44px;
+  height: 46px;
+}
+
+.focus-timer-header div {
+  text-align: left;
+}
+
+.focus-timer-header h2 {
+  margin: 0;
+  font: 600 var(--bito-text-lg) / 1.25 var(--bito-font-sans);
+  color: var(--bito-text-primary);
+}
+
+.focus-timer-header p {
+  margin: 2px 0 0;
+  font-size: var(--bito-text-xs);
+  color: var(--bito-text-secondary);
+}
+
+.focus-countdown-readout {
+  font: 600 clamp(2.75rem, 6vw, 4rem) / 1.05 var(--bito-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--bito-text-primary);
+  margin: 0.25rem 0;
+}
+
+.focus-timer-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.focus-checklist-card h3 {
+  margin: 0 0 0.35rem;
+  font: 600 var(--bito-text-md) / 1.3 var(--bito-font-sans);
+}
+
+.focus-checklist-sub {
+  margin: 0 0 1rem;
+  font-size: var(--bito-text-xs);
+  color: var(--bito-text-secondary);
+}
+
+.focus-checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.focus-checklist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--bito-radius-md);
+  border: 1px solid var(--bito-border-subtle);
+  background: var(--bito-bg-canvas);
+}
+
+.focus-checklist-empty {
+  padding: 1.25rem;
+  border-radius: var(--bito-radius-md);
+  background: var(--bito-bg-canvas);
+  color: var(--bito-text-secondary);
+  font-size: var(--bito-text-sm);
+  text-align: center;
 }

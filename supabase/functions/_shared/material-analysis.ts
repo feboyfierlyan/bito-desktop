@@ -78,9 +78,11 @@ export async function analyzeMaterial(options: {
             required: ["content", "warnings"],
           },
           maxOutputTokens: 8192,
-          ...(options.model === "gemini-3.8-flash"
+          ...(options.model.startsWith("gemini-3")
             ? { thinkingConfig: { thinkingLevel: "low" } }
-            : {}),
+            : options.model.startsWith("gemini-2.5")
+              ? { thinkingConfig: { thinkingBudget: 512 } }
+              : {}),
         },
       }),
     },

@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 type Options = {
   apiKey: string;
   baseURL: string;
@@ -10,6 +9,44 @@ type Options = {
   onDelta: (text: string) => void;
   executeTool: (name: string, args: unknown) => string;
 };
+
+async function* parseSseEvents(
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal,
+): AsyncGenerator<any> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    while (true) {
+      signal.throwIfAborted();
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary !== -1) {
+        const block = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        for (const line of block.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const payload = trimmed.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          yield JSON.parse(payload);
+        }
+        boundary = buffer.indexOf("\n\n");
+      }
+    }
+    const tail = buffer.trim();
+    if (tail.startsWith("data:")) {
+      const payload = tail.slice(5).trim();
+      if (payload && payload !== "[DONE]") yield JSON.parse(payload);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 // This transport is independent of Electron so streaming, tool loops and cancellation
 // can be exercised against a local test server without sending user data or using a key.
 export async function generateReply(options: Options) {
@@ -25,10 +62,17 @@ export async function generateReply(options: Options) {
   } = options;
   const history = [...options.history];
   let output = "";
-  const client = new OpenAI({ apiKey, baseURL, timeout: 90000, maxRetries: 1 });
+  const endpoint = `${baseURL.replace(/\/+$/, "")}/responses`;
+
   for (let round = 0; round < 4; round++) {
-    const stream = await client.responses.create(
-      {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
         model,
         instructions,
         input: history,
@@ -36,11 +80,16 @@ export async function generateReply(options: Options) {
         stream: true,
         store: false,
         max_output_tokens: 4000,
-      },
-      { signal },
-    );
+      }),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw Error(
+        "AI belum bisa menyelesaikan jawaban. Coba lagi dengan permintaan lebih singkat.",
+      );
+    }
     let completed: any;
-    for await (const event of stream) {
+    for await (const event of parseSseEvents(response.body, signal)) {
       if (event.type === "response.output_text.delta") {
         output += event.delta;
         onDelta(event.delta);

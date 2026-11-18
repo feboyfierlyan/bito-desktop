@@ -57,6 +57,15 @@ export function projectCommand(
   }
   const p = z.object({ id: z.string().uuid() }).passthrough().parse(raw);
   const project = requireProject(state, p.id);
+  if (name === "project-delete") {
+    if (openProjectSession(project))
+      throw Error("Selesaikan atau batalkan sesi fokus aktif sebelum menghapus proyek.");
+    state.projects = state.projects.filter((item) => item.id !== project.id);
+    if (state.activeProjectId === project.id) state.activeProjectId = null;
+    state.messages = state.messages.filter((m) => m.projectId !== project.id);
+    state.reminders = state.reminders.filter((r) => r.projectId !== project.id);
+    return { ok: true };
+  }
   if (name.startsWith("project-work-")) {
     editable(project);
     const result = workCommand(state, project, name, raw);
@@ -185,19 +194,32 @@ export function projectCommand(
     });
     if (project.understanding) project.understanding.confirmedAt = null;
   } else if (name === "project-material-remove") {
-    const mid = z
-      .object({ materialId: z.string().uuid() })
-      .parse(raw).materialId;
-    if (
-      [project.plan, project.draft].some((plan) =>
-        plan?.milestones.some((m) =>
-          m.tasks.some((t) => t.sourceIds.includes(mid)),
-        ),
-      )
-    )
+    const parsed = z
+      .object({
+        materialId: z.string().uuid(),
+        unlinkReferences: z.boolean().optional(),
+      })
+      .parse(raw);
+    const mid = parsed.materialId;
+    const isReferenced = [project.plan, project.draft].some((plan) =>
+      plan?.milestones.some((m) =>
+        m.tasks.some((t) => t.sourceIds.includes(mid)),
+      ),
+    );
+    if (isReferenced && !parsed.unlinkReferences)
       throw Error(
         "Bahan ini masih dirujuk oleh rencana. Hapus rujukannya dari draf dahulu.",
       );
+    if (isReferenced && parsed.unlinkReferences) {
+      for (const plan of [project.plan, project.draft]) {
+        if (!plan) continue;
+        for (const m of plan.milestones) {
+          for (const t of m.tasks) {
+            t.sourceIds = t.sourceIds.filter((id) => id !== mid);
+          }
+        }
+      }
+    }
     project.materials = project.materials.filter((m) => m.id !== mid);
     if (project.understanding) {
       project.understanding.confirmedAt = null;
@@ -390,6 +412,63 @@ export function projectCommand(
     if (task.status === data.status) return { ok: true };
     recordProjectProgress(project);
     task.status = data.status;
+    recordProjectProgress(project);
+  } else if (name === "project-task-delete") {
+    const data = z
+      .object({
+        taskId: z.string().uuid(),
+        version: z.number().int().optional(),
+      })
+      .parse(raw);
+    if (data.version !== undefined && project.version !== data.version)
+      throw Error("Daftar tugas sudah berubah. Coba lagi.");
+    if (openProjectSession(project)?.taskId === data.taskId)
+      throw Error("Selesaikan sesi fokus pada tugas ini terlebih dahulu.");
+    if (!project.plan) throw Error("Rencana belum tersedia.");
+    let removed = false;
+    for (const m of project.plan.milestones) {
+      const before = m.tasks.length;
+      m.tasks = m.tasks.filter((t) => t.id !== data.taskId);
+      if (m.tasks.length !== before) removed = true;
+    }
+    if (!removed) throw Error("Tugas tidak ditemukan.");
+    recordProjectProgress(project);
+  } else if (name === "project-quick-start") {
+    // 1-step editable checklist initializer (DEC-003 / BITO-015): lets users
+    // start adding tasks immediately without going through 3 AI modal gates.
+    if (!project.plan) {
+      const starterTasks = project.brief
+        .split(/\r?\n/)
+        .map((line) => line.replace(/^[\s\-*•\d.)]+/, "").trim())
+        .filter((line) => line.length >= 3 && line.length <= 180)
+        .slice(0, 6);
+      project.plan = {
+        id: crypto.randomUUID(),
+        summary: project.outcome || project.brief || project.name,
+        assumptions: [],
+        milestones: [
+          {
+            id: crypto.randomUUID(),
+            title: "Langkah awal",
+            targetDate: project.deadline,
+            tasks: (starterTasks.length
+              ? starterTasks
+              : [`Mulai 15 menit pertama untuk ${project.name}`]
+            ).map((title) => ({
+              id: crypto.randomUUID(),
+              title,
+              details: "",
+              doneWhen: "",
+              estimateMin: 15,
+              estimateMax: 25,
+              sourceIds: [],
+              status: "todo" as const,
+            })),
+          },
+        ],
+      };
+    }
+    if (project.status === "planning") project.status = "active";
     recordProjectProgress(project);
   } else if (name === "project-checkpoint") {
     const data = z

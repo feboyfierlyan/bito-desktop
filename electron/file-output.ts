@@ -14,6 +14,21 @@ export type FileOutput = {
   inode: string;
 };
 export const maxFileBytes = 64000;
+function sanitizeCsvContent(content: string): string {
+  // Neutralize spreadsheet formula execution (=, +, -, @, tab, CR) at cell starts (BITO-021)
+  return content
+    .split(/\r?\n/)
+    .map((line) => {
+      if (!line) return line;
+      return line.replace(
+        /(^|,|\t)(\s*)([=+\-@\t\r])/g,
+        (_match, sep: string, ws: string, trigger: string) =>
+          `${sep}${ws}'${trigger}`,
+      );
+    })
+    .join("\n");
+}
+
 export function textFileInput(raw: unknown) {
   const p = z
     .object({ name: z.string(), content: z.string().max(48000) })
@@ -23,12 +38,14 @@ export function textFileInput(raw: unknown) {
   const format = extname(name).slice(1).toLowerCase();
   if (!["txt", "md", "csv"].includes(format))
     throw Error("Pilih format TXT, Markdown (.md), atau CSV.");
+  const normalized =
+    format === "csv" ? sanitizeCsvContent(p.content) : p.content;
   if (
-    p.content.includes("\0") ||
-    Buffer.byteLength(p.content, "utf8") > maxFileBytes
+    normalized.includes("\0") ||
+    Buffer.byteLength(normalized, "utf8") > maxFileBytes
   )
     throw Error("Isi file harus berupa teks UTF-8, maksimal 64 KB.");
-  return { name, content: p.content, format: format as FileOutput["format"] };
+  return { name, content: normalized, format: format as FileOutput["format"] };
 }
 
 export async function writeChosenTextFile(

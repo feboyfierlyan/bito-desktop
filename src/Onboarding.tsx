@@ -700,6 +700,21 @@ export function Onboarding({
                       </MotionBitoButton>
                     </div>
                   )}
+                  {step === 2 && (
+                    <div className="setup-desktop-cta">
+                      <MotionBitoButton
+                        type="button"
+                        variant="primary"
+                        className="setup-finish-btn"
+                        disabled={!armed || saving || leaving}
+                        onClick={() => void act("onboarding-finish")}
+                        whileTap={reduced ? undefined : { scale: 0.97 }}
+                      >
+                        <span>Lanjut ke desktop</span>
+                        <ArrowRight size={16} />
+                      </MotionBitoButton>
+                    </div>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </div>

@@ -1,4 +1,5 @@
 import { BitoButton } from "./ui/controls";
+import { X } from "lucide-react";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AnimatePresence,
@@ -236,6 +237,10 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
   const open = () => {
     if (!closing && !transferring) void api.command("show-chat");
   };
+  const dismiss = (event?: React.MouseEvent | React.KeyboardEvent) => {
+    event?.stopPropagation();
+    if (!closing && !transferring) void api.command("dismiss-greeting");
+  };
   return (
     <motion.aside
       className="desktop-chat desktop-greeting"
@@ -273,6 +278,11 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
           data-chat-hit
           onClick={open}
           onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              event.preventDefault();
+              dismiss(event);
+              return;
+            }
             if (coach || event.target !== event.currentTarget) return;
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
@@ -280,6 +290,15 @@ function Greeting({ state, message }: { state: Snapshot; message: Message }) {
             }
           }}
         >
+          <BitoButton
+            type="button"
+            className="greeting-dismiss-btn"
+            aria-label="Tutup sapaan"
+            title="Tutup"
+            onClick={(event) => dismiss(event)}
+          >
+            <X size={13} />
+          </BitoButton>
           <Bubble
             className="bubble desktop-bubble desktop-welcome-bubble"
             liquid

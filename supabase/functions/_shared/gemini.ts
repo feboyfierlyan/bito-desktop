@@ -141,7 +141,8 @@ async function streamGemini(
   if (!/^[a-z0-9.-]+$/.test(options.model))
     throw new ApiError("server_config", 503);
   signal.throwIfAborted();
-  const flash38 = options.model === "gemini-3.8-flash";
+  const isGemini3 = /^gemini-3(\.|-|$)/.test(options.model);
+  const isGemini25 = /^gemini-2\.5(\.|-|$)/.test(options.model);
   const response = await (options.fetcher || fetch)(
     `https://generativelanguage.googleapis.com/v1beta/models/${options.model}:streamGenerateContent?alt=sse`,
     {
@@ -180,8 +181,12 @@ async function streamGemini(
         // leave enough total tokens for both reasoning and a complete answer.
         // Gemini 3 no longer accepts custom sampling parameters.
         generationConfig: {
-          maxOutputTokens: flash38 ? 4096 : 1024,
-          ...(flash38 ? { thinkingConfig: { thinkingLevel: "low" } } : {}),
+          maxOutputTokens: isGemini3 || isGemini25 ? 4096 : 2048,
+          ...(isGemini3
+            ? { thinkingConfig: { thinkingLevel: "low" } }
+            : isGemini25
+              ? { thinkingConfig: { thinkingBudget: 512 } }
+              : {}),
         },
       }),
     },
@@ -231,8 +236,18 @@ async function streamGemini(
   }
   if (finish !== "STOP")
     throw new ApiError(
-      finish === "MAX_TOKENS" ? "response_limit" : "incomplete_response",
-      502,
+      finish === "MAX_TOKENS"
+        ? "response_limit"
+        : finish === "SAFETY" ||
+            finish === "PROHIBITED_CONTENT" ||
+            finish === "BLOCKLIST"
+          ? "blocked"
+          : "incomplete_response",
+      finish === "SAFETY" ||
+        finish === "PROHIBITED_CONTENT" ||
+        finish === "BLOCKLIST"
+        ? 422
+        : 502,
     );
   const calls: ToolCall[] = [];
   for (const part of parts)

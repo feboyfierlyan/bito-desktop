@@ -1,25 +1,25 @@
 import {
   Children,
   isValidElement,
-  useRef,
+  useId,
   useState,
   type DetailsHTMLAttributes,
   type ReactNode,
 } from "react";
-import { Collapsible } from "@astryxdesign/core/Collapsible";
-import { useAnimatedLayout } from "@astryxdesign/core/hooks";
+import { ChevronRight } from "lucide-react";
 
-/** Keeps existing disclosure content, with Astryx focus, semantics and measured motion. */
+/**
+ * Accessible disclosure primitive using CSS grid intrinsic height transition
+ * (`grid-template-rows: 0fr -> 1fr`, transitions.dev pattern) with zero layout thrash.
+ */
 export function BitoDisclosure({
   children,
   className = "",
   open,
   ...props
 }: DetailsHTMLAttributes<HTMLDivElement>) {
-  const root = useRef<HTMLDivElement>(null);
-  const container = useRef<HTMLElement | null>(null);
-  const animatedLayout = useAnimatedLayout({ containerRef: container });
-  const [expanded, setExpanded] = useState(open ?? false);
+  const [expanded, setExpanded] = useState(Boolean(open));
+  const contentId = useId();
   const nodes = Children.toArray(children);
   const summary = nodes.find(
     (node) => isValidElement(node) && node.type === "summary",
@@ -27,26 +27,35 @@ export function BitoDisclosure({
   const trigger = isValidElement<{ children?: ReactNode }>(summary)
     ? summary.props.children
     : "Detail";
+  const body = nodes.filter((node) => node !== summary);
+
   return (
-    <Collapsible
+    <div
       {...props}
-      ref={(node) => {
-        root.current = node;
-        container.current =
-          node?.closest<HTMLElement>(
-            ".workspace-dialog-body, .project-content, .project-board-main, .desktop-messages",
-          ) ??
-          node?.parentElement ??
-          null;
-      }}
-      className={`bito-disclosure ${className}`}
-      isOpen={expanded}
-      onOpenChange={setExpanded}
       data-open={expanded}
-      trigger={trigger}
-      animatedLayout={animatedLayout}
+      className={`bito-disclosure ${expanded ? "is-open" : ""} ${className}`.trim()}
     >
-      {nodes.filter((node) => node !== summary)}
-    </Collapsible>
+      <button
+        type="button"
+        className="bito-disclosure-trigger"
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        <ChevronRight
+          size={14}
+          className="bito-disclosure-chevron"
+          aria-hidden="true"
+        />
+        <span className="bito-disclosure-title">{trigger}</span>
+      </button>
+      <div
+        id={contentId}
+        className="bito-disclosure-grid"
+        hidden={!expanded}
+      >
+        <div className="bito-disclosure-inner">{body}</div>
+      </div>
+    </div>
   );
 }

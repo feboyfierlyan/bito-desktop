@@ -1,4 +1,4 @@
-import { Card } from "@astryxdesign/core/Card";
+import { BitoCard as Card } from "./ui/primitives";
 import { MotionBitoButton, BitoButton } from "./ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -170,7 +170,10 @@ export function AuthWindow({ state }: { state: Snapshot }) {
           >
             <header className="auth-heading">
               <h1>Bito</h1>
-              <p>Teman kecil untuk menemani harimu.</p>
+              <p>
+                Teman desktop buat mulai nugas, skripsi, &amp; kerjaan berat —
+                satu langkah kecil dulu.
+              </p>
             </header>
             <div className="auth-actions">
               <MotionBitoButton
@@ -190,6 +193,21 @@ export function AuthWindow({ state }: { state: Snapshot }) {
                 />
                 <span>{retry ? "Coba lagi" : "Lanjutkan dengan Google"}</span>
               </MotionBitoButton>
+              <p className="auth-privacy-note">
+                Data proyek &amp; tugas tersimpan lokal di perangkatmu. Pesan chat
+                &amp; lampiran yang kamu kirim diproses terenkripsi melalui AI
+                cloud Bito sesuai{" "}
+                <a
+                  href="https://bito.app/privacy"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void api.command("open-link", "https://bito.app/privacy");
+                  }}
+                >
+                  Kebijakan Privasi
+                </a>
+                .
+              </p>
               <motion.div
                 className="auth-feedback"
                 aria-live="polite"
@@ -241,7 +259,11 @@ export function AuthWindow({ state }: { state: Snapshot }) {
                             ) : severity === "error" ? (
                               <CircleAlert size={16} />
                             ) : null}
-                            <span>{message}</span>
+                            <span>
+                              {stage === "denied" && state.auth?.email
+                                ? `Akun ${state.auth.email} belum terdaftar di akses awal Bito. Gunakan akun Google lain yang sudah terdaftar.`
+                                : message}
+                            </span>
                           </motion.div>
                         )}
                       </AnimatePresence>
