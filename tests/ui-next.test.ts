@@ -479,6 +479,13 @@ test("Search filters case-insensitively, moves with arrows, picks with Enter and
       assert.equal(options().length, 3);
       await typeInto(input, "JURNAL");
       assert.equal(options().length, 2);
+      await press(input, "ArrowDown", { isComposing: true });
+      await press(input, "Enter", { isComposing: true });
+      assert.deepEqual(picked, []);
+      assert.equal(
+        host.querySelector('[aria-selected="true"]')!.textContent,
+        "Cari 3 jurnal",
+      );
       await press(input, "ArrowDown");
       const active = host.querySelector('[aria-selected="true"]')!;
       assert.equal(active.textContent, "Susun tabel jurnal");

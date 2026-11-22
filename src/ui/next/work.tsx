@@ -109,6 +109,7 @@ export function Search({
   }, [items, query]);
   const index = Math.min(active, Math.max(results.length - 1, 0));
   const keyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.nativeEvent.isComposing) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       if (results.length === 0) return;
