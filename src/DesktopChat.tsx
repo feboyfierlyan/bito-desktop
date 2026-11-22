@@ -1151,14 +1151,23 @@ export function DesktopChat({
                                       openLink={openLink}
                                     />
                                   ) : (
-                                    <span className="bx-working" role="status">
-                                      <Sprout />
-                                      <span className="bx-shimmer">
-                                        {state.replyActivity?.phase ===
+                                    <span
+                                      className="bx-working"
+                                      role="status"
+                                      aria-label={
+                                        state.replyActivity?.phase ===
                                         "searching"
-                                          ? "Mencari di internet…"
-                                          : "Bito sedang berpikir…"}
-                                      </span>
+                                          ? "Bito sedang mencari di internet"
+                                          : "Bito sedang berpikir"
+                                      }
+                                    >
+                                      <Sprout />
+                                      {state.replyActivity?.phase ===
+                                        "searching" && (
+                                        <span className="bx-shimmer">
+                                          Mencari…
+                                        </span>
+                                      )}
                                     </span>
                                   )}
                                 </Bubble>
