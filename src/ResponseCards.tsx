@@ -129,6 +129,7 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
             danger
             busy={pending}
             confirmDisabled={state.busy || expired}
+            cancelDisabled={state.busy}
             onConfirm={() =>
               void request("quick-task-removal", { action: "confirm" })
             }

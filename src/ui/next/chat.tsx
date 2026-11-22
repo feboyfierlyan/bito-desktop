@@ -291,6 +291,7 @@ export function ApprovalCard({
   editLabel = "Ubah",
   busy = false,
   confirmDisabled = false,
+  cancelDisabled = false,
   danger = false,
   children,
 }: {
@@ -308,6 +309,7 @@ export function ApprovalCard({
   editLabel?: string;
   busy?: boolean;
   confirmDisabled?: boolean;
+  cancelDisabled?: boolean;
   /** The confirmed action deletes something. */
   danger?: boolean;
   children?: ReactNode;
@@ -335,7 +337,11 @@ export function ApprovalCard({
       )}
       {children}
       <div className="bx-card-actions">
-        <Button variant="ghost" onClick={onCancel} disabled={busy}>
+        <Button
+          variant="ghost"
+          onClick={onCancel}
+          disabled={busy || cancelDisabled}
+        >
           Batal
         </Button>
         {onEdit && (
