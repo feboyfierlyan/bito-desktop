@@ -187,7 +187,7 @@ export function DesktopChat({
     y: number;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [composerHeight, setComposerHeight] = useState(80);
+  const [composerHeight, setComposerHeight] = useState(86);
   const filesVisible = !!(files.length || fileBusy || fileError || state.selectedArea);
   useEffect(() => {
     const node = fileRail.current;
@@ -203,6 +203,12 @@ export function DesktopChat({
   const [composerWidth, setComposerWidth] = useState(() =>
     Math.max(240, innerWidth - 48),
   );
+  const [viewportHeight, setViewportHeight] = useState(() => innerHeight);
+  useEffect(() => {
+    const measure = () => setViewportHeight(innerHeight);
+    addEventListener("resize", measure);
+    return () => removeEventListener("resize", measure);
+  }, []);
   const [transcriptHeight, setTranscriptHeight] = useState(0);
   const [hasOverflow, setHasOverflow] = useState(false);
   const [showLatest, setShowLatest] = useState(false);
@@ -393,12 +399,14 @@ export function DesktopChat({
     const el = textarea.current;
     if (el) {
       el.style.height = "0px";
-      const height = Math.min(104, Math.max(24, el.scrollHeight));
+      // A short window keeps at least 72px of conversation above the bar.
+      const room = viewportHeight - 48 - contextSpace - 8 - 62 - 72;
+      const height = Math.min(104, Math.max(24, room), Math.max(24, el.scrollHeight));
       el.style.height = `${height}px`;
       // Text row plus the tool row, paddings and border of the prompt bar.
-      setComposerHeight(height + 56);
+      setComposerHeight(height + 62);
     }
-  }, [text, panel, composerWidth]);
+  }, [text, panel, composerWidth, viewportHeight, contextSpace]);
   useLayoutEffect(() => {
     if (!scroller.current || !stack.current) return;
     const controller = createChatReflow(

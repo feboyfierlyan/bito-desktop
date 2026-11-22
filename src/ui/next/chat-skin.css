@@ -78,11 +78,18 @@
 }
 
 /* Prompt bar: text on top, tools and send underneath. DesktopChat.tsx adds
-   56px to the text height for this layout. */
+   62px to the text height for this layout. */
 .desktop-chat[data-bito-ui="next"] .desktop-composer-reveal,
 .desktop-chat[data-bito-ui="next"] .desktop-composer {
-  max-height: 160px;
+  max-height: 166px;
   border-radius: 20px;
+}
+/* The reveal animates its height; pinning the form to its bottom edge keeps
+   the tool row and send button visible while it grows or shrinks. */
+.desktop-chat[data-bito-ui="next"] .desktop-composer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
 }
 .desktop-chat[data-bito-ui="next"] .desktop-composer > .bito-chat-composer {
   grid-template-columns: minmax(0, 1fr) auto;

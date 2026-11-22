@@ -730,10 +730,10 @@ export function BitoChatComposer({
       data-active-beam={activeBeam ? "true" : undefined}
       className={`bito-composer-box ${className}`.trim()}
     >
+      <div className="bito-composer-input-slot">{input}</div>
       {footerActions && (
         <div className="bito-composer-actions-start">{footerActions}</div>
       )}
-      <div className="bito-composer-input-slot">{input}</div>
       <div className="bito-composer-actions-end">{sendButton}</div>
     </div>
   );
