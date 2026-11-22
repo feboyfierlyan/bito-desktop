@@ -76,3 +76,37 @@
 .desktop-chat .desktop-starters .bx-suggestions {
   justify-content: center;
 }
+
+/* Prompt bar: text on top, tools and send underneath. DesktopChat.tsx adds
+   56px to the text height for this layout. */
+.desktop-chat[data-bito-ui="next"] .desktop-composer-reveal,
+.desktop-chat[data-bito-ui="next"] .desktop-composer {
+  max-height: 160px;
+  border-radius: 20px;
+}
+.desktop-chat[data-bito-ui="next"] .desktop-composer > .bito-chat-composer {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) 30px;
+  gap: 4px;
+  padding: 4px 6px 6px 10px;
+  border-radius: 16px;
+}
+.desktop-chat[data-bito-ui="next"] .bito-composer-input-slot {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+.desktop-chat[data-bito-ui="next"] .desktop-composer textarea {
+  margin: 2px 0;
+}
+.desktop-chat[data-bito-ui="next"] .bito-composer-actions-start {
+  grid-column: 1;
+  grid-row: 2;
+  margin-left: -4px;
+}
+.desktop-chat[data-bito-ui="next"] .bito-composer-actions-end {
+  grid-column: 2;
+  grid-row: 2;
+}
+.desktop-chat[data-bito-ui="next"] .desktop-more:disabled {
+  opacity: 0.45;
+}

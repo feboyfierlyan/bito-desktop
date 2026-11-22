@@ -187,7 +187,7 @@ export function DesktopChat({
     y: number;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [composerHeight, setComposerHeight] = useState(42);
+  const [composerHeight, setComposerHeight] = useState(80);
   const filesVisible = !!(files.length || fileBusy || fileError || state.selectedArea);
   useEffect(() => {
     const node = fileRail.current;
@@ -395,7 +395,8 @@ export function DesktopChat({
       el.style.height = "0px";
       const height = Math.min(104, Math.max(24, el.scrollHeight));
       el.style.height = `${height}px`;
-      setComposerHeight(Math.max(42, height + 18));
+      // Text row plus the tool row, paddings and border of the prompt bar.
+      setComposerHeight(height + 56);
     }
   }, [text, panel, composerWidth]);
   useLayoutEffect(() => {
@@ -1567,6 +1568,29 @@ export function DesktopChat({
                   />
                 }
                 footerActions={
+                  <>
+                    <MotionBitoButton
+                      type="button"
+                      className="desktop-more"
+                      aria-label="Lampirkan dokumen"
+                      title="Lampirkan dokumen"
+                      disabled={state.busy || fileBusy}
+                      whileTap={reduced ? undefined : { scale: 0.88 }}
+                      onClick={() => action(() => void prepareFiles())}
+                    >
+                      <Paperclip size={18} />
+                    </MotionBitoButton>
+                    <MotionBitoButton
+                      type="button"
+                      className="desktop-more"
+                      aria-label="Tanya area layar"
+                      title="Tanya area layar"
+                      disabled={state.busy}
+                      whileTap={reduced ? undefined : { scale: 0.88 }}
+                      onClick={() => action(() => void act("select-area"))}
+                    >
+                      <ScanLine size={18} />
+                    </MotionBitoButton>
                   <MotionBitoButton
                     ref={dots}
                     type="button"
@@ -1596,6 +1620,7 @@ export function DesktopChat({
                   >
                     <MoreVertical size={23} strokeWidth={3} />
                   </MotionBitoButton>
+                  </>
                 }
                 sendButton={
                   <MotionBitoButton
@@ -1642,30 +1667,6 @@ export function DesktopChat({
                 {...popoverMotion}
                 onKeyDown={menuKeys}
               >
-                <BitoButton
-                  role="menuitem"
-                  disabled={state.busy}
-                  onClick={() =>
-                    action(() => {
-                      void prepareFiles();
-                    })
-                  }
-                >
-                  <Paperclip size={15} />
-                  Lampirkan dokumen
-                </BitoButton>
-                <BitoButton
-                  role="menuitem"
-                  disabled={state.busy}
-                  onClick={() =>
-                    action(() => {
-                      void act("select-area");
-                    })
-                  }
-                >
-                  <ScanLine size={15} />
-                  Tanya area layar
-                </BitoButton>
                 <BitoButton
                   role="menuitem"
                   disabled={state.busy}
