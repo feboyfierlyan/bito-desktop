@@ -397,6 +397,38 @@ body[data-surface="pet"] .toast {
   transition: width 260ms var(--bito-ease-out) 55ms;
 }
 
+.pet-tool-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgba(22, 30, 24, 0.92);
+  font: 600 11px/1.3 var(--bito-font);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: pet-tool-label-in 120ms var(--bito-ease-out);
+}
+
+@keyframes pet-tool-label-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 3px);
+  }
+}
+
+.pet.dragging .pet-tool-label {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-tool-label {
+    animation: none;
+  }
+}
+
 .pet-idle-handle {
   position: absolute;
   top: 50%;

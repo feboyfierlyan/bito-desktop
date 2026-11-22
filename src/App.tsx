@@ -148,6 +148,15 @@ export default function App() {
   );
 }
 function Pet({ state }: { state: Snapshot }) {
+  const [toolLabel, setToolLabel] = useState("");
+  // The dock names the action under the pointer or focus right away; a
+  // native title tooltip takes over a second to appear.
+  const toolHint = (label: string) => ({
+    onPointerEnter: () => setToolLabel(label),
+    onPointerLeave: () => setToolLabel(""),
+    onFocus: () => setToolLabel(label),
+    onBlur: () => setToolLabel(""),
+  });
   const releaseVisual = useRef<HTMLDivElement>(null);
   const release = state.presentation?.release;
   useLayoutEffect(() => {
@@ -348,6 +357,11 @@ function Pet({ state }: { state: Snapshot }) {
             onPointerUp={(e) => e.stopPropagation()}
             onContextMenu={(e) => e.stopPropagation()}
           >
+            {toolLabel && (
+              <span className="pet-tool-label" aria-hidden="true">
+                {toolLabel}
+              </span>
+            )}
             <span className="pet-idle-handle" aria-hidden="true">
               <span className="pet-glass-edge" />
             </span>
@@ -355,7 +369,7 @@ function Pet({ state }: { state: Snapshot }) {
               <button
                 type="button"
                 aria-label="Ngobrol dengan Bito"
-                title="Ngobrol"
+                {...toolHint("Ngobrol")}
                 onClick={() => api.toggleChat()}
               >
                 <MessageCircle size={16} strokeWidth={1.8} />
@@ -363,7 +377,7 @@ function Pet({ state }: { state: Snapshot }) {
               <button
                 type="button"
                 aria-label="Tanya area layar"
-                title="Tanya area layar"
+                {...toolHint("Tanya area layar")}
                 disabled={state.busy}
                 onClick={() => void api.command("select-area")}
               >
@@ -372,7 +386,7 @@ function Pet({ state }: { state: Snapshot }) {
               <button
                 type="button"
                 aria-label="Buka Ruang Kerja"
-                title="Ruang Kerja"
+                {...toolHint("Ruang Kerja")}
                 onClick={() => void api.command("project-open")}
               >
                 <FolderOpen size={16} strokeWidth={1.8} />
@@ -380,7 +394,7 @@ function Pet({ state }: { state: Snapshot }) {
               <button
                 type="button"
                 aria-label="Menu Bito"
-                title="Menu Bito"
+                {...toolHint("Menu Bito")}
                 onClick={() => api.contextMenu()}
               >
                 <MoreHorizontal size={16} strokeWidth={1.8} />
