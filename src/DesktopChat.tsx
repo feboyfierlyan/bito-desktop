@@ -1535,6 +1535,11 @@ export function DesktopChat({
                         ),
                       );
                       if (!imageItems.length || state.busy || fileBusy) return;
+                      if (files.length >= 3) {
+                        event.preventDefault();
+                        setFileError("Maksimal tiga lampiran sekali kirim.");
+                        return;
+                      }
                       const pastedFiles = imageItems
                         .map((item) => item.getAsFile())
                         .filter((f): f is File => !!f && f.size <= 6 * 1024 * 1024);

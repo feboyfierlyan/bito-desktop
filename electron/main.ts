@@ -1322,8 +1322,8 @@ function showChat() {
   }
   publish();
 }
-function hideChat(cancelGuide = true) {
-  selectedArea.clear();
+function hideChat(cancelGuide = true, keepArea = false) {
+  if (!keepArea) selectedArea.clear();
   if (cancelGuide) screenGuide.cancel();
   dismissGreeting(true);
   notificationNotBefore = Date.now() + 800;
@@ -1620,7 +1620,13 @@ let studioRoute = "settings",
   studioRevealRequested = false;
 function showStudio(route: string) {
   void areaSelection.cancel();
-  selectedArea.clear();
+  // An unsent screen area is part of the draft, so it survives the chat
+  // stepping aside for Settings or Ruang Kerja (it still expires on its own).
+  const stepAside =
+    chatOpen &&
+    !cloudLocked() &&
+    !["auth", "onboarding", "welcome"].includes(route);
+  if (!stepAside) selectedArea.clear();
   screenGuide.cancel();
   if (cloudLocked()) route = "auth";
   if (route === "auth" && studio?.isFullScreen()) {
@@ -1658,7 +1664,7 @@ function showStudio(route: string) {
   if (welcome) beginPresentation();
   // The chat floats above every window, so it steps aside for Settings and
   // Ruang Kerja instead of covering them.
-  if (chatOpen && !welcome && !login) hideChat();
+  if (chatOpen && !welcome && !login) hideChat(true, true);
   studioRoute = route;
   studioCanClose = false;
   studioRevealRequested = true;

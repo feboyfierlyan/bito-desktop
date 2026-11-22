@@ -153,7 +153,6 @@ function Pet({ state }: { state: Snapshot }) {
   // native title tooltip takes over a second to appear.
   const toolHint = (label: string) => ({
     onPointerEnter: () => setToolLabel(label),
-    onPointerLeave: () => setToolLabel(""),
     onFocus: () => setToolLabel(label),
     onBlur: () => setToolLabel(""),
   });
@@ -365,7 +364,10 @@ function Pet({ state }: { state: Snapshot }) {
             <span className="pet-idle-handle" aria-hidden="true">
               <span className="pet-glass-edge" />
             </span>
-            <div className="pet-tool-actions">
+            <div
+              className="pet-tool-actions"
+              onPointerLeave={() => setToolLabel("")}
+            >
               <button
                 type="button"
                 aria-label="Ngobrol dengan Bito"

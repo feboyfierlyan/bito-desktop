@@ -127,6 +127,11 @@
   box-shadow: none;
 }
 
+.desktop-chat[data-bito-ui="next"] .result-status {
+  flex: none;
+}
+
 .desktop-chat[data-bito-ui="next"] .result-status .bx-chip {
   font-size: 10px;
+  white-space: nowrap;
 }
