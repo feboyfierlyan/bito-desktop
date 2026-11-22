@@ -1656,6 +1656,9 @@ function showStudio(route: string) {
     beginPresentation("login");
   }
   if (welcome) beginPresentation();
+  // The chat floats above every window, so it steps aside for Settings and
+  // Ruang Kerja instead of covering them.
+  if (chatOpen && !welcome && !login) hideChat();
   studioRoute = route;
   studioCanClose = false;
   studioRevealRequested = true;
