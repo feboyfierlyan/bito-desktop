@@ -29,7 +29,7 @@
 }
 .gx-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
   gap: 16px;
   max-width: 1240px;
   margin: 0 auto;
@@ -64,6 +64,7 @@
 }
 .gx-col {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 .gx-center {

@@ -45,7 +45,13 @@ export function Loader({
       <Sprout />
       <span className="bx-shimmer">{label}</span>
       {elapsedSeconds !== undefined && (
-        <span className="bx-loader-time">{seconds(elapsedSeconds)}</span>
+        <span className="bx-loader-time" aria-hidden>
+          {elapsedSeconds.toLocaleString("id-ID", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          })}{" "}
+          dtk
+        </span>
       )}
     </span>
   );

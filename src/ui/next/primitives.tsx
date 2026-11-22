@@ -1,12 +1,28 @@
 import {
   useId,
+  useSyncExternalStore,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
 import { Check, LoaderCircle } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+/** Follows the OS setting live; motion's own hook only reads it once. */
+export function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (notify) => {
+      const media = window.matchMedia?.(REDUCED_MOTION);
+      media?.addEventListener?.("change", notify);
+      return () => media?.removeEventListener?.("change", notify);
+    },
+    () => window.matchMedia?.(REDUCED_MOTION).matches ?? false,
+    () => false,
+  );
+}
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -153,7 +169,7 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   const layoutId = useId();
-  const reduced = useReducedMotion();
+  const reduced = usePrefersReducedMotion();
   const move = (event: KeyboardEvent<HTMLDivElement>) => {
     const step =
       event.key === "ArrowRight" || event.key === "ArrowDown"

@@ -917,3 +917,21 @@ body[data-motion="reduced"] .bx-shimmer {
 [data-theme="dark"] .bx-segmented-thumb {
   background: var(--bx-line);
 }
+
+/* Long unbroken words wrap instead of widening the chat. */
+.bx-message-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bx-message[data-from="user"] .bx-message-body {
+  white-space: pre-wrap;
+}
+.bx-icon-button[data-tone="primary"]:hover:not(:disabled) {
+  background: var(--bx-leaf-strong);
+}
+.bx-button[data-variant="danger"]:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bx-danger) 16%, var(--bx-danger-soft));
+}
+.bx-loader-time {
+  min-width: 4.5em;
+}
