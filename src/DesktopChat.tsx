@@ -99,6 +99,11 @@ const MessageText = memo(function MessageText({
     </Markdown>
   );
 });
+// Stable identity: React calls it once when the notice mounts, not per render.
+const revealNotice = (el: HTMLElement | null) => {
+  el?.scrollIntoView({ block: "nearest" });
+};
+
 export function DesktopChat({
   state,
   act,
@@ -1464,7 +1469,7 @@ export function DesktopChat({
                   <span
                     className="desktop-file-error"
                     role="alert"
-                    ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+                    ref={revealNotice}
                   >
                     {fileError}
                     <BitoButton
