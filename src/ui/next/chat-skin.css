@@ -1,0 +1,76 @@
+@import "./next.css";
+
+/* Chat window on the new palette. The chat's own stylesheets still read the
+   legacy --bito-* names, so they are remapped here for this window only.
+   Aliases are listed one by one because the legacy ones resolve at :root. */
+.desktop-chat[data-bito-ui="next"] {
+  --bito-ink: var(--bx-ink);
+  --bito-ink-soft: var(--bx-ink-2);
+  --bito-text-primary: var(--bx-ink);
+  --bito-text-secondary: var(--bx-ink-2);
+  --bito-text-muted: var(--bx-ink-3);
+  --bito-secondary: var(--bx-ink-2);
+  --bito-muted: var(--bx-ink-3);
+
+  --bito-surface: var(--bx-card);
+  --bito-bg-surface: var(--bx-card);
+  --bito-surface-muted: var(--bx-sunk);
+  --bito-bg-muted: var(--bx-sunk);
+  --bito-surface-warm: var(--bx-paper);
+  --bito-bg-canvas: var(--bx-paper);
+  --bito-bg-elevated: color-mix(in srgb, var(--bx-paper) 96%, transparent);
+
+  --bito-hairline: var(--bx-line);
+  --bito-border-subtle: var(--bx-line);
+  --bito-rim-glass: var(--bx-line);
+  --bito-focus: var(--bx-focus);
+
+  --bito-error: var(--bx-danger);
+  --bito-status-danger: var(--bx-danger);
+  --bito-status-danger-bg: var(--bx-danger-soft);
+  --bito-warning: var(--bx-blush-ink);
+  --bito-status-warning: var(--bx-blush-ink);
+  --bito-status-warning-bg: var(--bx-blush-soft);
+
+  --bito-shadow-floating: var(--bx-shadow-2);
+  --bito-shadow-popover: var(--bx-shadow-2);
+  --bito-shadow-sm: var(--bx-shadow-1);
+
+  --desktop-blue: var(--bx-leaf);
+}
+
+/* Bito speaks in cream, the user in leaf green. */
+.desktop-chat[data-bito-ui="next"] .desktop-bubble {
+  --bubble-fill: var(--bx-cream);
+}
+.desktop-chat[data-bito-ui="next"] .desktop-message.user .desktop-bubble {
+  color: var(--bx-on-leaf);
+  --bubble-fill: var(--bx-leaf);
+}
+.desktop-chat[data-bito-ui="next"] .desktop-message.user .desktop-bubble a {
+  color: inherit;
+}
+
+.desktop-chat[data-bito-ui="next"] .desktop-send {
+  color: var(--bx-on-leaf);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.14);
+}
+.desktop-chat[data-bito-ui="next"] .desktop-send:hover:not(:disabled) {
+  background: var(--bx-leaf-strong);
+}
+.desktop-chat[data-bito-ui="next"] .desktop-send:disabled {
+  box-shadow: none;
+}
+
+/* Working indicator inside a Bito bubble. */
+.desktop-chat .bx-working {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.desktop-chat .desktop-starters .bx-suggestions {
+  justify-content: center;
+}

@@ -45,6 +45,8 @@ import { Bubble } from "./Bubble";
 import { SearchSources } from "./SearchSources";
 import { withWebCitations } from "./web-search";
 import { ResponseCards } from "./ResponseCards";
+import { Sprout, Suggestions } from "./ui/next";
+import "./ui/next/chat-skin.css";
 import { ChatProjectSelector } from "./ChatProjectSelector";
 import { api } from "./bridge";
 import {
@@ -722,6 +724,7 @@ export function DesktopChat({
     <main
       ref={root}
       className="desktop-chat"
+      data-bito-ui="next"
       onDragEnter={(event) => {
         if (!event.dataTransfer.types.includes("Files")) return;
         event.preventDefault();
@@ -1043,7 +1046,7 @@ export function DesktopChat({
             <div className="desktop-chat-stack" ref={stack}>
               {visibleMessages.length === 0 && !state.busy && <section className="desktop-chat-welcome" data-chat-hit aria-label="Mulai percakapan">
                 <div className="desktop-welcome-heading"><BitoMascot /><div><h2>Aku di sini.</h2><p>Mau mulai dari mana?</p></div></div>
-                <div className="desktop-starters">{["Bantu aku mulai", "Aku mau cerita"].map(prompt => <BitoButton key={prompt} type="button" onClick={() => { setText(prompt); textarea.current?.focus(); }}>{prompt}</BitoButton>)}</div>
+                <div className="desktop-starters"><Suggestions items={["Bantu aku mulai", "Aku mau cerita"]} onPick={(prompt) => { setText(prompt); textarea.current?.focus(); }} /></div>
               </section>}
               <AnimatePresence initial={false}>
                 {visibleMessages.map((m, index) => {
@@ -1148,24 +1151,14 @@ export function DesktopChat({
                                       openLink={openLink}
                                     />
                                   ) : (
-                                    <span
-                                      className="typing"
-                                      aria-label={
-                                        state.replyActivity?.phase ===
+                                    <span className="bx-working" role="status">
+                                      <Sprout />
+                                      <span className="bx-shimmer">
+                                        {state.replyActivity?.phase ===
                                         "searching"
-                                          ? "Bito sedang mencari di internet"
-                                          : "Bito sedang mengetik"
-                                      }
-                                    >
-                                      <i />
-                                      <i />
-                                      <i />
-                                      {state.replyActivity?.phase ===
-                                        "searching" && (
-                                        <span className="desktop-search-label">
-                                          Lagi cari…
-                                        </span>
-                                      )}
+                                          ? "Mencari di internet…"
+                                          : "Bito sedang berpikir…"}
+                                      </span>
                                     </span>
                                   )}
                                 </Bubble>
