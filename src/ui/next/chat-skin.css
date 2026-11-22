@@ -127,11 +127,21 @@
   box-shadow: none;
 }
 
-.desktop-chat[data-bito-ui="next"] .result-status {
+/* A status chip that does not fit beside the title drops to its own line
+   instead of spilling out of the card. */
+.desktop-chat[data-bito-ui="next"] .result-eyebrow:has(.bx-chip) {
+  flex-wrap: wrap;
+}
+
+.desktop-chat[data-bito-ui="next"] .result-status:has(.bx-chip) {
   flex: none;
+  max-width: 100%;
 }
 
 .desktop-chat[data-bito-ui="next"] .result-status .bx-chip {
   font-size: 10px;
   white-space: nowrap;
+  min-height: 20px;
+  gap: 4px;
+  padding: 0 7px 0 3px;
 }

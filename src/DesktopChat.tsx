@@ -1461,7 +1461,11 @@ export function DesktopChat({
                 ))}
                 {state.busy && files.length > 0 && <span className="desktop-file-status" role="status">Membaca lampiran…</span>}
                 {fileError && (
-                  <span className="desktop-file-error" role="alert">
+                  <span
+                    className="desktop-file-error"
+                    role="alert"
+                    ref={(el) => el?.scrollIntoView({ block: "nearest" })}
+                  >
                     {fileError}
                     <BitoButton
                       type="button"
@@ -1536,7 +1540,9 @@ export function DesktopChat({
                       );
                       if (!imageItems.length || state.busy || fileBusy) return;
                       if (files.length >= 3) {
-                        event.preventDefault();
+                        // Text copied together with a picture still pastes.
+                        if (!event.clipboardData?.getData("text/plain"))
+                          event.preventDefault();
                         setFileError("Maksimal tiga lampiran sekali kirim.");
                         return;
                       }
