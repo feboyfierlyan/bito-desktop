@@ -1,4 +1,5 @@
 import { BitoDisclosure } from "./ui/BitoDisclosure";
+import { ApprovalCard, ToolChip } from "./ui/next";
 import {
   BitoCheckbox as CheckboxInput,
   BitoProgressBar as ProgressBar,
@@ -113,19 +114,28 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
     const expired = now >= card.expiresAt;
     return (
       <>
-        <h3>
-          {card.status === "removed"
-            ? `${card.removedCount} tugas singkat dihapus.`
-            : card.status === "cancelled"
-              ? "Dibatalkan. Tugasmu tetap tersimpan."
-              : "Hapus tugas singkat?"}
-        </h3>
+        {card.status !== "pending" && (
+          <h3>
+            {card.status === "removed"
+              ? `${card.removedCount} tugas singkat dihapus.`
+              : "Dibatalkan. Tugasmu tetap tersimpan."}
+          </h3>
+        )}
         {card.status === "pending" && (
-          <>
-            <p>
-              {card.tasks.length} tugas singkat akan dihapus. Proyek dan
-              pengingat tetap tersimpan.
-            </p>
+          <ApprovalCard
+            title="Hapus tugas singkat?"
+            description={`${card.tasks.length} tugas singkat akan dihapus. Proyek dan pengingat tetap tersimpan.`}
+            confirmLabel={`Hapus ${card.tasks.length} tugas`}
+            danger
+            busy={pending}
+            confirmDisabled={state.busy || expired}
+            onConfirm={() =>
+              void request("quick-task-removal", { action: "confirm" })
+            }
+            onCancel={() =>
+              void request("quick-task-removal", { action: "cancel" })
+            }
+          >
             <BitoDisclosure>
               <summary>Lihat tugas</summary>
               <ul>
@@ -134,27 +144,8 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
                 ))}
               </ul>
             </BitoDisclosure>
-            <div className="result-actions">
-              <BitoButton
-                className="result-primary"
-                disabled={pending || state.busy || expired}
-                onClick={() =>
-                  void request("quick-task-removal", { action: "confirm" })
-                }
-              >
-                {pending ? "Memproses…" : `Hapus ${card.tasks.length} tugas`}
-              </BitoButton>
-              <BitoButton
-                disabled={pending || state.busy}
-                onClick={() =>
-                  void request("quick-task-removal", { action: "cancel" })
-                }
-              >
-                Batal
-              </BitoButton>
-            </div>
             {expired && <p>Konfirmasi kedaluwarsa. Minta hapus lagi, ya.</p>}
-          </>
+          </ApprovalCard>
         )}
         {notice}
       </>
@@ -393,7 +384,15 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
       <>
         <div className="result-eyebrow">
           <Timer size={15} /> Sesi fokus{" "}
-          <span className="result-status">{labels[timer.status]}</span>
+          <span className="result-status">
+            {timer.status === "running" ? (
+              <ToolChip status="running" label={labels.running} />
+            ) : timer.status === "complete" ? (
+              <ToolChip status="done" label={labels.complete} />
+            ) : (
+              labels[timer.status]
+            )}
+          </span>
         </div>
         <div
           className="result-timer"
@@ -508,15 +507,22 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         <div className="result-eyebrow">
           <Bell size={15} /> Pengingat{" "}
           <span className="result-status">
-            {!reminder
-              ? "Tidak tersedia"
-              : reminder.cancelled
-                ? "Dibatalkan"
-                : reminder.done
-                  ? "Selesai"
-                  : reminder.notified
-                    ? "Sudah diingatkan"
-                    : "Terjadwal"}
+            {!reminder ? (
+              "Tidak tersedia"
+            ) : reminder.cancelled ? (
+              "Dibatalkan"
+            ) : (
+              <ToolChip
+                status="done"
+                label={
+                  reminder.done
+                    ? "Selesai"
+                    : reminder.notified
+                      ? "Sudah diingatkan"
+                      : "Terjadwal"
+                }
+              />
+            )}
           </span>
         </div>
         <h3>{title}</h3>
@@ -628,7 +634,7 @@ function CardContent({ message, state, act, card, reduced }: CardProps) {
         <div className="result-eyebrow">
           <Bookmark size={15} /> Ingatan Bito{" "}
           <span className="result-status">
-            {live ? "Tersimpan" : "Diurungkan"}
+            {live ? <ToolChip status="done" label="Tersimpan" /> : "Diurungkan"}
           </span>
         </div>
         <p className="result-memory-text">{live?.text || card.text}</p>

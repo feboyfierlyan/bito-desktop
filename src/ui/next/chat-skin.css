@@ -117,3 +117,16 @@
 .desktop-chat[data-bito-ui="next"] .desktop-more:disabled {
   opacity: 0.45;
 }
+
+/* The approval sits inside a response card that already draws the surface. */
+.desktop-chat[data-bito-ui="next"] .response-card .bx-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.desktop-chat[data-bito-ui="next"] .result-status .bx-chip {
+  font-size: 10px;
+}
