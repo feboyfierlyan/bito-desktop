@@ -263,10 +263,10 @@ test("Thinking toggles its steps and reports expanded state", async () => {
         trigger.getAttribute("aria-controls")!,
       )!;
       assert.equal(trigger.getAttribute("aria-expanded"), "false");
-      assert.equal(body.hidden, true);
+      assert.equal(body.hasAttribute("inert"), true);
       await click(trigger);
       assert.equal(trigger.getAttribute("aria-expanded"), "true");
-      assert.equal(body.hidden, false);
+      assert.equal(body.hasAttribute("inert"), false);
       assert.match(trigger.textContent!, /Berpikir 2 dtk/);
     },
   );

@@ -76,7 +76,7 @@ export function Thinking({
         Berpikir {seconds(durationSeconds)}
         <ChevronDown size={13} aria-hidden />
       </button>
-      <div id={id} className="bx-thinking-body" data-open={open} hidden={!open}>
+      <div id={id} className="bx-thinking-body" data-open={open} inert={!open}>
         <ol>
           {steps.map((step) => (
             <li key={step}>{step}</li>

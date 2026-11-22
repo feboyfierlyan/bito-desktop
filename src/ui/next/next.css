@@ -400,10 +400,16 @@
 .bx-thinking-body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows var(--bx-dur-move) var(--bx-ease);
+  /* Hidden from assistive tech once the collapse has finished. */
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--bx-dur-move) var(--bx-ease),
+    visibility 0s linear var(--bx-dur-move);
 }
 .bx-thinking-body[data-open="true"] {
   grid-template-rows: 1fr;
+  visibility: visible;
+  transition-delay: 0s;
 }
 .bx-thinking-body > ol {
   min-height: 0;
