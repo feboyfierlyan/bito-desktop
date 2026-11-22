@@ -1,0 +1,117 @@
+/* Bito UI "next": palette, shape and motion derived from the mascot.
+   Scoped to [data-bito-ui="next"] so existing screens keep their tokens
+   until each window is migrated. */
+[data-bito-ui="next"] {
+  color-scheme: light;
+
+  --bx-font:
+    "Bito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bx-font-mono:
+    "SF Mono", "Cascadia Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  /* Type: four roles */
+  --bx-text-caption: 0.75rem;
+  --bx-text-body: 0.875rem;
+  --bx-text-title: 1.0625rem;
+  --bx-text-display: 1.625rem;
+
+  /* Space: 4px grid */
+  --bx-space-1: 4px;
+  --bx-space-2: 8px;
+  --bx-space-3: 12px;
+  --bx-space-4: 16px;
+  --bx-space-5: 24px;
+  --bx-space-6: 32px;
+
+  --bx-radius-control: 10px;
+  --bx-radius-card: 14px;
+  --bx-radius-panel: 22px;
+  --bx-radius-pill: 9999px;
+
+  /* Surfaces */
+  --bx-paper: #faf6ee;
+  --bx-card: #fffdf8;
+  --bx-sunk: #f1ebdf;
+  --bx-line: #e4dccc;
+  --bx-line-strong: #8a8372;
+
+  /* Text */
+  --bx-ink: #1d2a21;
+  --bx-ink-2: #4d5a51;
+  --bx-ink-3: #5c6760;
+
+  /* Mascot colours */
+  --bx-leaf: #2f7d3c;
+  --bx-leaf-strong: #235f2d;
+  --bx-leaf-soft: #e3f1dc;
+  --bx-sprout: #9fd98f;
+  --bx-cream: #fff1d6;
+  --bx-blush: #f3a56a;
+  --bx-blush-soft: #fdebdc;
+  --bx-blush-ink: #7d4212;
+  --bx-on-leaf: #ffffff;
+
+  --bx-danger: #b42318;
+  --bx-danger-soft: #fdecea;
+  --bx-focus: #1b6fd1;
+
+  --bx-shadow-1:
+    0 1px 0 rgba(29, 42, 33, 0.04), 0 1px 2px rgba(29, 42, 33, 0.06);
+  --bx-shadow-2:
+    0 18px 44px -14px rgba(29, 42, 33, 0.28), 0 3px 10px rgba(29, 42, 33, 0.07);
+
+  /* Motion: one curve, three durations */
+  --bx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --bx-dur-micro: 120ms;
+  --bx-dur-move: 220ms;
+  --bx-dur-enter: 400ms;
+
+  font-family: var(--bx-font);
+  font-size: var(--bx-text-body);
+  line-height: 1.45;
+  color: var(--bx-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-bito-ui="next"][data-theme="dark"],
+[data-theme="dark"] [data-bito-ui="next"] {
+  color-scheme: dark;
+  --bx-paper: #151a17;
+  --bx-card: #1c221e;
+  --bx-sunk: #101412;
+  --bx-line: #2c352f;
+  --bx-line-strong: #7f8b83;
+  --bx-ink: #eef2ec;
+  --bx-ink-2: #b9c4bb;
+  --bx-ink-3: #98a59b;
+  --bx-leaf: #7fcf74;
+  --bx-leaf-strong: #9fdc95;
+  --bx-leaf-soft: #1f3324;
+  --bx-sprout: #5faa55;
+  --bx-cream: #33301f;
+  --bx-blush: #f3a56a;
+  --bx-blush-soft: #3a281a;
+  --bx-blush-ink: #f6c39b;
+  --bx-on-leaf: #0f1a12;
+  --bx-danger: #f58a80;
+  --bx-danger-soft: #3a1c19;
+  --bx-focus: #7ab4ff;
+  --bx-shadow-1: 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --bx-shadow-2:
+    0 22px 56px -12px rgba(0, 0, 0, 0.7), 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-bito-ui="next"] {
+    --bx-dur-micro: 0ms;
+    --bx-dur-move: 0ms;
+    --bx-dur-enter: 0ms;
+  }
+}
+
+body[data-motion="reduced"] [data-bito-ui="next"],
+[data-bito-ui="next"][data-reduced-motion="true"] {
+  --bx-dur-micro: 0ms;
+  --bx-dur-move: 0ms;
+  --bx-dur-enter: 0ms;
+}

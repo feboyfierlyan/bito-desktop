@@ -1,0 +1,94 @@
+.gx-root {
+  min-height: 100vh;
+  padding: 28px;
+  background: var(--bx-paper);
+}
+.gx-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 1240px;
+  margin: 0 auto 22px;
+}
+.gx-top img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.gx-top div:first-of-type {
+  flex: 1;
+}
+.gx-top h1 {
+  margin: 0;
+  font-size: var(--bx-text-display);
+  letter-spacing: -0.02em;
+}
+.gx-top p {
+  margin: 0;
+  color: var(--bx-ink-2);
+}
+.gx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+.gx-section {
+  border: 1px solid var(--bx-line);
+  border-radius: var(--bx-radius-panel);
+  background: color-mix(in srgb, var(--bx-card) 55%, var(--bx-paper));
+}
+.gx-section > header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 16px 0;
+}
+.gx-section h2 {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.gx-section header small {
+  color: var(--bx-ink-3);
+  font-size: 0.6875rem;
+}
+.gx-stage {
+  padding: 14px 16px 18px;
+}
+.gx-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.gx-col {
+  display: grid;
+  gap: 10px;
+}
+.gx-center {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+.gx-nav {
+  max-width: 220px;
+  padding: 8px;
+  border-radius: 14px;
+  background: var(--bx-sunk);
+}
+.gx-swatches {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+.gx-swatches i {
+  display: block;
+  height: 34px;
+  border: 1px solid var(--bx-line);
+  border-radius: 9px;
+}
+.gx-swatches small {
+  color: var(--bx-ink-3);
+  font-size: 0.625rem;
+}
