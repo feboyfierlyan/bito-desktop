@@ -271,9 +271,13 @@ func capture(_ displayID: UInt32, selection: Bool = false) async -> [String: Any
         let filter = SCContentFilter(display: display, excludingApplications: apps, exceptingWindows: [])
         if #available(macOS 14.2, *) { filter.includeMenuBar = true }
         let config = SCStreamConfiguration()
-        let ratio = selection ? min(2.0, 3600.0 / max(display.frame.width, display.frame.height)) : min(1.0, 1800.0 / max(display.frame.width, display.frame.height))
+        // Asking for more pixels than the display has leaves the picture in
+        // the top-left corner of a larger canvas, so follow the real scale.
+        let native = CGDisplayCopyDisplayMode(displayID).map { CGFloat($0.pixelWidth) / max(1, display.frame.width) } ?? 1
+        let ratio = selection ? min(native, 2.0, 3600.0 / max(display.frame.width, display.frame.height)) : min(1.0, 1800.0 / max(display.frame.width, display.frame.height))
         config.width = Int((display.frame.width * ratio).rounded())
         config.height = Int((display.frame.height * ratio).rounded())
+        config.scalesToFit = true
         config.showsCursor = false
         let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
         let bitmap = NSBitmapImageRep(cgImage: image)
