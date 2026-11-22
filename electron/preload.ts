@@ -5,6 +5,14 @@ const api: BitoAPI = {
     try {
       if (!Array.isArray(files) || !files.length || files.length > 3) throw Error("Pilih maksimal tiga file.");
       const paths = files.map((file) => webUtils.getPathForFile(file));
+      if (paths.every((path) => !path))
+        return await ipcRenderer.invoke(
+          "bito:paste-images",
+          await Promise.all(
+            files.map(async (file) => ({ type: file.type, bytes: new Uint8Array(await file.arrayBuffer()) })),
+          ),
+          slots,
+        );
       if (paths.some((path) => !path)) throw Error("Pilih file dari perangkatmu.");
       return await ipcRenderer.invoke("bito:drop-files", paths, slots);
     } catch (error) {

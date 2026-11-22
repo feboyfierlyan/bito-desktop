@@ -2365,13 +2365,17 @@ function owned(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent) {
     event.senderFrame === event.sender.mainFrame
   );
 }
-async function prepareChatFiles(payload: unknown, selectedPaths?: string[]): Promise<Reply> {
+async function prepareChatFiles(
+  payload: unknown,
+  selectedPaths?: string[],
+  pasted?: { name: string; bytes: Uint8Array }[],
+): Promise<Reply> {
   if (switchingAccount || cloudLocked()) throw Error("Masuk ke Bito terlebih dahulu.");
     if (busy) throw Error("Tunggu proses sebelumnya selesai atau hentikan dahulu.");
     const args = parseFilePickerRequest(payload);
     const currentState = state, account = activeAccount, projectId = state.activeProjectId;
     const isCurrent = () => !quitting && !switchingAccount && state === currentState && activeAccount === account && state.activeProjectId === projectId;
-    let paths = selectedPaths;
+    let paths = pasted ? pasted.map((item) => item.name) : selectedPaths;
     if (!paths?.length) {
       const picked = await dialog.showOpenDialog({ properties: ["openFile", "multiSelections"], filters: [{ name: "Bahan tugas", extensions: ["pdf", "docx", "xlsx", "png", "jpg", "jpeg", "webp", "txt", "md", "csv", "json", "log"] }] });
       if (picked.canceled) return { ok: true, value: [] };
@@ -2382,8 +2386,8 @@ async function prepareChatFiles(payload: unknown, selectedPaths?: string[]): Pro
     if (paths.length > args.slots) throw Error("Pilih maksimal tiga file sekali kirim.");
     const staged: ReturnType<ChatFiles["stageBytes"]>[] = [];
     try {
-      for (const path of paths) {
-        const bytes = await readSelectedFile(path);
+      for (const [index, path] of paths.entries()) {
+        const bytes = pasted ? pasted[index].bytes : await readSelectedFile(path);
         if (!isCurrent()) throw Error("Konteks berubah. Tambahkan ulang file.");
         staged.push(chatFiles.stageBytes(path, bytes, {account: account || "preview", projectId}, thumbnail(bytes)));
       }
@@ -3583,6 +3587,36 @@ function registerIPC() {
       return await prepareChatFiles({ slots }, selected);
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : "File belum bisa dibaca." };
+    }
+  });
+  // Clipboard images have no path on disk, so their bytes come over IPC.
+  ipcMain.handle("bito:paste-images", async (event, images, slots) => {
+    if (!owned(event) || event.sender.id !== chat?.webContents.id)
+      return { ok: false, error: "Unauthorized" };
+    try {
+      const pasted = z
+        .array(
+          z.object({
+            type: z.enum(["image/png", "image/jpeg", "image/webp"]),
+            bytes: z
+              .instanceof(Uint8Array)
+              .refine((bytes) => bytes.length <= 6 * 1024 * 1024, "Gambar terlalu besar."),
+          }),
+        )
+        .min(1)
+        .max(3)
+        .parse(images);
+      const ext = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+      return await prepareChatFiles(
+        { slots },
+        undefined,
+        pasted.map((image, index) => ({
+          name: `Gambar tempel${pasted.length > 1 ? ` ${index + 1}` : ""}.${ext[image.type]}`,
+          bytes: image.bytes,
+        })),
+      );
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : "Gambar belum bisa ditempel." };
     }
   });
   ipcMain.handle("bito:state", (event) => {
