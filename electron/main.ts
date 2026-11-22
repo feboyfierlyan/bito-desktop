@@ -129,6 +129,7 @@ import {
   remaining,
   clampPosition,
   placeChat,
+  parsePatch,
 } from "./core";
 import type {
   AppState,
@@ -2960,7 +2961,7 @@ async function command(name: string, payload: any): Promise<Reply> {
     case "profile-patch":
       state.profile = profileSchema.parse({
         ...state.profile,
-        ...profileSchema.partial().parse(payload),
+        ...parsePatch(profileSchema, payload),
       });
       persist();
       break;
@@ -2995,7 +2996,7 @@ async function command(name: string, payload: any): Promise<Reply> {
     case "settings-patch": {
       const next = settingsSchema.parse(
         name === "settings-patch"
-          ? { ...state.settings, ...settingsSchema.partial().parse(payload) }
+          ? { ...state.settings, ...parsePatch(settingsSchema, payload) }
           : payload,
       );
       if (next.launchAtLogin !== state.settings.launchAtLogin) {

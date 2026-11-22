@@ -10,6 +10,7 @@ import {
   clampPosition,
   remaining,
   settingsSchema,
+  parsePatch,
   reminderSchema,
   systemPrompt,
 } from "../electron/core";
@@ -130,4 +131,16 @@ test("companion prompt uses chosen personality and does not claim unrestricted d
     /Only claim an action succeeded after a successful tool result/,
   );
   assert.match(prompt, /Only save memory when explicitly asked/);
+});
+
+test("a settings patch changes only the fields it sends", () => {
+  const saved = { ...defaultState().settings, theme: "dark" as const, projectNudges: false };
+  const next = settingsSchema.parse({
+    ...saved,
+    ...parsePatch(settingsSchema, { reducedMotion: true }),
+  });
+  assert.equal(next.reducedMotion, true);
+  assert.equal(next.theme, "dark");
+  assert.equal(next.projectNudges, false);
+  assert.throws(() => parsePatch(settingsSchema, { theme: "pink" }));
 });
